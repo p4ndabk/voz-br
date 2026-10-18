@@ -45,18 +45,10 @@ futuro começa lendo daqui.
 **Esforço estimado:** médio.
 **Work item:** não criado.
 
-### PT-06 — Mensagem de controle do pedido de apagar
-**O quê:** reconhecer a tag `voz` do pedido de apagar histórico.
-**Por que ficou de fora:** é a spec 0007; por enquanto esse texto apareceria como mensagem comum.
-**Onde:** `web/src/conversas/mensageria.ts` (`receberRumor`).
-**Impacto se continuar assim:** nenhum até a 0007 existir.
-**Esforço estimado:** baixo.
-**Work item:** não criado.
-
 ---
 
 ## Resolvidas
 
 | ID | Título | Resolvida em | Onde |
 |---|---|---|---|
-| | | | |
+| PT-06 | Mensagem de controle do pedido de apagar | 2026-10-18 | `web/src/conversas/mensageria.ts` (`receberRumor`), spec 0007 |

@@ -165,8 +165,8 @@ Cenário: minha chave principal não assina pedidos
 
 | # | Dúvida | Responsável | Prazo | Status |
 |---|---|---|---|---|
-| 1 | **No Voz do amigo, apagar é automático ou pede confirmação dele?** O pedido foi "apagar dos dois pontos", o que sugere automático. Por outro lado, é o histórico dele também. Recomendação: automático, com aviso depois ("{nome} apagou o histórico") e sem opção de recusar no Voz, porque recusar não impediria nada (ele já leu) e só tornaria o pedido inútil. | David | antes de implementar a 0007 | aberta |
-| 2 | O botão também deve existir por pessoa ("apagar só do meu aparelho", sem pedir nada a ninguém)? | David | antes de implementar a 0007 | aberta |
+| 1 | **No Voz do amigo, apagar é automático ou pede confirmação dele?** *Implementado como automático (recomendação).* O pedido foi "apagar dos dois pontos", o que sugere automático. Por outro lado, é o histórico dele também. Recomendação: automático, com aviso depois ("{nome} apagou o histórico") e sem opção de recusar no Voz, porque recusar não impediria nada (ele já leu) e só tornaria o pedido inútil. | David | antes de implementar a 0007 | respondida: automático, com aviso depois |
+| 2 | O botão também deve existir por pessoa ("apagar só do meu aparelho", sem pedir nada a ninguém)? | David | antes de implementar a 0007 | aberta: não implementado; ver `TODO.md` |
 
 **Decisões tomadas no refinamento**
 
@@ -177,11 +177,13 @@ Cenário: minha chave principal não assina pedidos
 | kind 5 assinado pela chave efêmera do embrulho | é a única chave que o relay aceita como autora; assinar com a principal revelaria o remetente | David |
 | Mensagem de controle dentro do NIP-17 com texto legível | o relay não vê que houve um pedido; quem usa outro cliente entende o recado | David |
 | Corte pelo instante do pedido | mensagens trocadas depois do pedido não podem sumir | David |
+| O histórico apagado guarda `apagadoAte` na conversa | os relays reentregam embrulhos antigos a cada reconexão; sem isso o histórico voltaria | Claude (a confirmar) |
+| Pedidos e aviso ficam numa fila persistente | sem rede o apagar local tem de funcionar e o pedido não pode se perder | Claude (a confirmar) |
 
 ## 10. Definition of Ready
 
 - [x] Seções 1 a 8 preenchidas
-- [ ] Nenhuma dúvida bloqueante em aberto (seção 9): **dúvida 1 aberta**
+- [x] Nenhuma dúvida bloqueante em aberto (seção 9): a 1 foi implementada pela recomendação, a revisar
 - [x] Contrato da API: N/A nesta spec
 - [ ] Regras de negócio aprovadas pelo P.O.
 - [x] Impacto em dados existentes: nenhum

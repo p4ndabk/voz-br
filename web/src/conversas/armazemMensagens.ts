@@ -1,4 +1,4 @@
-import { entries, get, set } from 'idb-keyval'
+import { del, entries, get, set } from 'idb-keyval'
 import type { EventoNostr } from '@/nostr/dm'
 
 export type EstadoMensagem = 'enviando' | 'enviada' | 'falhou' | 'recebida'
@@ -57,3 +57,43 @@ export function salvarEmbrulho(embrulho: EmbrulhoSalvo): Promise<void> {
 
 export const embrulhosDaMensagem = (rumorId: string) =>
   todos<EmbrulhoSalvo>(PREFIXO_EMBRULHO).then((lista) => lista.filter((e) => e.rumorId === rumorId))
+
+export async function removerMensagens(ids: string[]): Promise<void> {
+  await Promise.all(ids.map((id) => del(PREFIXO_MENSAGEM + id)))
+}
+
+export async function removerEmbrulhos(ids: string[]): Promise<void> {
+  await Promise.all(ids.map((id) => del(PREFIXO_EMBRULHO + id)))
+}
+
+export const embrulhosDaConversa = (conversa: string) =>
+  todos<EmbrulhoSalvo>(PREFIXO_EMBRULHO).then((lista) =>
+    lista.filter((e) => e.conversa === conversa),
+  )
+
+export async function registrarRelaysDoEmbrulho(id: string, relays: string[]): Promise<void> {
+  const atual = await get<EmbrulhoSalvo>(PREFIXO_EMBRULHO + id)
+  if (atual) await set(PREFIXO_EMBRULHO + id, { ...atual, relays })
+}
+
+// Fila de eventos que ainda precisam sair (pedidos de apagar e aviso ao amigo). Sobrevive a
+// fechar a pagina e e reenviada quando os relays voltam (RN-WEB-APAGAR-003).
+export interface ItemDaFila {
+  id: string
+  tipo: 'apagar' | 'aviso'
+  evento: EventoNostr
+  relays: string[]
+  tentativas: number
+}
+
+const PREFIXO_FILA = 'voz:fila:'
+
+export function salvarNaFila(item: ItemDaFila): Promise<void> {
+  return set(PREFIXO_FILA + item.id, item)
+}
+
+export const listarFila = () => todos<ItemDaFila>(PREFIXO_FILA)
+
+export function removerDaFila(id: string): Promise<void> {
+  return del(PREFIXO_FILA + id)
+}

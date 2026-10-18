@@ -6,7 +6,7 @@ import {
   verifyEvent,
   type NostrEvent,
 } from 'nostr-tools'
-import { bytesToHex } from 'nostr-tools/utils'
+import { bytesToHex, hexToBytes } from 'nostr-tools/utils'
 import { normalizarRelay } from './relays'
 import type { Assinante } from './signer/tipos'
 
@@ -16,7 +16,13 @@ export const KIND_MENSAGEM = 14
 export const KIND_SELO = 13
 export const KIND_EMBRULHO = 1059
 export const KIND_RELAYS_DM = 10050
+export const KIND_APAGAR = 5
 export const MAXIMO_RELAYS_DM = 5
+
+// Mensagem de controle do pedido de apagar historico (spec 0007): um rumor kind 14 comum, com
+// texto legivel para quem usa outro cliente e esta tag para o Voz: ["voz", "apagar-historico", limite].
+export const TAG_VOZ = 'voz'
+export const ACAO_APAGAR_HISTORICO = 'apagar-historico'
 
 // Evento "de verdade" (kind 14) que nunca e publicado sem estar dentro de um selo e um embrulho.
 export interface Rumor {
@@ -49,12 +55,13 @@ export function criarRumor(
   texto: string,
   relayDica: string | undefined,
   agora: number,
+  tagsExtras: string[][] = [],
 ): Rumor {
   const semId = {
     kind: KIND_MENSAGEM,
     pubkey: autor,
     created_at: agora,
-    tags: [relayDica ? ['p', amigo, relayDica] : ['p', amigo]],
+    tags: [relayDica ? ['p', amigo, relayDica] : ['p', amigo], ...tagsExtras],
     content: texto,
   }
   return { ...semId, id: getEventHash(semId) }
@@ -93,8 +100,9 @@ export async function criarEmbrulhos(
   texto: string,
   relayDica: string | undefined,
   agora = Math.floor(Date.now() / 1000),
+  tagsExtras: string[][] = [],
 ): Promise<{ rumor: Rumor; paraAmigo: Embrulho; paraMim: Embrulho }> {
-  const rumor = criarRumor(assinante.pubkey, amigo, texto, relayDica, agora)
+  const rumor = criarRumor(assinante.pubkey, amigo, texto, relayDica, agora, tagsExtras)
   const [paraAmigo, paraMim] = await Promise.all([
     embrulharPara(assinante, rumor, amigo, agora),
     embrulharPara(assinante, rumor, assinante.pubkey, agora),
@@ -170,4 +178,33 @@ export function relaysDoEvento(evento: NostrEvent | null): string[] {
     .map((t) => normalizarRelay(t[1]!))
     .filter((u): u is string => u !== null)
   return [...new Set(urls)].slice(0, MAXIMO_RELAYS_DM)
+}
+
+// RN-WEB-APAGAR-007: o pedido so vale ate o instante dele. O limite declarado nao pode passar do
+// created_at do proprio rumor (senao um pedido apagaria mensagens que ainda nem existem).
+// Tag ausente ou invalida: devolve null e o rumor segue como mensagem comum (nada e apagado).
+export function lerPedidoDeApagar(rumor: Rumor): number | null {
+  const tag = rumor.tags.find((t) => t[0] === TAG_VOZ && t[1] === ACAO_APAGAR_HISTORICO)
+  if (!tag || tag[2] === undefined || !/^\d{1,12}$/.test(tag[2])) return null
+  return Math.min(Number(tag[2]), rumor.created_at)
+}
+
+// RN-WEB-APAGAR-005: o pedido NIP-09 de cada embrulho e assinado pela chave efemera DELE (a unica
+// que o relay aceita como autora) e nunca pela chave principal.
+export function criarEventoDeApagar(
+  embrulho: { id: string; chaveEfemera: string },
+  agora = Math.floor(Date.now() / 1000),
+): NostrEvent {
+  return finalizeEvent(
+    {
+      kind: KIND_APAGAR,
+      created_at: agora,
+      tags: [
+        ['e', embrulho.id],
+        ['k', String(KIND_EMBRULHO)],
+      ],
+      content: '',
+    },
+    hexToBytes(embrulho.chaveEfemera),
+  )
 }

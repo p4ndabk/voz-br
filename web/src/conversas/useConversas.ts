@@ -29,6 +29,9 @@ interface EstadoConversas {
     propria?: boolean,
   ): Promise<Conversa>
   marcarVista(pubkey: string): Promise<void>
+  // Marca o historico como apagado ate `limite` (segundos). Cria a conversa se nao existir, para
+  // que mensagens antigas reenviadas pelos relays nao a ressuscitem.
+  registrarApagamento(pubkey: string, limite: number, por: 'eu' | 'outro'): Promise<void>
   // RN-WEB-CONVERSAS-008: tira da lista; nao apaga mensagens nem avisa o amigo.
   remover(pubkey: string): Promise<void>
 }
@@ -88,6 +91,23 @@ export const useConversas = create<EstadoConversas>((definir, obter) => {
     async marcarVista(pubkey) {
       const existente = await obterConversa(pubkey)
       if (existente?.novaPessoa) await gravar({ ...existente, novaPessoa: false })
+    },
+
+    async registrarApagamento(pubkey, limite, por) {
+      const existente = await obterConversa(pubkey)
+      const base: Conversa = existente ?? {
+        pubkey,
+        relaysDica: [],
+        criadaEm: limite,
+        novaPessoa: por === 'outro',
+      }
+      await gravar({
+        ...base,
+        apagadoAte: Math.max(base.apagadoAte ?? 0, limite),
+        apagadoPor: por,
+        ultimaMensagemEm: limite,
+        trecho: undefined,
+      })
     },
 
     async remover(pubkey) {

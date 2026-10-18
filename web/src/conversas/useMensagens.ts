@@ -15,6 +15,8 @@ interface EstadoMensagens {
   carregar(conversa: string): Promise<void>
   // Duplicada (mesmo id de rumor, vinda de outro relay ou da copia propria) e ignorada.
   inserir(mensagem: Mensagem): Promise<boolean>
+  // Tira da memoria as mensagens da conversa ate `limite` (o armazenamento e apagado a parte).
+  removerAte(conversa: string, limite: number): void
   atualizar(id: string, mudanca: { estado?: EstadoMensagem; semRelaysDm?: boolean }): Promise<void>
 }
 
@@ -40,6 +42,15 @@ export const useMensagens = create<EstadoMensagens>((definir, obter) => ({
       }
     })
     return true
+  },
+
+  removerAte(conversa, limite) {
+    definir((e) => ({
+      porConversa: {
+        ...e.porConversa,
+        [conversa]: (e.porConversa[conversa] ?? []).filter((m) => m.criadoEm > limite),
+      },
+    }))
   },
 
   async atualizar(id, mudanca) {

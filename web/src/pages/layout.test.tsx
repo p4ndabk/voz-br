@@ -95,7 +95,9 @@ describe('layout de duas colunas', () => {
 
   it('ordena a lateral pela ultima mensagem (a mais recente em cima)', async () => {
     abrir('/conversas')
-    await screen.findByRole('list', { name: 'Suas conversas' })
+    // A lista existe antes de as conversas carregarem: espera os itens.
+    await screen.findByRole('link', { name: /Maria/ })
+    await screen.findByRole('link', { name: /João/ })
     const nomesNaOrdem = within(screen.getByRole('list', { name: 'Suas conversas' }))
       .getAllByRole('link')
       .map((l) => (/Maria|João/.exec(l.textContent ?? '') ?? [])[0])

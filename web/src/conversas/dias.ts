@@ -33,3 +33,10 @@ export function horarioNaLista(segundos: number, agora = Date.now()): string {
   if (rotulo === t.mensagens.ontem) return rotulo
   return diaMesCurto.format(new Date(segundos * 1000))
 }
+
+const dataCompleta = new Intl.DateTimeFormat('pt-BR')
+
+// "18/10/2026"
+export function dataDe(segundos: number): string {
+  return dataCompleta.format(new Date(segundos * 1000))
+}

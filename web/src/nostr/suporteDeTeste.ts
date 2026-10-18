@@ -1,4 +1,4 @@
-import { finalizeEvent, generateSecretKey, getEventHash, nip44 } from 'nostr-tools'
+import { finalizeEvent, generateSecretKey, getEventHash, nip44, verifyEvent } from 'nostr-tools'
 import type { EventoNostr } from './dm'
 import type { Assinante } from './signer/tipos'
 
@@ -38,3 +38,6 @@ export async function embrulhoComSeloForjado(
     chave,
   )
 }
+
+// So para testes: a assinatura do evento confere com o autor.
+export const assinaturaConfere = (evento: EventoNostr): boolean => verifyEvent(evento)

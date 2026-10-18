@@ -9,6 +9,10 @@ export interface Conversa {
   ultimaMensagemEm?: number
   trecho?: string
   novaPessoa: boolean
+  // Historico apagado: mensagens com created_at ate este instante (em segundos) nao voltam, mesmo
+  // que um relay as entregue de novo (RN-WEB-APAGAR-009). `apagadoPor` diz quem pediu.
+  apagadoAte?: number
+  apagadoPor?: 'eu' | 'outro'
 }
 
 const PREFIXO = 'voz:conversa:'

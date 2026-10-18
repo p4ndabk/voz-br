@@ -119,13 +119,17 @@ export class GerenteDeRelays {
     evento: { id: string },
     tempoMs = TEMPO_PUBLICAR_MS,
     urls?: readonly string[],
-  ): Promise<{ aceitos: number; total: number }> {
+  ): Promise<{ aceitos: number; total: number; porRelay: Record<string, boolean> }> {
     this.iniciar()
     const alvos = this.garantirEntradas(urls)
     const respostas = await Promise.all(
       alvos.map((entrada) => this.enviarEvento(entrada, evento, tempoMs)),
     )
-    return { aceitos: respostas.filter(Boolean).length, total: alvos.length }
+    return {
+      aceitos: respostas.filter(Boolean).length,
+      total: alvos.length,
+      porRelay: Object.fromEntries(alvos.map((entrada, i) => [entrada.url, respostas[i] === true])),
+    }
   }
 
   // Relays que nao sao padrao viram conexoes extras, com reconexao como as demais.

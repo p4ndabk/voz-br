@@ -1,0 +1,86 @@
+# Regras do cliente web — apagar histórico (`web/src/conversas/apagar.ts`)
+
+Formato definido em [../README.md](../README.md). "Se violada" descreve o efeito na tela ou
+na privacidade. No Nostr ninguém força um relay ou o aparelho de outra pessoa a apagar: o que
+existe é o pedido (NIP-09), e estas regras existem para o Voz nunca prometer mais do que isso.
+
+---
+
+### RN-WEB-APAGAR-001 — Apagar exige duas etapas de confirmação
+**Regra:** o botão "Apagar histórico" abre um aviso; só depois de "Continuar" e de digitar exatamente `APAGAR` (maiúsculas) o botão "Apagar tudo" é habilitado. Cancelar em qualquer etapa não apaga nem publica nada.
+**Quando:** ao apagar.
+**Se violada:** a conversa seria apagada por um toque acidental.
+**Onde vive:** `web/src/pages/conversa/ModalApagarHistorico.tsx`
+**Teste:** `web/src/pages/apagar.test.tsx::RN-WEB-APAGAR-001`
+
+---
+
+### RN-WEB-APAGAR-002 — O apagamento local acontece sempre, mesmo sem internet
+**Regra:** as mensagens da conversa saem do aparelho (memória e IndexedDB) antes de qualquer tentativa de rede, e a sala continua na lista, vazia, com a marca "Histórico apagado em dd/mm/aaaa".
+**Quando:** ao apagar.
+**Se violada:** defeito de produto: o que é garantido (o aparelho) dependeria da rede.
+**Onde vive:** `web/src/conversas/apagar.ts` (`apagarLocal`), `web/src/pages/Conversa.tsx`
+**Teste:** `web/src/conversas/apagar.test.ts::RN-WEB-APAGAR-002 e 003` e `web/src/pages/apagar.test.tsx` ("a conversa fica vazia")
+
+---
+
+### RN-WEB-APAGAR-003 — Pedidos que não saem ficam numa fila e são reenviados
+**Regra:** os pedidos aos relays e o aviso ao amigo que nenhum relay aceitou ficam numa fila no IndexedDB. Ela é reenviada ao abrir o Voz e quando algum relay volta a conectar; item aceito sai da fila.
+**Quando:** ao apagar sem rede, e a cada reconexão.
+**Se violada:** defeito de produto: o pedido se perderia sem a pessoa saber.
+**Onde vive:** `web/src/conversas/apagar.ts` (`processarFila`), `web/src/conversas/mensageria.ts` (`iniciarMensageria`)
+**Teste:** `web/src/conversas/apagar.test.ts::RN-WEB-APAGAR-002 e 003` e "a fila e reenviada sozinha"
+
+---
+
+### RN-WEB-APAGAR-004 — O Voz do amigo apaga sozinho e avisa
+**Regra:** ao receber o pedido, o mesmo processo roda do lado dele: apaga a conversa até o instante do pedido, pede o apagamento dos embrulhos que ele criou e mostra "{nome} apagou o histórico desta conversa em dd/mm/aaaa." A mensagem de controle não aparece como balão. Antes de confirmar, quem pede lê: "Do seu aparelho, apagamos com certeza. Dos relays e do aparelho de {nome}, enviamos um pedido. A maioria atende, mas não dá para garantir, e quem já leu ou copiou pode ter guardado."
+**Quando:** receber o pedido; confirmar o apagar.
+**Se violada:** defeito de produto (e de honestidade, no caso do aviso).
+**Onde vive:** `web/src/conversas/apagar.ts` (`aplicarPedidoRecebido`), `web/src/conversas/mensageria.ts` (`receberRumor`), `web/src/pages/conversa/ModalApagarHistorico.tsx`
+**Teste:** `web/src/conversas/apagar.test.ts::RN-WEB-APAGAR-004` e `web/src/pages/apagar.test.tsx::RN-WEB-APAGAR-004`
+
+---
+
+### RN-WEB-APAGAR-005 — O pedido de cada embrulho é assinado pela chave efêmera dele
+**Regra:** o kind 5 (NIP-09) de cada embrulho é assinado pela chave efêmera guardada na hora do envio, a única que o relay aceita como autora, e nunca pela chave principal. Depois de assinado e enfileirado, o pedido não precisa mais da chave: ela é descartada junto com o embrulho salvo.
+**Quando:** ao apagar.
+**Se violada:** o pedido não vale (o relay exige o mesmo autor) e, assinado pela chave principal, revelaria quem enviou o embrulho.
+**Onde vive:** `web/src/nostr/dm.ts` (`criarEventoDeApagar`), `web/src/conversas/apagar.ts`
+**Teste:** `web/src/nostr/dm.test.ts::RN-WEB-APAGAR-005` e `web/src/conversas/apagar.test.ts::RN-WEB-APAGAR-005`
+
+---
+
+### RN-WEB-APAGAR-006 — O aviso ao amigo é uma mensagem NIP-17 comum
+**Regra:** o aviso vai como rumor kind 14 pelo caminho normal (selo e embrulho), com texto legível para quem usa outro cliente e a tag `["voz","apagar-historico",limite]` para o Voz. O relay não vê que houve um pedido de apagar.
+**Quando:** ao apagar.
+**Se violada:** defeito de privacidade (metadado novo exposto aos relays).
+**Onde vive:** `web/src/conversas/apagar.ts` (`apagarHistorico`), `web/src/nostr/dm.ts`
+**Teste:** `web/src/conversas/apagar.test.ts` ("avisa a amiga")
+
+---
+
+### RN-WEB-APAGAR-007 — O pedido só vale até o seu instante e só para quem o enviou
+**Regra:** só são afetadas as mensagens com `created_at` do rumor até o limite do pedido; o limite nunca passa do `created_at` do próprio pedido. Como a conversa afetada é sempre a de quem enviou o pedido, ninguém consegue apagar a sua conversa com um terceiro. Tag ausente ou inválida faz o texto aparecer como mensagem comum, sem apagar nada.
+**Quando:** apagar e receber pedido.
+**Se violada:** mensagem nova some indevidamente, ou um terceiro apagaria conversas alheias.
+**Onde vive:** `web/src/nostr/dm.ts` (`lerPedidoDeApagar`), `web/src/conversas/apagar.ts`, `web/src/conversas/mensageria.ts`
+**Teste:** `web/src/nostr/dm.test.ts::RN-WEB-APAGAR-007` e `web/src/conversas/apagar.test.ts::RN-WEB-APAGAR-007`
+
+---
+
+### RN-WEB-APAGAR-008 — O que não dá para pedir é informado
+**Regra:** mensagens minhas de que não há mais a chave efêmera (enviadas de outro aparelho ou antes de limpar o navegador) são contadas e a tela diz: "N mensagens antigas não puderam ser pedidas para apagar nos relays."
+**Quando:** ao apagar.
+**Se violada:** defeito de honestidade: a pessoa acharia que os relays foram avisados de tudo.
+**Onde vive:** `web/src/conversas/apagar.ts` (`apagarLocal`), `web/src/pages/conversa/ModalApagarHistorico.tsx`
+**Teste:** `web/src/conversas/apagar.test.ts::RN-WEB-APAGAR-008` e `web/src/pages/apagar.test.tsx::RN-WEB-APAGAR-008`
+
+---
+
+### RN-WEB-APAGAR-009 — O que foi apagado não volta
+**Regra:** a conversa guarda até quando o histórico foi apagado (`apagadoAte`). Embrulho que um relay reentregue (a assinatura é refeita a cada reconexão) com `created_at` até esse instante é ignorado, mesmo que o relay não tenha honrado o pedido.
+**Quando:** receber qualquer mensagem.
+**Se violada:** o histórico apagado ressuscitaria a cada reconexão.
+**Onde vive:** `web/src/conversas/mensageria.ts` (`receberRumor`), `web/src/conversas/useConversas.ts` (`registrarApagamento`)
+**Teste:** `web/src/conversas/apagar.test.ts::RN-WEB-APAGAR-009`. Limite: uma mensagem nova cujo remetente tenha o relógio atrasado, com `created_at` até o limite, também seria ignorada.

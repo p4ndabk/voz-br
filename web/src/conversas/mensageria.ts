@@ -3,12 +3,11 @@ import {
   criarEmbrulhos,
   KIND_EMBRULHO,
   KIND_RELAYS_DM,
+  lerPedidoDeApagar,
   parceiroDoRumor,
-  relaysDoEvento,
   type Embrulho,
   type Rumor,
 } from '@/nostr/dm'
-import { maisRecente } from '@/nostr/perfis'
 import { relaysPadrao, TEMPO_PUBLICAR_MS } from '@/nostr/config'
 import { relays } from '@/nostr/relays'
 import type { Assinante } from '@/nostr/signer/tipos'
@@ -16,10 +15,13 @@ import {
   embrulhosDaMensagem,
   listarTodasMensagens,
   obterMensagem,
+  registrarRelaysDoEmbrulho,
   salvarEmbrulho,
   type Mensagem,
 } from './armazemMensagens'
 import { obterConversa } from './armazem'
+import { aplicarPedidoRecebido, processarFila } from './apagar'
+import { meusRelaysDm, relaysDeDmDe, relaysDoAmigo } from './relaysDm'
 import { useConversas } from './useConversas'
 import { useMensagens } from './useMensagens'
 
@@ -35,31 +37,6 @@ export function validarTexto(texto: string): ValidacaoTexto {
 
 const trechoDe = (texto: string) => texto.replace(/\s+/g, ' ').trim().slice(0, 80)
 const agoraEmSegundos = () => Math.floor(Date.now() / 1000)
-
-async function relaysDm(pubkey: string): Promise<string[]> {
-  try {
-    const eventos = await relays.consultar({ kinds: [KIND_RELAYS_DM], authors: [pubkey], limit: 3 })
-    return relaysDoEvento(maisRecente(eventos, pubkey, KIND_RELAYS_DM))
-  } catch {
-    return []
-  }
-}
-
-// Relays para onde mandar o embrulho do amigo: a lista de DM dele (kind 10050). Sem ela,
-// as dicas do nprofile e os relays padrao do Voz, avisando que ele pode nao receber.
-export async function relaysDoAmigo(
-  pubkey: string,
-  dicas: string[],
-): Promise<{ urls: string[]; semRelaysDm: boolean }> {
-  const dele = await relaysDm(pubkey)
-  if (dele.length > 0) return { urls: dele, semRelaysDm: false }
-  return { urls: [...new Set([...dicas, ...relaysPadrao])], semRelaysDm: true }
-}
-
-async function meusRelaysDm(minhaPubkey: string): Promise<string[]> {
-  const meus = await relaysDm(minhaPubkey)
-  return meus.length > 0 ? meus : [...relaysPadrao]
-}
 
 async function publicarEm(embrulho: Embrulho, urls: string[]): Promise<number> {
   const { aceitos } = await relays.publicar(embrulho.evento, TEMPO_PUBLICAR_MS, urls)
@@ -77,6 +54,10 @@ async function publicarEPassar(
   const [amigo, meus] = await Promise.all([
     relaysDoAmigo(mensagem.conversa, conversa?.relaysDica ?? []),
     meusRelaysDm(minhaPubkey),
+  ])
+  await Promise.all([
+    registrarRelaysDoEmbrulho(paraAmigo.evento.id, amigo.urls),
+    registrarRelaysDoEmbrulho(paraMim.evento.id, meus),
   ])
   const [aceitosAmigo] = await Promise.all([
     publicarEm(paraAmigo, amigo.urls),
@@ -169,6 +150,16 @@ async function receberRumor(minhaPubkey: string, rumor: Rumor): Promise<void> {
   const parceiro = parceiroDoRumor(rumor, minhaPubkey)
   if (!parceiro || parceiro === minhaPubkey) return
   const propria = rumor.pubkey === minhaPubkey
+  // RN-WEB-APAGAR-009: o que foi apagado nao volta, mesmo que um relay reentregue o embrulho.
+  const conversa = await obterConversa(parceiro)
+  if (conversa?.apagadoAte !== undefined && rumor.created_at <= conversa.apagadoAte) return
+  // RN-WEB-APAGAR-007: o pedido so atinge a conversa com quem o enviou, entao ninguem consegue
+  // apagar a sua conversa com um terceiro.
+  const limite = lerPedidoDeApagar(rumor)
+  if (limite !== null) {
+    await aplicarPedidoRecebido(minhaPubkey, parceiro, limite, propria ? 'eu' : 'outro')
+    return
+  }
   const inserida = await useMensagens.getState().inserir({
     id: rumor.id,
     conversa: parceiro,
@@ -226,7 +217,7 @@ export function iniciarRecebimento(assinante: Assinante): () => void {
 
 // Primeiro login: sem lista de relays de DM (kind 10050), publica uma com os relays padrao.
 export async function garantirRelaysDm(assinante: Assinante): Promise<void> {
-  if ((await relaysDm(assinante.pubkey)).length > 0) return
+  if ((await relaysDeDmDe(assinante.pubkey)).length > 0) return
   const evento = await assinante.assinar({
     kind: KIND_RELAYS_DM,
     created_at: agoraEmSegundos(),
@@ -249,5 +240,14 @@ async function recuperarEnvios(): Promise<void> {
 export function iniciarMensageria(assinante: Assinante): () => void {
   void recuperarEnvios()
   void garantirRelaysDm(assinante).catch(() => {})
-  return iniciarRecebimento(assinante)
+  void processarFila().catch(() => {})
+  const pararRecebimento = iniciarRecebimento(assinante)
+  // RN-WEB-APAGAR-003: pedidos que nao puderam sair saem quando algum relay volta.
+  const pararFila = relays.assinar(() => {
+    if (relays.conectados() > 0) void processarFila().catch(() => {})
+  })
+  return () => {
+    pararRecebimento()
+    pararFila()
+  }
 }

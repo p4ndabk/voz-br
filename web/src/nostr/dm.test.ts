@@ -1,9 +1,20 @@
-import { finalizeEvent, generateSecretKey, getEventHash, nip17, nip44 } from 'nostr-tools'
+import {
+  finalizeEvent,
+  generateSecretKey,
+  getEventHash,
+  getPublicKey,
+  nip17,
+  nip44,
+  verifyEvent,
+} from 'nostr-tools'
+import { bytesToHex } from 'nostr-tools/utils'
 import { describe, expect, it } from 'vitest'
 import {
   abrirEmbrulho,
   criarEmbrulhos,
+  criarEventoDeApagar,
   criarRumor,
+  lerPedidoDeApagar,
   parceiroDoRumor,
   relaysDoEvento,
   type EventoNostr,
@@ -226,5 +237,70 @@ describe('interoperabilidade com a implementacao de referencia (nostr-tools)', (
 
     expect(rumor).toMatchObject({ pubkey: daAna.pubkey, content: 'tudo! e Platão?' })
     expect(parceiroDoRumor(rumor!, daBia.pubkey)).toBe(daAna.pubkey)
+  })
+})
+
+describe('pedido de apagar historico', () => {
+  const rumorCom = (tags: string[][], created_at = 1000) =>
+    criarRumor(ana.pubkey, bia.pubkey, 'x', undefined, created_at, tags)
+
+  it('RN-WEB-APAGAR-007: le o limite da tag voz', () => {
+    expect(lerPedidoDeApagar(rumorCom([['voz', 'apagar-historico', '1000']]))).toBe(1000)
+    expect(lerPedidoDeApagar(rumorCom([['voz', 'apagar-historico', '900']]))).toBe(900)
+  })
+
+  it('RN-WEB-APAGAR-007: o limite nao passa do created_at do proprio pedido', () => {
+    expect(lerPedidoDeApagar(rumorCom([['voz', 'apagar-historico', '999999999999']], 1000))).toBe(
+      1000,
+    )
+  })
+
+  it('tag ausente, de outra acao ou invalida nao e pedido (segue como mensagem comum)', () => {
+    expect(lerPedidoDeApagar(rumorCom([]))).toBeNull()
+    expect(lerPedidoDeApagar(rumorCom([['voz', 'outra-coisa', '1000']]))).toBeNull()
+    expect(lerPedidoDeApagar(rumorCom([['voz', 'apagar-historico']]))).toBeNull()
+    expect(lerPedidoDeApagar(rumorCom([['voz', 'apagar-historico', 'abc']]))).toBeNull()
+    expect(lerPedidoDeApagar(rumorCom([['voz', 'apagar-historico', '-5']]))).toBeNull()
+    expect(lerPedidoDeApagar(rumorCom([['voz', 'apagar-historico', '12.5']]))).toBeNull()
+  })
+
+  it('criarEmbrulhos leva a tag extra dentro do rumor, que o amigo le', async () => {
+    const { rumor, paraAmigo } = await criarEmbrulhos(
+      ana,
+      bia.pubkey,
+      'Ana apagou o historico',
+      undefined,
+      1000,
+      [['voz', 'apagar-historico', '1000']],
+    )
+    expect(rumor.tags).toEqual([
+      ['p', bia.pubkey],
+      ['voz', 'apagar-historico', '1000'],
+    ])
+    const aberto = await abrirEmbrulho(bia, JSON.parse(JSON.stringify(paraAmigo.evento)))
+    expect(lerPedidoDeApagar(aberto!)).toBe(1000)
+  })
+
+  it('RN-WEB-APAGAR-005: o kind 5 e assinado pela chave efemera do embrulho, nunca pela minha', async () => {
+    const { paraAmigo } = await criarEmbrulhos(ana, bia.pubkey, 'oi', undefined)
+    const evento = criarEventoDeApagar({
+      id: paraAmigo.evento.id,
+      chaveEfemera: paraAmigo.chaveEfemera,
+    })
+    expect(evento.kind).toBe(5)
+    expect(evento.tags).toEqual([
+      ['e', paraAmigo.evento.id],
+      ['k', '1059'],
+    ])
+    expect(evento.pubkey).toBe(paraAmigo.evento.pubkey) // o mesmo autor do embrulho (NIP-09)
+    expect(evento.pubkey).not.toBe(ana.pubkey)
+    expect(verifyEvent(evento)).toBe(true)
+  })
+
+  it('a chave efemera guardada corresponde ao autor do embrulho', async () => {
+    const { paraAmigo } = await criarEmbrulhos(ana, bia.pubkey, 'oi', undefined)
+    const chave = Uint8Array.from(paraAmigo.chaveEfemera.match(/../g)!.map((h) => parseInt(h, 16)))
+    expect(getPublicKey(chave)).toBe(paraAmigo.evento.pubkey)
+    expect(bytesToHex(chave)).toBe(paraAmigo.chaveEfemera)
   })
 })

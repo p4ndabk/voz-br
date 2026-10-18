@@ -33,6 +33,8 @@ const rede = vi.hoisted(() => ({
 vi.mock('@/nostr/relays', async (original) => ({
   ...(await original<typeof import('@/nostr/relays')>()),
   relays: {
+    assinar: vi.fn(() => () => {}),
+    conectados: vi.fn(() => 0),
     publicar: vi.fn(async (evento: EventoNostr, _t?: number, urls?: readonly string[]) => {
       if (rede.falhaAoPublicar) throw new Error('rede caiu')
       rede.publicados.push({ evento, urls })

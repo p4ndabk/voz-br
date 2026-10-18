@@ -4,6 +4,8 @@ import { Botao } from '@/components/ui/Botao'
 import { Identidade } from '@/components/ui/Identidade'
 import { Modal } from '@/components/ui/Modal'
 import { Selo } from '@/components/ui/Selo'
+import { apagarHistorico } from '@/conversas/apagar'
+import { dataDe } from '@/conversas/dias'
 import { enviarMensagem, reenviarMensagem } from '@/conversas/mensageria'
 import { useConversas } from '@/conversas/useConversas'
 import { useMensagens } from '@/conversas/useMensagens'
@@ -14,6 +16,7 @@ import { usePerfil } from '@/nostr/usePerfil'
 import { AvisoPrivacidade } from './conversa/AvisoPrivacidade'
 import { CampoMensagem } from './conversa/CampoMensagem'
 import { ListaMensagens } from './conversa/ListaMensagens'
+import { ModalApagarHistorico } from './conversa/ModalApagarHistorico'
 
 const MARGEM_DO_FIM_PX = 80
 const SEM_MENSAGENS: never[] = []
@@ -31,7 +34,9 @@ export function Conversa() {
   const mensagens = useMensagens((s) => s.porConversa[pubkey]) ?? SEM_MENSAGENS
   const carregarMensagens = useMensagens((s) => s.carregar)
   const perfil = usePerfil(pubkey)
+  const meuPerfil = usePerfil(assinante?.pubkey ?? pubkey)
   const [modal, setModal] = useState(false)
+  const [apagando, setApagando] = useState(false)
   const [novas, setNovas] = useState(false)
   const rolagem = useRef<HTMLDivElement>(null)
   const pertoDoFim = useRef(true)
@@ -114,6 +119,13 @@ export function Conversa() {
         </div>
         {/* RN-WEB-CONVERSAS-007 e RN-WEB-MENSAGENS-008: o selo Privado esta sempre a vista. */}
         <Selo tipo="privado" />
+        <Botao
+          variante="secundario"
+          className="px-3 py-1.5 text-sm"
+          onClick={() => setApagando(true)}
+        >
+          {t.apagar.botao}
+        </Botao>
         <Botao variante="secundario" className="px-3 py-1.5 text-sm" onClick={() => setModal(true)}>
           {t.conversas.remover}
         </Botao>
@@ -130,8 +142,24 @@ export function Conversa() {
       <div className="relative min-h-0 flex-1">
         <div ref={rolagem} onScroll={aoRolar} className="h-full overflow-y-auto px-4 py-3">
           <div className="mx-auto max-w-3xl">
+            {/* A sala continua, vazia, com a marca de quando o historico foi apagado. */}
+            {conversa.apagadoAte !== undefined && (
+              <p
+                data-testid="linha-apagado"
+                className="mb-3 rounded-cordel border-2 border-dashed border-borda px-3 py-1.5 text-center text-sm text-tinta-suave"
+              >
+                {conversa.apagadoPor === 'outro'
+                  ? t.apagar.linhaOutro(
+                      nomeExibido(perfil, conversa.pubkey).texto,
+                      dataDe(conversa.apagadoAte),
+                    )
+                  : t.apagar.linhaEu(dataDe(conversa.apagadoAte))}
+              </p>
+            )}
             {mensagens.length === 0 ? (
-              <p className="text-tinta-suave">{t.conversas.semMensagens}</p>
+              conversa.apagadoAte === undefined && (
+                <p className="text-tinta-suave">{t.conversas.semMensagens}</p>
+              )
             ) : (
               <ListaMensagens
                 mensagens={mensagens}
@@ -159,6 +187,20 @@ export function Conversa() {
           />
         </div>
       </div>
+
+      {apagando && (
+        <ModalApagarHistorico
+          nome={nomeExibido(perfil, conversa.pubkey).texto}
+          aoFechar={() => setApagando(false)}
+          aoApagar={() =>
+            apagarHistorico(
+              assinante,
+              conversa.pubkey,
+              nomeExibido(meuPerfil, assinante.pubkey).texto,
+            )
+          }
+        />
+      )}
 
       <Modal
         aberto={modal}

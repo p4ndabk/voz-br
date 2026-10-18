@@ -29,6 +29,22 @@ futuro começa lendo daqui.
 **Esforço estimado:** baixo.
 **Work item:** não criado.
 
+### PT-04 — Botão "apagar só do meu aparelho"
+**O quê:** opção que apaga só aqui, sem pedir nada a relay nem ao amigo (dúvida 2 da SPEC).
+**Por que ficou de fora:** ficou sem resposta; o único botão pedido foi o de apagar dos dois lados.
+**Onde:** `web/src/pages/conversa/ModalApagarHistorico.tsx`.
+**Impacto se continuar assim:** quem só quer limpar a própria tela precisa acionar também o pedido ao amigo.
+**Esforço estimado:** baixo.
+**Work item:** não criado.
+
+### PT-05 — Apagar o próprio aviso de controle
+**O quê:** pedir também o apagamento dos embrulhos do aviso ao amigo (hoje eles ficam nos relays; o conteúdo só diz que o histórico foi apagado).
+**Por que ficou de fora:** o aviso não é sensível e a chave efêmera dele não é guardada.
+**Onde:** `web/src/conversas/apagar.ts` (`apagarHistorico`).
+**Impacto se continuar assim:** sobra no relay um embrulho que revela, a quem tem a chave do destinatário, que houve um pedido.
+**Esforço estimado:** baixo.
+**Work item:** não criado.
+
 ---
 
 ## Resolvidas

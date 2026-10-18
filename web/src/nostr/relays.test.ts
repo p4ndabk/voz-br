@@ -165,7 +165,11 @@ describe('GerenteDeRelays', () => {
       ultimoSocket('wss://b').receber(['OK', 'abc', false, 'bloqueado'])
       await vi.advanceTimersByTimeAsync(5_000)
 
-      expect(await resultado).toEqual({ aceitos: 1, total: 3 })
+      expect(await resultado).toEqual({
+        aceitos: 1,
+        total: 3,
+        porRelay: { 'wss://a': true, 'wss://b': false, 'wss://c': false },
+      })
       expect(ultimoSocket('wss://c').enviados).toEqual([])
     })
 
@@ -175,7 +179,7 @@ describe('GerenteDeRelays', () => {
       const resultado = gerente.publicar({ id: 'xyz' }, 5_000)
       ultimoSocket('wss://a').abrir()
       ultimoSocket('wss://a').receber(['OK', 'xyz', true, ''])
-      expect(await resultado).toEqual({ aceitos: 1, total: 1 })
+      expect(await resultado).toMatchObject({ aceitos: 1, total: 1, porRelay: { 'wss://a': true } })
     })
 
     it('ignora OK de outro evento', async () => {
@@ -185,7 +189,11 @@ describe('GerenteDeRelays', () => {
       const resultado = gerente.publicar({ id: 'um' }, 1_000)
       ultimoSocket('wss://a').receber(['OK', 'outro', true, ''])
       await vi.advanceTimersByTimeAsync(1_000)
-      expect(await resultado).toEqual({ aceitos: 0, total: 1 })
+      expect(await resultado).toMatchObject({
+        aceitos: 0,
+        total: 1,
+        porRelay: { 'wss://a': false },
+      })
     })
   })
 
@@ -237,7 +245,11 @@ describe('GerenteDeRelays', () => {
       ])
       ultimoSocket('wss://amigo').receber(['OK', 'e1', true, ''])
 
-      expect(await resultado).toEqual({ aceitos: 1, total: 1 })
+      expect(await resultado).toMatchObject({
+        aceitos: 1,
+        total: 1,
+        porRelay: { 'wss://amigo': true },
+      })
       expect(ultimoSocket('wss://a').enviados).toEqual([]) // o padrao nao recebeu
       expect(gerente.total()).toBe(1)
       expect(gerente.conectados()).toBe(1)
