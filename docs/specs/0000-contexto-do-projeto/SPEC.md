@@ -123,8 +123,8 @@ Cenário: enviar mensagem direta
 
 | # | Dúvida | Responsável | Prazo | Status |
 |---|---|---|---|---|
-| 1 | **Qual o papel do backend FastAPI/Postgres?** O template é uma API em camadas, mas um cliente Nostr roda no navegador e fala direto com relays. Candidatos: servir NIP-05 (identificador `nome@dominio`), guardar índice de eventos/encontros, notificações push, proxy de mídia. Ou o produto pode ser só cliente web, e o template não se aplica. | David | antes da spec 0002 | aberta |
-| 2 | **Linha de privacidade.** "Chat totalmente privado" não é o que salas públicas NIP-28 entregam; DMs NIP-17 protegem o conteúdo, mas o relay vê metadados. Opção A: salas públicas + DMs, com aviso claro. Opção B: grupos criptografados (MLS/Marmot). | David | antes da spec 0002 | aberta |
+| 1 | **Qual o papel do backend FastAPI/Postgres?** O template é uma API em camadas, mas um cliente Nostr roda no navegador e fala direto com relays. Candidatos: servir NIP-05 (identificador `nome@dominio`), guardar índice de eventos/encontros, notificações push, proxy de mídia. Ou o produto pode ser só cliente web, e o template não se aplica. | David | antes da spec 0002 | **respondida em parte**: a API existe, mas fica fora do caminho da mensagem; o papel futuro (NIP-05, push, eventos) segue aberto |
+| 2 | **Linha de privacidade.** "Chat totalmente privado" não é o que salas públicas NIP-28 entregam; DMs NIP-17 protegem o conteúdo, mas o relay vê metadados. Opção A: salas públicas + DMs, com aviso claro. Opção B: grupos criptografados (MLS/Marmot). | David | antes da spec 0002 | **respondida: opção A** (DM NIP-17 com aviso de metadados) |
 | 3 | Nome definitivo do produto (Voz, Revoada ou combinação) e disponibilidade de domínio e handles. | David | — | aberta |
 | 4 | Quais relays usar por padrão, e se vamos operar um relay próprio. | David | — | aberta |
 | 5 | Como a interface em português lida com o vocabulário Nostr (relay, npub, nsec, zap)? Traduzir, manter ou explicar na interface. | David | — | aberta |
@@ -142,13 +142,21 @@ Cenário: enviar mensagem direta
 | Stack web: React + Vite + TypeScript | maior ecossistema Nostr (`nostr-tools`) | David |
 | Repositório `voz-br`, produto "Voz" | curto, sério, serve a um espaço político e filosófico | David |
 | Revoada como nome dos eventos | gostado, mas a conotação de festa combina mais com encontros do que com o produto | David |
+| A API não fica no caminho da mensagem | a mensagem vai assinada e criptografada do navegador aos relays; um servidor no meio saberia quem conversa com quem | David |
+| Front em `web/`, API na raiz, ponte só por HTTP | dá para separar o repositório movendo `web/` (spec 0002) | David |
+| Stack JS: pnpm, React Router, Zustand, `nostr-tools`, Tailwind, Vitest | mesmo papel de `uv`, `pytest` e `ruff`; `nostr-tools` é explícita sobre as chaves | David |
+| Primeira entrega: chat 1:1 privado (specs 0002–0007) | "duas pessoas se comunicarem" vem antes das salas públicas | David |
+| Entrar também por QR code (NIP-46) | atende quem guarda a chave num app de celular | David |
+| Lista de conversas só no navegador | ninguém fora do aparelho sabe com quem a pessoa conversa | David |
+| Apagar histórico = apagar local + pedir aos relays + avisar o amigo | é o máximo possível no Nostr; a interface diz o que não é garantido (spec 0007) | David |
+| Visual na direção Cordel | moderno e brasileiro, com identidade popular e política | David |
 
 ## 10. Definition of Ready
 
 Para esta spec servir de base às seguintes:
 
 - [x] Seções 1 a 5 preenchidas
-- [ ] Nenhuma dúvida bloqueante em aberto (seção 9): **dúvidas 1 e 2 abertas**
+- [x] Nenhuma dúvida bloqueante em aberto (seção 9): dúvidas 1 e 2 respondidas
 - [x] Contrato da API: N/A nesta spec
 - [ ] Regras de negócio aprovadas pelo P.O.
 - [x] Impacto em dados existentes: nenhum (projeto novo)

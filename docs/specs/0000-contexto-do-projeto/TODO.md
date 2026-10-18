@@ -13,14 +13,6 @@ futuro começa lendo daqui.
 **Esforço estimado:** baixo.
 **Work item:** não criado.
 
-### PT-02 — Definir onde mora o cliente web
-**O quê:** o template cobre só o backend em Python. O cliente React + Vite + TypeScript precisa de um lugar (ex.: `web/` na raiz, ou `apps/web`).
-**Por que ficou de fora:** depende da dúvida 1; se não houver backend, a estrutura inteira muda.
-**Onde:** raiz do repositório.
-**Impacto se continuar assim:** sem lugar definido, o cliente nasce improvisado.
-**Esforço estimado:** baixo.
-**Work item:** não criado.
-
 ### PT-03 — Verificar nome, domínio e handles
 **O quê:** checar `voz` e `revoada` em domínios (`.app`, `.chat`, `.com.br`, `.org`), redes sociais e NIP-05.
 **Por que ficou de fora:** a busca na web não consulta registro de domínio; precisa de `whois`/`dig`.
@@ -43,4 +35,4 @@ futuro começa lendo daqui.
 
 | ID | Título | Resolvida em | Onde |
 |---|---|---|---|
-| | | | |
+| PT-02 | Definir onde mora o cliente web | 2026-10-18 | `web/`, ver [spec 0002](../0002-fundacao-cliente-web/SPEC.md) |
