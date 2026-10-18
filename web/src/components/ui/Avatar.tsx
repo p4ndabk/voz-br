@@ -1,7 +1,11 @@
+import { useState } from 'react'
+
 interface Props {
   // Texto que define o desenho (a pubkey, quando houver). Mesmo texto, mesmo avatar.
   semente: string
   tamanho?: number
+  // Foto do perfil (http/https). Se faltar ou falhar, vale o desenho gerado.
+  foto?: string
 }
 
 function hash(texto: string): number {
@@ -34,9 +38,27 @@ function gerarCelulas(semente: string): { x: number; y: number }[] {
   return celulas
 }
 
-export function Avatar({ semente, tamanho = 40 }: Props) {
+export function Avatar({ semente, tamanho = 40, foto }: Props) {
+  const [falhou, setFalhou] = useState<string>()
   const celulas = gerarCelulas(semente)
   const destaque = hash(`${semente}:cor`) % 2 === 0
+
+  // RN-WEB-PERFIL-008: foto sem referrer (nao conta ao servidor da imagem de qual pagina veio).
+  if (foto && falhou !== foto) {
+    return (
+      <img
+        src={foto}
+        alt=""
+        width={tamanho}
+        height={tamanho}
+        loading="lazy"
+        referrerPolicy="no-referrer"
+        onError={() => setFalhou(foto)}
+        className="shrink-0 rounded-cordel border-2 border-borda bg-superficie object-cover"
+        style={{ width: tamanho, height: tamanho }}
+      />
+    )
+  }
 
   return (
     <svg

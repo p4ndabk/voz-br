@@ -1,11 +1,18 @@
 import { lazy, Suspense, useEffect, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { iniciarMensageria } from '@/conversas/mensageria'
+import { useConversas } from '@/conversas/useConversas'
+import { useMensagens } from '@/conversas/useMensagens'
 import { useSessao } from '@/nostr/useSessao'
 import { Conta } from '@/pages/Conta'
+import { Conversa } from '@/pages/Conversa'
+import { Conversas } from '@/pages/Conversas'
 import { Destravar } from '@/pages/Destravar'
 import { Entrar } from '@/pages/entrar/Entrar'
 import { Inicio } from '@/pages/Inicio'
+import { MeuCodigo } from '@/pages/MeuCodigo'
 import { NaoEncontrada } from '@/pages/NaoEncontrada'
+import { NovaConversa } from '@/pages/NovaConversa'
 
 // /estilo so existe em desenvolvimento; no build de producao o ramo some.
 const Estilo = import.meta.env.DEV
@@ -14,7 +21,7 @@ const Estilo = import.meta.env.DEV
 
 function SomenteDeslogado({ children }: { children: ReactNode }) {
   const fase = useSessao((s) => s.fase)
-  return fase === 'dentro' ? <Navigate to="/conta" replace /> : children
+  return fase === 'dentro' ? <Navigate to="/conversas" replace /> : children
 }
 
 function SomenteLogado({ children }: { children: ReactNode }) {
@@ -25,10 +32,24 @@ function SomenteLogado({ children }: { children: ReactNode }) {
 export function App() {
   const fase = useSessao((s) => s.fase)
   const restaurar = useSessao((s) => s.restaurar)
+  const assinante = useSessao((s) => s.assinante)
 
   useEffect(() => {
     void restaurar()
   }, [restaurar])
+
+  // Dentro: recebe as mensagens enderecadas a mim; ao sair (ou trocar de conta) para de receber.
+  useEffect(() => {
+    if (!assinante) return
+    return iniciarMensageria(assinante)
+  }, [assinante])
+
+  // RN-WEB-AUTH-008: depois de sair nada da conta anterior pode ficar na memoria da aba.
+  useEffect(() => {
+    if (fase !== 'fora') return
+    useConversas.setState({ conversas: [], carregada: false })
+    useMensagens.setState({ porConversa: {} })
+  }, [fase])
 
   // Enquanto le o IndexedDB nao desenhamos nada: evita piscar a tela de entrar.
   if (fase === 'carregando') return null
@@ -45,6 +66,38 @@ export function App() {
               <SomenteDeslogado>
                 <Entrar />
               </SomenteDeslogado>
+            }
+          />
+          <Route
+            path="/conversas"
+            element={
+              <SomenteLogado>
+                <Conversas />
+              </SomenteLogado>
+            }
+          />
+          <Route
+            path="/conversas/nova"
+            element={
+              <SomenteLogado>
+                <NovaConversa />
+              </SomenteLogado>
+            }
+          />
+          <Route
+            path="/conversas/:pubkey"
+            element={
+              <SomenteLogado>
+                <Conversa />
+              </SomenteLogado>
+            }
+          />
+          <Route
+            path="/meu-codigo"
+            element={
+              <SomenteLogado>
+                <MeuCodigo />
+              </SomenteLogado>
             }
           />
           <Route

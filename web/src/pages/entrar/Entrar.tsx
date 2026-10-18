@@ -48,7 +48,7 @@ export function Entrar() {
   const [erro, setErro] = useState<string>()
   const [aguardandoExtensao, setAguardandoExtensao] = useState(false)
   const temExtensao = extensaoDisponivel()
-  const aoEntrar = useCallback(() => navigate('/conta'), [navigate])
+  const aoEntrar = useCallback(() => navigate('/conversas'), [navigate])
 
   const viaExtensao = async () => {
     setErro(undefined)

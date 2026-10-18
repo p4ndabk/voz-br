@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { ESPERA_MAXIMA_MS } from './config'
-import { esperaDaTentativa, GerenteDeRelays, type EstadoRelay } from './relays'
+import { ESPERA_MAXIMA_MS, MAXIMO_RELAYS_EXTRAS } from './config'
+import { esperaDaTentativa, GerenteDeRelays, normalizarRelay, type EstadoRelay } from './relays'
 
 class SocketFalso {
   static todos: SocketFalso[] = []
@@ -186,6 +186,145 @@ describe('GerenteDeRelays', () => {
       ultimoSocket('wss://a').receber(['OK', 'outro', true, ''])
       await vi.advanceTimersByTimeAsync(1_000)
       expect(await resultado).toEqual({ aceitos: 0, total: 1 })
+    })
+  })
+
+  describe('consultar', () => {
+    it('junta os eventos de todos os relays e fecha a assinatura no EOSE', async () => {
+      const gerente = criar(['wss://a', 'wss://b'])
+      gerente.iniciar()
+      ultimoSocket('wss://a').abrir()
+      ultimoSocket('wss://b').abrir()
+
+      const resultado = gerente.consultar({ kinds: [0] }, 5_000)
+      const pedido = JSON.parse(ultimoSocket('wss://a').enviados[0] ?? '[]')
+      expect(pedido[0]).toBe('REQ')
+      expect(pedido[2]).toEqual({ kinds: [0] })
+      const id = pedido[1]
+
+      ultimoSocket('wss://a').receber(['EVENT', id, { id: 'e1' }])
+      ultimoSocket('wss://a').receber(['EOSE', id])
+      ultimoSocket('wss://b').receber(['EVENT', 'outra-assinatura', { id: 'ignorado' }])
+      ultimoSocket('wss://b').receber(['EVENT', id, { id: 'e2' }])
+      ultimoSocket('wss://b').receber(['EOSE', id])
+
+      expect(await resultado).toEqual([{ id: 'e1' }, { id: 'e2' }])
+      expect(ultimoSocket('wss://a').enviados[1]).toBe(JSON.stringify(['CLOSE', id]))
+    })
+
+    it('relay mudo nao trava: termina no tempo limite com o que ja chegou', async () => {
+      const gerente = criar(['wss://a', 'wss://b'])
+      gerente.iniciar()
+      ultimoSocket('wss://a').abrir() // wss://b nunca abre
+      const resultado = gerente.consultar({ kinds: [0] }, 3_000)
+      const id = JSON.parse(ultimoSocket('wss://a').enviados[0] ?? '[]')[1]
+      ultimoSocket('wss://a').receber(['EVENT', id, { id: 'e1' }])
+      await vi.advanceTimersByTimeAsync(3_000)
+      expect(await resultado).toEqual([{ id: 'e1' }])
+    })
+  })
+
+  describe('relays extras', () => {
+    it('publicar em urls especificas abre conexao extra que nao aparece no indicador', async () => {
+      const gerente = criar(['wss://a'])
+      gerente.iniciar()
+      ultimoSocket('wss://a').abrir()
+
+      const resultado = gerente.publicar({ id: 'e1' }, 5_000, ['wss://amigo/'])
+      ultimoSocket('wss://amigo').abrir()
+      expect(ultimoSocket('wss://amigo').enviados).toEqual([
+        JSON.stringify(['EVENT', { id: 'e1' }]),
+      ])
+      ultimoSocket('wss://amigo').receber(['OK', 'e1', true, ''])
+
+      expect(await resultado).toEqual({ aceitos: 1, total: 1 })
+      expect(ultimoSocket('wss://a').enviados).toEqual([]) // o padrao nao recebeu
+      expect(gerente.total()).toBe(1)
+      expect(gerente.conectados()).toBe(1)
+      expect(gerente.snapshot().map((r) => r.url)).toEqual(['wss://a'])
+    })
+
+    it('ignora url que nao e ws/wss e respeita o teto de extras', async () => {
+      const gerente = criar(['wss://a'])
+      gerente.iniciar()
+      const muitos = Array.from({ length: 20 }, (_, i) => `wss://extra${i}`)
+      const resultado = gerente.publicar({ id: 'x' }, 1_000, ['https://nao-e-relay', ...muitos])
+      await vi.advanceTimersByTimeAsync(1_000)
+      expect((await resultado).total).toBe(MAXIMO_RELAYS_EXTRAS)
+    })
+
+    it('parar descarta os extras', () => {
+      const gerente = criar(['wss://a'])
+      gerente.iniciar()
+      void gerente.publicar({ id: 'x' }, 1_000, ['wss://amigo'])
+      gerente.parar()
+      gerente.iniciar()
+      expect(SocketFalso.todos.filter((s) => s.url === 'wss://amigo')).toHaveLength(1)
+    })
+  })
+
+  describe('inscrever', () => {
+    it('envia o REQ quando o relay abre e entrega os eventos com o relay de origem', () => {
+      const gerente = criar(['wss://a'])
+      gerente.iniciar()
+      const recebidos: [unknown, string][] = []
+      gerente.inscrever({ kinds: [1059] }, (evento, relay) => recebidos.push([evento, relay]))
+
+      expect(ultimoSocket('wss://a').enviados).toEqual([]) // ainda nao abriu
+      ultimoSocket('wss://a').abrir()
+      const pedido = JSON.parse(ultimoSocket('wss://a').enviados[0] ?? '[]')
+      expect(pedido[0]).toBe('REQ')
+      expect(pedido[2]).toEqual({ kinds: [1059] })
+
+      ultimoSocket('wss://a').receber(['EVENT', pedido[1], { id: 'e1' }])
+      ultimoSocket('wss://a').receber(['EVENT', 'outra', { id: 'ignorado' }])
+      expect(recebidos).toEqual([[{ id: 'e1' }, 'wss://a']])
+    })
+
+    it('reenvia o REQ depois que o relay cai e volta', () => {
+      const gerente = criar(['wss://a'])
+      gerente.iniciar()
+      gerente.inscrever({ kinds: [1059] }, () => {})
+      ultimoSocket('wss://a').abrir()
+      ultimoSocket('wss://a').cair()
+      vi.advanceTimersByTime(1_000)
+      ultimoSocket('wss://a').abrir()
+      expect(ultimoSocket('wss://a').enviados).toHaveLength(1) // o socket novo recebeu o REQ
+      expect(JSON.parse(ultimoSocket('wss://a').enviados[0] ?? '[]')[0]).toBe('REQ')
+    })
+
+    it('inscrever com o relay ja aberto envia na hora, e cancelar manda CLOSE e para de entregar', () => {
+      const gerente = criar(['wss://a'])
+      gerente.iniciar()
+      ultimoSocket('wss://a').abrir()
+      const ouvinte = vi.fn()
+      const cancelar = gerente.inscrever({ kinds: [1059] }, ouvinte)
+      const id = JSON.parse(ultimoSocket('wss://a').enviados[0] ?? '[]')[1]
+
+      cancelar()
+      expect(ultimoSocket('wss://a').enviados[1]).toBe(JSON.stringify(['CLOSE', id]))
+      ultimoSocket('wss://a').receber(['EVENT', id, { id: 'tarde' }])
+      expect(ouvinte).not.toHaveBeenCalled()
+    })
+
+    it('inscrever em urls especificas so pede a esses relays', () => {
+      const gerente = criar(['wss://a'])
+      gerente.iniciar()
+      ultimoSocket('wss://a').abrir()
+      gerente.inscrever({ kinds: [1059] }, () => {}, ['wss://meu-dm'])
+      ultimoSocket('wss://meu-dm').abrir()
+      expect(ultimoSocket('wss://a').enviados).toEqual([])
+      expect(ultimoSocket('wss://meu-dm').enviados).toHaveLength(1)
+    })
+  })
+
+  describe('normalizarRelay', () => {
+    it('tira a barra final e recusa o que nao e ws/wss', () => {
+      expect(normalizarRelay(' wss://x.org/ ')).toBe('wss://x.org')
+      expect(normalizarRelay('ws://localhost:7777')).toBe('ws://localhost:7777')
+      expect(normalizarRelay('https://x.org')).toBeNull()
+      expect(normalizarRelay('x.org')).toBeNull()
+      expect(normalizarRelay('')).toBeNull()
     })
   })
 })

@@ -20,3 +20,9 @@ export const ESPERA_MAXIMA_MS = 60_000
 
 // Tempo maximo para um relay responder OK ao publicar um evento.
 export const TEMPO_PUBLICAR_MS = 10_000
+
+// Tempo maximo para os relays terminarem uma consulta (EOSE).
+export const TEMPO_CONSULTA_MS = 6_000
+
+// Teto de conexoes extras (relays do amigo etc.), para um relay malicioso nao encher o navegador.
+export const MAXIMO_RELAYS_EXTRAS = 12

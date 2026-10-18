@@ -37,4 +37,8 @@ export function npubDe(pubkey: string): string {
   return nip19.npubEncode(pubkey)
 }
 
+export function nprofileDe(pubkey: string, relays: string[]): string {
+  return nip19.nprofileEncode({ pubkey, relays })
+}
+
 export { bytesToHex, hexToBytes }

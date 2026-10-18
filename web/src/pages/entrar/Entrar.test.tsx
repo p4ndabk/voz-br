@@ -16,7 +16,7 @@ function abrir() {
     <MemoryRouter initialEntries={['/entrar']}>
       <Routes>
         <Route path="/entrar" element={<Entrar />} />
-        <Route path="/conta" element={<Conta />} />
+        <Route path="/conversas" element={<p>lista de conversas</p>} />
         <Route path="/" element={<p>inicio</p>} />
       </Routes>
     </MemoryRouter>,
@@ -43,7 +43,7 @@ describe('tela de entrar', () => {
     expect(screen.getByRole('link', { name: 'Como instalar' })).toBeInTheDocument()
   })
 
-  it('entrar com extensao leva a conta com a npub e sem tocar na chave secreta', async () => {
+  it('entrar com extensao leva as conversas, so com a chave publica', async () => {
     const pubkey = pubkeyDe(gerarChave())
     instalarExtensao({
       getPublicKey: async () => pubkey,
@@ -52,8 +52,10 @@ describe('tela de entrar', () => {
     })
     abrir()
     await userEvent.click(screen.getByRole('button', { name: /Entrar com extensão/ }))
-    expect(await screen.findByText(npubDe(pubkey))).toBeInTheDocument()
-    expect(screen.queryByRole('button', { name: 'Ver chave secreta' })).not.toBeInTheDocument()
+    expect(await screen.findByText('lista de conversas')).toBeInTheDocument()
+    const { assinante } = useSessao.getState()
+    expect(assinante?.pubkey).toBe(pubkey)
+    expect(assinante?.exportarNsec).toBeUndefined()
   })
 
   it('pedido recusado na extensao mostra a mensagem e continua fora', async () => {
@@ -80,7 +82,8 @@ describe('colar a nsec', () => {
     await irParaNsec()
     await userEvent.type(screen.getByLabelText(/Chave secreta \(nsec\)/), nsecDe(chave))
     await userEvent.click(screen.getByRole('button', { name: 'Entrar' }))
-    expect(await screen.findByText(npubDe(pubkeyDe(chave)))).toBeInTheDocument()
+    expect(await screen.findByText('lista de conversas')).toBeInTheDocument()
+    expect(useSessao.getState().assinante?.pubkey).toBe(pubkeyDe(chave))
   })
 
   it('nsec invalida: mensagem e nada guardado', async () => {
@@ -124,7 +127,7 @@ describe('criar identidade', () => {
     await criar('Maria')
     await userEvent.click(screen.getByLabelText('Guardei minha chave'))
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
-    expect(await screen.findByRole('heading', { name: 'Minha conta' })).toBeInTheDocument()
+    expect(await screen.findByText('lista de conversas')).toBeInTheDocument()
     await waitFor(() => expect(publicar).toHaveBeenCalledOnce())
     const evento = (publicar.mock.calls[0] as unknown as [{ kind: number; content: string }])[0]
     expect(evento.kind).toBe(0)
@@ -135,7 +138,7 @@ describe('criar identidade', () => {
     await criar('')
     await userEvent.click(screen.getByLabelText('Guardei minha chave'))
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
-    await screen.findByRole('heading', { name: 'Minha conta' })
+    await screen.findByText('lista de conversas')
     expect(publicar).not.toHaveBeenCalled()
   })
 
@@ -145,7 +148,7 @@ describe('criar identidade', () => {
     expect(nsec).toMatch(/^nsec1/)
     await userEvent.click(screen.getByLabelText('Guardei minha chave'))
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
-    await screen.findByRole('heading', { name: 'Minha conta' })
+    await screen.findByText('lista de conversas')
     expect(await lerSessaoSalva()).toMatchObject({ metodo: 'nsec', segredo: nsec })
   })
 })

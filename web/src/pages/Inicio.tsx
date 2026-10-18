@@ -14,10 +14,10 @@ export function Inicio() {
         <p className="font-display text-3xl leading-tight">{t.lema}</p>
         <p className="text-lg text-tinta-suave">{t.descricao}</p>
         <Link
-          to={dentro ? '/conta' : '/entrar'}
+          to={dentro ? '/conversas' : '/entrar'}
           className="inline-flex rounded-cordel border-2 border-borda bg-vermelho px-6 py-3 text-lg font-bold text-sobre-vermelho shadow-carimbo active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
         >
-          {dentro ? t.minhaConta : t.entrar}
+          {dentro ? t.conversas.titulo : t.entrar}
         </Link>
       </div>
       <footer className="pt-10">
