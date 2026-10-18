@@ -23,6 +23,21 @@ uv run alembic upgrade head
 uv run uvicorn app.main:app --reload   # http://localhost:8000/docs
 ```
 
+## Cliente web (`web/`)
+
+O front do Voz (React + Vite + TypeScript) vive em `web/`, **independente** da API:
+não importa nada de fora da pasta e só fala com a API por HTTP. A mensagem Nostr
+não passa pela API; vai do navegador direto aos relays. Regras em [`web/AGENTS.md`](web/AGENTS.md).
+
+```bash
+cd web
+corepack enable && pnpm install
+pnpm dev                    # http://localhost:5173  (guia de estilo em /estilo)
+pnpm lint && pnpm test && pnpm build
+```
+
+API e web sobem separadamente: `docker compose up -d web` sobe só o front.
+
 ## Arquitetura
 
 ```

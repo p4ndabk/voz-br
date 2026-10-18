@@ -1,0 +1,153 @@
+// RN-WEB-UI-001: todo texto visivel vem deste arquivo.
+export const t = {
+  marca: 'Voz',
+  lema: 'Conversa livre, sem dono.',
+  descricao:
+    'Um espaço para conversar sobre política e filosofia, em português, sem depender de uma plataforma central.',
+  entrar: 'Entrar',
+  relays: {
+    rotulo: 'Rede Nostr',
+    resumo: (conectados: number, total: number) =>
+      `${conectados} de ${total} ${total === 1 ? 'relay conectado' : 'relays conectados'}`,
+    semConexao: 'Sem conexão com a rede Nostr. Tentando de novo…',
+    estado: {
+      conectando: 'conectando',
+      conectado: 'conectado',
+      desconectado: 'desconectado',
+    },
+  },
+  selo: {
+    privado: 'Privado',
+    publico: 'Público',
+  },
+  modal: {
+    fechar: 'Fechar',
+  },
+  estilo: {
+    titulo: 'Guia de estilo',
+    tema: { sistema: 'Automático', claro: 'Claro', escuro: 'Escuro' },
+    botoes: 'Botões',
+    campos: 'Campos',
+    baloes: 'Balões',
+    selos: 'Selos',
+    avisos: 'Avisos',
+    avatar: 'Avatar',
+    modal: 'Modal',
+    abrirModal: 'Abrir modal',
+    exemploPrincipal: 'Principal',
+    exemploSecundario: 'Secundário',
+    exemploDesabilitado: 'Desabilitado',
+    exemploCampo: 'Chave do amigo',
+    exemploAjuda: 'Cole a chave que começa com npub1…',
+    exemploErro: 'Essa chave não parece válida.',
+    exemploOutro: 'oi, tudo bem?',
+    exemploMeu: 'tudo! e Platão?',
+    exemploAviso: 'Só você e o seu amigo leem o conteúdo.',
+    exemploAvisoErro: 'Não foi possível enviar. Tente de novo.',
+    exemploModalTitulo: 'Apagar histórico',
+    exemploModalTexto: 'Esta ação apaga a conversa deste aparelho.',
+  },
+  minhaConta: 'Minha conta',
+  copiar: 'Copiar',
+  copiado: 'Copiado',
+  voltar: 'Voltar',
+  entrarPagina: {
+    titulo: 'Entrar no Voz',
+    intro:
+      'Use a identidade Nostr que você já tem ou crie uma agora. Sua chave secreta nunca sai deste aparelho.',
+    extensao: {
+      titulo: 'Entrar com extensão',
+      descricao: 'Alby, nos2x e similares. O Voz nunca vê sua chave secreta.',
+      ausente: 'Nenhuma extensão encontrada',
+      comoInstalar: 'Como instalar',
+      entrando: 'Aguardando a extensão…',
+    },
+    qr: {
+      titulo: 'Entrar com QR code',
+      descricao: 'Para quem guarda a chave num app no celular (assinante NIP-46).',
+      instrucao: 'Leia este código com o seu app assinante e aprove a conexão.',
+      aguardando: 'Aguardando a aprovação no celular…',
+      copiarLink: 'Copiar link de conexão',
+      expirou: 'O código expirou',
+      gerarOutro: 'Gerar outro',
+      ouColar: 'Ou cole um link bunker://',
+      campoBunker: 'Link bunker://',
+      conectar: 'Conectar',
+      conectando: 'Conectando…',
+    },
+    nsec: {
+      titulo: 'Colar minha chave secreta',
+      descricao: 'Para quem já tem a chave (nsec) mas não usa extensão.',
+      risco:
+        'Atenção: quem tiver sua chave secreta controla sua identidade. Ela fica só neste navegador. Prefira uma extensão ou app assinante se puder.',
+      campo: 'Chave secreta (nsec)',
+      ajuda: 'Começa com nsec1…',
+      entrar: 'Entrar',
+    },
+    criar: {
+      titulo: 'Criar identidade nova',
+      descricao: 'Para quem nunca usou Nostr. A chave é gerada neste navegador.',
+      campoNome: 'Seu nome (opcional)',
+      ajudaNome: 'Aparece para quem conversar com você. Pode ficar em branco.',
+      criar: 'Criar identidade',
+      guardeTitulo: 'Guarde sua chave secreta',
+      guardeAviso:
+        'Esta chave é a sua identidade e não existe recuperação: se você perder, ninguém consegue devolver. Copie e guarde num lugar seguro, como um gerenciador de senhas.',
+      campoChave: 'Sua chave secreta (nsec)',
+      guardei: 'Guardei minha chave',
+      continuar: 'Continuar',
+    },
+    senha: {
+      campo: 'Senha para proteger a chave (recomendado)',
+      ajuda:
+        'Será pedida ao abrir o Voz. Sem senha, quem usar este navegador consegue abrir sua conta.',
+    },
+  },
+  destravar: {
+    titulo: 'Digite sua senha',
+    descricao: 'Sua chave está protegida com senha neste aparelho.',
+    campo: 'Senha',
+    entrar: 'Abrir',
+    trocarConta: 'Sair e usar outra conta',
+  },
+  conta: {
+    titulo: 'Minha conta',
+    chavePublica: 'Chave pública (npub)',
+    chavePublicaAjuda: 'Pode compartilhar com quem quiser conversar com você.',
+    metodo: {
+      nip07: 'Entrou com extensão',
+      nip46: 'Entrou com app assinante (QR code)',
+      nsec: 'Entrou com chave guardada neste navegador',
+    },
+    verChave: 'Ver chave secreta',
+    verChaveTitulo: 'Mostrar chave secreta',
+    verChaveAviso:
+      'Qualquer pessoa que veja esta chave controla sua identidade. Ela ficará visível por 60 segundos.',
+    mostrar: 'Mostrar minha chave secreta',
+    sair: 'Sair',
+    sairTitulo: 'Sair do Voz',
+    sairAviso: {
+      padrao: 'Vamos apagar tudo que o Voz guardou neste navegador.',
+      nsec: 'Vamos apagar tudo que o Voz guardou neste navegador, inclusive a chave. Se você não a guardou em outro lugar, ela será perdida para sempre.',
+    },
+    confirmarSair: 'Sair mesmo',
+    cancelar: 'Cancelar',
+  },
+  erros: {
+    'sem-extensao': 'Nenhuma extensão Nostr encontrada neste navegador.',
+    recusado: 'Você recusou o acesso. Tente de novo quando quiser.',
+    'sem-nip44':
+      'Seu assinante não suporta conversas privadas (NIP-44). Atualize ou use outra opção.',
+    expirou: 'O código expirou. Gere outro e tente de novo.',
+    'chave-invalida': 'Essa chave não é válida. Ela começa com nsec1…',
+    'chave-publica':
+      'Isso é sua chave pública (npub). Para entrar, use a chave privada (nsec) ou outra opção.',
+    'link-invalido': 'Esse link não é válido. Ele começa com bunker://',
+    'senha-errada': 'Senha incorreta.',
+    falhou: 'Não foi possível entrar. Tente de novo.',
+  },
+  naoEncontrada: {
+    titulo: 'Página não encontrada',
+    voltar: 'Voltar ao início',
+  },
+} as const

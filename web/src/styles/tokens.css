@@ -1,0 +1,21 @@
+/* Tokens do design Cordel (spec 0002). Cada token tem o par claro/escuro em light-dark().
+   O teste src/styles/contraste.test.ts le este arquivo e confere o contraste AA (RN-WEB-UI-003). */
+:root {
+  color-scheme: light dark;
+
+  --fundo: light-dark(#f2e8d5, #1b1916);
+  --superficie: light-dark(#fbf6ec, #26231f);
+  --tinta: light-dark(#1b1916, #f2e8d5);
+  --tinta-suave: light-dark(#5b544a, #b9af9f);
+  --vermelho: light-dark(#b3261e, #ec6652);
+  --sobre-vermelho: light-dark(#fbf6ec, #1b1916);
+  --borda: light-dark(#1b1916, #f2e8d5);
+}
+
+:root[data-tema='claro'] {
+  color-scheme: light;
+}
+
+:root[data-tema='escuro'] {
+  color-scheme: dark;
+}
