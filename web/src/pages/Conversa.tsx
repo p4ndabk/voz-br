@@ -18,6 +18,7 @@ import { ListaMensagens } from './conversa/ListaMensagens'
 const MARGEM_DO_FIM_PX = 80
 const SEM_MENSAGENS: never[] = []
 
+// Coluna do meio do layout de conversas: cabecalho, mensagens (rolagem propria) e campo de texto.
 export function Conversa() {
   const { pubkey = '' } = useParams()
   const navigate = useNavigate()
@@ -41,6 +42,12 @@ export function Conversa() {
     void carregarMensagens(pubkey)
   }, [carregar, carregarMensagens, marcarVista, pubkey])
 
+  // Trocar de conversa recomeca do fim, sem herdar a posicao da anterior.
+  useEffect(() => {
+    pertoDoFim.current = true
+    ultimaQuantidade.current = 0
+  }, [pubkey])
+
   const irParaOFim = () => {
     const el = rolagem.current
     if (el) el.scrollTop = el.scrollHeight
@@ -60,6 +67,22 @@ export function Conversa() {
     else setNovas(true)
   }, [mensagens, assinante?.pubkey])
 
+  // A area de rolagem so existe depois que a conversa carrega.
+  const montada = Boolean(conversa && assinante)
+
+  // Quem estava no fim continua no fim quando a area muda de tamanho (aviso de privacidade que
+  // aparece, teclado do celular, fontes que terminam de carregar).
+  useEffect(() => {
+    const el = rolagem.current
+    if (!montada || !el || typeof ResizeObserver === 'undefined') return
+    const observador = new ResizeObserver(() => {
+      if (pertoDoFim.current) el.scrollTop = el.scrollHeight
+    })
+    observador.observe(el)
+    if (el.firstElementChild) observador.observe(el.firstElementChild)
+    return () => observador.disconnect()
+  }, [montada])
+
   if (carregada && !conversa) return <Navigate to="/conversas" replace />
   if (!conversa || !assinante) return null
 
@@ -76,51 +99,67 @@ export function Conversa() {
   }
 
   return (
-    <main className="mx-auto flex h-dvh max-w-xl flex-col gap-3 px-4 py-4">
-      <header className="flex flex-wrap items-center justify-between gap-3 border-b-2 border-borda pb-3">
-        <Identidade pubkey={conversa.pubkey} tamanho={44} />
+    <div className="flex h-full min-h-0 flex-col">
+      <header className="flex flex-wrap items-center gap-3 border-b-2 border-borda bg-superficie px-4 py-3">
+        {/* Em tela estreita a lista some enquanto a conversa esta aberta: precisa de um caminho de volta. */}
+        <Link
+          to="/conversas"
+          aria-label={t.conversas.voltar}
+          className="rounded-cordel border-2 border-borda px-2.5 py-1 font-bold md:hidden"
+        >
+          ←
+        </Link>
+        <div className="min-w-0 flex-1">
+          <Identidade pubkey={conversa.pubkey} tamanho={44} />
+        </div>
         {/* RN-WEB-CONVERSAS-007 e RN-WEB-MENSAGENS-008: o selo Privado esta sempre a vista. */}
         <Selo tipo="privado" />
+        <Botao variante="secundario" className="px-3 py-1.5 text-sm" onClick={() => setModal(true)}>
+          {t.conversas.remover}
+        </Botao>
       </header>
-      <p className="text-sm text-tinta-suave">{t.conversas.privado}</p>
-      <AvisoPrivacidade
-        pubkey={conversa.pubkey}
-        nome={nomeExibido(perfil, conversa.pubkey).texto}
-      />
 
-      <div className="relative flex-1 overflow-hidden">
-        <div ref={rolagem} onScroll={aoRolar} className="h-full overflow-y-auto pr-1">
-          {mensagens.length === 0 ? (
-            <p className="text-tinta-suave">{t.conversas.semMensagens}</p>
-          ) : (
-            <ListaMensagens
-              mensagens={mensagens}
-              minhaPubkey={assinante.pubkey}
-              aoTentarDeNovo={(id) => void reenviarMensagem(assinante, id)}
-            />
-          )}
+      <div className="flex flex-col gap-2 px-4 pt-3">
+        <p className="text-sm text-tinta-suave">{t.conversas.privado}</p>
+        <AvisoPrivacidade
+          pubkey={conversa.pubkey}
+          nome={nomeExibido(perfil, conversa.pubkey).texto}
+        />
+      </div>
+
+      <div className="relative min-h-0 flex-1">
+        <div ref={rolagem} onScroll={aoRolar} className="h-full overflow-y-auto px-4 py-3">
+          <div className="mx-auto max-w-3xl">
+            {mensagens.length === 0 ? (
+              <p className="text-tinta-suave">{t.conversas.semMensagens}</p>
+            ) : (
+              <ListaMensagens
+                mensagens={mensagens}
+                minhaPubkey={assinante.pubkey}
+                aoTentarDeNovo={(id) => void reenviarMensagem(assinante, id)}
+              />
+            )}
+          </div>
         </div>
         {novas && (
           <button
             type="button"
             onClick={irParaOFim}
-            className="absolute bottom-2 left-1/2 -translate-x-1/2 rounded-cordel border-2 border-borda bg-vermelho px-4 py-1.5 text-sm font-bold text-sobre-vermelho shadow-carimbo-pequeno"
+            className="absolute bottom-3 left-1/2 -translate-x-1/2 rounded-cordel border-2 border-borda bg-vermelho px-4 py-1.5 text-sm font-bold text-sobre-vermelho shadow-carimbo-pequeno"
           >
             {t.mensagens.novas}
           </button>
         )}
       </div>
 
-      <CampoMensagem aoEnviar={(texto) => void enviarMensagem(assinante, conversa.pubkey, texto)} />
+      <div className="bg-superficie px-4 pb-3">
+        <div className="mx-auto max-w-3xl">
+          <CampoMensagem
+            aoEnviar={(texto) => void enviarMensagem(assinante, conversa.pubkey, texto)}
+          />
+        </div>
+      </div>
 
-      <footer className="flex flex-wrap items-center justify-between gap-3">
-        <Link to="/conversas" className="font-bold underline underline-offset-4">
-          {t.conversas.voltar}
-        </Link>
-        <Botao variante="secundario" onClick={() => setModal(true)}>
-          {t.conversas.remover}
-        </Botao>
-      </footer>
       <Modal
         aberto={modal}
         titulo={t.conversas.removerTitulo}
@@ -129,6 +168,6 @@ export function Conversa() {
       >
         {t.conversas.removerAviso}
       </Modal>
-    </main>
+    </div>
   )
 }

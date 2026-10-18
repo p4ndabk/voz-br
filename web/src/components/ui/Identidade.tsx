@@ -13,7 +13,7 @@ interface Props {
   tamanho?: number
 }
 
-function Linha({ pubkey, tamanho }: Props) {
+export function LinhaIdentidade({ pubkey, tamanho }: Props) {
   const perfil = usePerfil(pubkey)
   const { texto, temNome } = nomeExibido(perfil, pubkey)
   // Enquanto carrega nao dizemos "sem nome": evita piscar e parecer erro.
@@ -47,11 +47,11 @@ export function Identidade({ pubkey, tamanho = 40 }: Props) {
         aria-label={t.perfil.verChave(texto)}
         className="inline-flex max-w-full rounded-cordel p-1 hover:bg-superficie"
       >
-        <Linha pubkey={pubkey} tamanho={tamanho} />
+        <LinhaIdentidade pubkey={pubkey} tamanho={tamanho} />
       </button>
       <Modal aberto={aberto} titulo={t.perfil.cartaoTitulo} aoFechar={() => setAberto(false)}>
         <div className="flex flex-col gap-4">
-          <Linha pubkey={pubkey} tamanho={56} />
+          <LinhaIdentidade pubkey={pubkey} tamanho={56} />
           <div className="flex flex-col gap-1">
             <h3 className="font-bold">{t.perfil.chavePublica}</h3>
             {/* RN-WEB-PERFIL-006: o cartao sempre mostra a chave, nao so o nome. */}

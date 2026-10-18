@@ -2,7 +2,7 @@ import { act, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { clear } from 'idb-keyval'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { salvarMensagem, type Mensagem } from '@/conversas/armazemMensagens'
 import { useConversas } from '@/conversas/useConversas'
 import { useMensagens } from '@/conversas/useMensagens'
@@ -10,6 +10,8 @@ import { gerarChave, pubkeyDe } from '@/nostr/signer/chaves'
 import { criarAssinanteLocal } from '@/nostr/signer/local'
 import { useSessao } from '@/nostr/useSessao'
 import { Conversa } from './Conversa'
+import { LayoutConversas } from './conversas/LayoutConversas'
+import { PainelVazio } from './conversas/PainelVazio'
 
 const enviarMensagem = vi.hoisted(() => vi.fn(async () => ({})))
 const reenviarMensagem = vi.hoisted(() => vi.fn(async () => {}))
@@ -48,8 +50,10 @@ async function abrir(mensagens: Mensagem[] = []) {
   render(
     <MemoryRouter initialEntries={[`/conversas/${amigo}`]}>
       <Routes>
-        <Route path="/conversas/:pubkey" element={<Conversa />} />
-        <Route path="/conversas" element={<p>lista</p>} />
+        <Route path="/conversas" element={<LayoutConversas />}>
+          <Route index element={<PainelVazio />} />
+          <Route path=":pubkey" element={<Conversa />} />
+        </Route>
       </Routes>
     </MemoryRouter>,
   )
@@ -82,7 +86,9 @@ describe('mensagens na tela', () => {
   it('RN-WEB-MENSAGENS-008: o selo Privado esta na tela antes de qualquer mensagem', async () => {
     await abrir([])
     expect(screen.getByText('Privado')).toBeInTheDocument()
-    expect(screen.getByText('Nenhuma mensagem ainda')).toBeInTheDocument()
+    // A lateral tambem mostra "Nenhuma mensagem ainda" no item da conversa: olha so a coluna do meio.
+    const meio = within(screen.getByTestId('coluna-conversa'))
+    expect(meio.getByText('Nenhuma mensagem ainda')).toBeInTheDocument()
   })
 
   it('agrupa por dia: um rotulo por dia', async () => {
@@ -220,7 +226,9 @@ describe('aviso de privacidade', () => {
 
 describe('novas mensagens', () => {
   function simularRolagem(distanciaDoFim: number) {
-    const lista = screen.getByRole('list', { name: 'Mensagens' }).parentElement!
+    const lista = screen
+      .getByRole('list', { name: 'Mensagens' })
+      .closest<HTMLElement>('.overflow-y-auto')!
     Object.defineProperty(lista, 'scrollHeight', { value: 1000, configurable: true })
     Object.defineProperty(lista, 'clientHeight', { value: 400, configurable: true })
     lista.scrollTop = 1000 - 400 - distanciaDoFim
@@ -257,5 +265,38 @@ describe('novas mensagens', () => {
       await useMensagens.getState().inserir(mensagem('2', 'eu', 'minha'))
     })
     expect(screen.queryByRole('button', { name: 'Novas mensagens ↓' })).not.toBeInTheDocument()
+  })
+
+  describe('ficar no fim quando a area muda de tamanho', () => {
+    let aoRedimensionar: (() => void) | undefined
+    beforeEach(() => {
+      aoRedimensionar = undefined
+      vi.stubGlobal(
+        'ResizeObserver',
+        class {
+          constructor(callback: () => void) {
+            aoRedimensionar = callback
+          }
+          observe() {}
+          disconnect() {}
+        },
+      )
+    })
+    afterEach(() => vi.unstubAllGlobals())
+
+    it('quem esta no fim continua no fim (ex.: o aviso de privacidade aparece)', async () => {
+      await abrir([mensagem('1', 'amigo', 'antiga')])
+      const lista = simularRolagem(10)
+      lista.scrollTop = 0 // a area encolheu e o conteudo "subiu"
+      act(() => aoRedimensionar?.())
+      expect(lista.scrollTop).toBe(1000)
+    })
+
+    it('quem esta lendo o historico nao e puxado para o fim', async () => {
+      await abrir([mensagem('1', 'amigo', 'antiga')])
+      const lista = simularRolagem(500)
+      act(() => aoRedimensionar?.())
+      expect(lista.scrollTop).toBe(100)
+    })
   })
 })

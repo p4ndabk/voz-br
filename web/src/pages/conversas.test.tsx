@@ -8,7 +8,8 @@ import { gerarChave, nprofileDe, npubDe, nsecDe, pubkeyDe } from '@/nostr/signer
 import { criarAssinanteLocal } from '@/nostr/signer/local'
 import { useSessao } from '@/nostr/useSessao'
 import { Conversa } from './Conversa'
-import { Conversas } from './Conversas'
+import { LayoutConversas } from './conversas/LayoutConversas'
+import { PainelVazio } from './conversas/PainelVazio'
 import { MeuCodigo } from './MeuCodigo'
 import { NovaConversa } from './NovaConversa'
 
@@ -26,9 +27,11 @@ function abrir(rota: string) {
   render(
     <MemoryRouter initialEntries={[rota]}>
       <Routes>
-        <Route path="/conversas" element={<Conversas />} />
-        <Route path="/conversas/nova" element={<NovaConversa />} />
-        <Route path="/conversas/:pubkey" element={<Conversa />} />
+        <Route path="/conversas" element={<LayoutConversas />}>
+          <Route index element={<PainelVazio />} />
+          <Route path="nova" element={<NovaConversa />} />
+          <Route path=":pubkey" element={<Conversa />} />
+        </Route>
         <Route path="/meu-codigo" element={<MeuCodigo />} />
       </Routes>
     </MemoryRouter>,

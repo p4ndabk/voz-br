@@ -159,7 +159,6 @@ export const t = {
     meuCodigo: 'Meu código',
     vazio: 'Cole a chave de alguém para começar uma conversa',
     semMensagens: 'Nenhuma mensagem ainda',
-    abrir: 'Abrir',
     novaPessoa: 'Nova pessoa',
     remover: 'Remover da lista',
     removerTitulo: 'Remover conversa',
@@ -168,6 +167,10 @@ export const t = {
     confirmarRemover: 'Remover',
     voltar: 'Voltar às conversas',
     privado: 'Só vocês dois leem o conteúdo.',
+    lista: 'Suas conversas',
+    selecione: 'Selecione uma conversa',
+    selecioneDica: 'Escolha alguém na lista ao lado ou comece uma conversa nova.',
+    selecioneDicaCelular: 'Escolha alguém na lista ou comece uma conversa nova.',
   },
   novaConversa: {
     titulo: 'Nova conversa',

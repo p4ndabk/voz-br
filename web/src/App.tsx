@@ -6,7 +6,8 @@ import { useMensagens } from '@/conversas/useMensagens'
 import { useSessao } from '@/nostr/useSessao'
 import { Conta } from '@/pages/Conta'
 import { Conversa } from '@/pages/Conversa'
-import { Conversas } from '@/pages/Conversas'
+import { LayoutConversas } from '@/pages/conversas/LayoutConversas'
+import { PainelVazio } from '@/pages/conversas/PainelVazio'
 import { Destravar } from '@/pages/Destravar'
 import { Entrar } from '@/pages/entrar/Entrar'
 import { Inicio } from '@/pages/Inicio'
@@ -72,26 +73,14 @@ export function App() {
             path="/conversas"
             element={
               <SomenteLogado>
-                <Conversas />
+                <LayoutConversas />
               </SomenteLogado>
             }
-          />
-          <Route
-            path="/conversas/nova"
-            element={
-              <SomenteLogado>
-                <NovaConversa />
-              </SomenteLogado>
-            }
-          />
-          <Route
-            path="/conversas/:pubkey"
-            element={
-              <SomenteLogado>
-                <Conversa />
-              </SomenteLogado>
-            }
-          />
+          >
+            <Route index element={<PainelVazio />} />
+            <Route path="nova" element={<NovaConversa />} />
+            <Route path=":pubkey" element={<Conversa />} />
+          </Route>
           <Route
             path="/meu-codigo"
             element={

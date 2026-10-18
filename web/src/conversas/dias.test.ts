@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { chaveDoDia, horaDe, rotuloDoDia } from './dias'
+import { chaveDoDia, horaDe, horarioNaLista, rotuloDoDia } from './dias'
 
 const segundos = (ano: number, mes: number, dia: number, h = 12, min = 0) =>
   new Date(ano, mes - 1, dia, h, min).getTime() / 1000
@@ -21,5 +21,13 @@ describe('horaDe e chaveDoDia', () => {
     expect(horaDe(segundos(2026, 10, 18, 9, 5))).toBe('09:05')
     expect(chaveDoDia(segundos(2026, 10, 18, 1))).toBe(chaveDoDia(segundos(2026, 10, 18, 23)))
     expect(chaveDoDia(segundos(2026, 10, 18))).not.toBe(chaveDoDia(segundos(2026, 10, 19)))
+  })
+})
+
+describe('horarioNaLista', () => {
+  it('hoje a hora, ontem "Ontem", antes disso dia/mes', () => {
+    expect(horarioNaLista(segundos(2026, 10, 18, 9, 5), agora)).toBe('09:05')
+    expect(horarioNaLista(segundos(2026, 10, 17, 9, 5), agora)).toBe('Ontem')
+    expect(horarioNaLista(segundos(2026, 10, 12, 9, 5), agora)).toBe('12/10')
   })
 })

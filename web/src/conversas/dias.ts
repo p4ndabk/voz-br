@@ -23,3 +23,13 @@ export function chaveDoDia(segundos: number): string {
   const d = new Date(segundos * 1000)
   return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
 }
+
+const diaMesCurto = new Intl.DateTimeFormat('pt-BR', { day: '2-digit', month: '2-digit' })
+
+// Hora da ultima mensagem na lista: "14:32" se foi hoje, "Ontem" ou "12/10".
+export function horarioNaLista(segundos: number, agora = Date.now()): string {
+  const rotulo = rotuloDoDia(segundos, agora)
+  if (rotulo === t.mensagens.hoje) return horaDe(segundos)
+  if (rotulo === t.mensagens.ontem) return rotulo
+  return diaMesCurto.format(new Date(segundos * 1000))
+}
