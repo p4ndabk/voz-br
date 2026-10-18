@@ -1,6 +1,7 @@
-// Relays padrao do Voz. Lista provisoria (duvida 2 da spec 0002): disponibilidade e
-// politica de cada um ainda nao foram verificadas.
-const RELAYS_PADRAO = ['wss://relay.damus.io', 'wss://nos.lol', 'wss://relay.primal.net']
+// Relays padrao do Voz (duvida 2 da spec 0002). Em 2026-10-18 cada um aceitou publicar e devolveu
+// um embrulho NIP-17 (kind 1059) sem exigir conta. Ficaram de fora: relay.damus.io (exige AUTH e
+// recusa a prova: "relay needs serviceUrl to be configured") e nos.lol (nao conectou).
+const RELAYS_PADRAO = ['wss://relay.primal.net', 'wss://offchain.pub', 'wss://purplerelay.com']
 
 function relaysDoAmbiente(): string[] {
   const bruto = import.meta.env.VITE_RELAYS as string | undefined

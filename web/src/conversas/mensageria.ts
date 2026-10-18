@@ -242,6 +242,18 @@ export function iniciarMensageria(assinante: Assinante): () => void {
   void garantirRelaysDm(assinante).catch(() => {})
   void processarFila().catch(() => {})
   const pararRecebimento = iniciarRecebimento(assinante)
+  // RN-WEB-RELAYS-005: prova de identidade so quando o relay pede (NIP-42).
+  relays.definirAutenticador((desafio, relay) =>
+    assinante.assinar({
+      kind: 22242,
+      created_at: Math.floor(Date.now() / 1000),
+      tags: [
+        ['relay', relay],
+        ['challenge', desafio],
+      ],
+      content: '',
+    }),
+  )
   // RN-WEB-APAGAR-003: pedidos que nao puderam sair saem quando algum relay volta.
   const pararFila = relays.assinar(() => {
     if (relays.conectados() > 0) void processarFila().catch(() => {})
@@ -249,5 +261,6 @@ export function iniciarMensageria(assinante: Assinante): () => void {
   return () => {
     pararRecebimento()
     pararFila()
+    relays.definirAutenticador(null)
   }
 }

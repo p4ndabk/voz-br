@@ -330,6 +330,79 @@ describe('GerenteDeRelays', () => {
     })
   })
 
+  // RN-WEB-RELAYS-005
+  describe('autenticacao', () => {
+    const prova = { id: 'prova1', kind: 22242 }
+
+    it('responde ao desafio AUTH e, aceita a prova, refaz as assinaturas do relay', async () => {
+      const gerente = criar(['wss://a'])
+      const autenticador = vi.fn(async () => prova)
+      gerente.definirAutenticador(autenticador)
+      gerente.iniciar()
+      gerente.inscrever({ kinds: [1059] }, () => {})
+      const socket = ultimoSocket('wss://a')
+      socket.abrir()
+      expect(socket.enviados).toHaveLength(1) // REQ inicial (o relay vai fechar com auth-required)
+
+      socket.receber(['AUTH', 'desafio-1'])
+      await vi.advanceTimersByTimeAsync(0)
+      expect(autenticador).toHaveBeenCalledWith('desafio-1', 'wss://a')
+      expect(socket.enviados[1]).toBe(JSON.stringify(['AUTH', prova]))
+
+      socket.receber(['OK', 'prova1', true, ''])
+      expect(socket.enviados).toHaveLength(3)
+      expect(JSON.parse(socket.enviados[2] ?? '[]')[0]).toBe('REQ')
+    })
+
+    it('prova recusada pelo relay nao refaz as assinaturas', async () => {
+      const gerente = criar(['wss://a'])
+      gerente.definirAutenticador(async () => prova)
+      gerente.iniciar()
+      gerente.inscrever({ kinds: [1059] }, () => {})
+      const socket = ultimoSocket('wss://a')
+      socket.abrir()
+      socket.receber(['AUTH', 'x'])
+      await vi.advanceTimersByTimeAsync(0)
+      socket.receber(['OK', 'prova1', false, 'restricted'])
+      expect(socket.enviados).toHaveLength(2)
+    })
+
+    it('sem autenticador (ninguem logado) ignora o desafio', async () => {
+      const gerente = criar(['wss://a'])
+      gerente.iniciar()
+      const socket = ultimoSocket('wss://a')
+      socket.abrir()
+      socket.receber(['AUTH', 'x'])
+      await vi.advanceTimersByTimeAsync(0)
+      expect(socket.enviados).toEqual([])
+    })
+
+    it('assinante que recusa nao quebra nada', async () => {
+      const gerente = criar(['wss://a'])
+      gerente.definirAutenticador(async () => {
+        throw new Error('recusado')
+      })
+      gerente.iniciar()
+      const socket = ultimoSocket('wss://a')
+      socket.abrir()
+      socket.receber(['AUTH', 'x'])
+      await vi.advanceTimersByTimeAsync(0)
+      expect(socket.enviados).toEqual([])
+      expect(gerente.conectados()).toBe(1)
+    })
+
+    it('relay que nunca pede AUTH nunca recebe prova', async () => {
+      const autenticador = vi.fn(async () => prova)
+      const gerente = criar(['wss://a'])
+      gerente.definirAutenticador(autenticador)
+      gerente.iniciar()
+      gerente.inscrever({ kinds: [1059] }, () => {})
+      ultimoSocket('wss://a').abrir()
+      await vi.advanceTimersByTimeAsync(0)
+      expect(autenticador).not.toHaveBeenCalled()
+    })
+  })
+
   describe('normalizarRelay', () => {
     it('tira a barra final e recusa o que nao e ws/wss', () => {
       expect(normalizarRelay(' wss://x.org/ ')).toBe('wss://x.org')

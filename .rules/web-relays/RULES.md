@@ -37,3 +37,12 @@ Formato definido em [../README.md](../README.md).
 **Se violada:** a pessoa deixa de receber mensagens depois de uma queda de rede.
 **Onde vive:** `web/src/nostr/relays.ts` (`inscrever`, `conectar`)
 **Teste:** `web/src/nostr/relays.test.ts::inscrever`
+
+---
+
+### RN-WEB-RELAYS-005 — O Voz só se autentica no relay quando ele pede (NIP-42)
+**Regra:** ao receber `["AUTH", desafio]` com sessão ativa, o Voz responde com um evento kind 22242 (tags `relay` e `challenge`) e, quando o relay aceita, refaz as assinaturas daquele relay; sem sessão, sem pedido ou com o assinante recusando, nada é enviado e nada quebra.
+**Quando:** relay envia o desafio AUTH.
+**Se violada:** relays que exigem AUTH não entregam as mensagens (`auth-required`), ou a chave é revelada a quem não pediu.
+**Onde vive:** `web/src/nostr/relays.ts` (`definirAutenticador`, `responderAuth`), `web/src/conversas/mensageria.ts` (`iniciarMensageria`)
+**Teste:** `web/src/nostr/relays.test.ts::autenticacao`

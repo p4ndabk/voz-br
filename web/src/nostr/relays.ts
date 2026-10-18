@@ -24,7 +24,12 @@ interface Entrada {
   tentativas: number
   socket: WebSocket | null
   temporizador: ReturnType<typeof setTimeout> | null
+  // Id do evento de autenticacao (NIP-42) enviado e ainda sem resposta do relay.
+  autenticacaoPendente: string | null
 }
+
+// Monta a prova de identidade pedida pelo relay (evento kind 22242 ja assinado).
+export type Autenticador = (desafio: string, relay: string) => Promise<{ id: string } | null>
 
 type OuvinteEvento = (evento: unknown, relay: string) => void
 
@@ -36,7 +41,15 @@ interface Inscricao {
 }
 
 function criarEntrada(url: string, extra: boolean): Entrada {
-  return { url, extra, estado: 'desconectado', tentativas: 0, socket: null, temporizador: null }
+  return {
+    url,
+    extra,
+    estado: 'desconectado',
+    tentativas: 0,
+    socket: null,
+    temporizador: null,
+    autenticacaoPendente: null,
+  }
 }
 
 // So relays ws/wss; tira a barra final para "wss://x" e "wss://x/" serem o mesmo relay.
@@ -56,6 +69,7 @@ export class GerenteDeRelays {
   private entradas: Entrada[]
   private ouvintes = new Set<Ouvinte>()
   private inscricoes = new Map<string, Inscricao>()
+  private autenticador: Autenticador | null = null
   private ativo = false
   private fotografia: readonly RelayStatus[] = []
 
@@ -90,6 +104,11 @@ export class GerenteDeRelays {
     this.entradas = this.entradas.filter((e) => !e.extra)
     this.inscricoes.clear()
     this.avisar()
+  }
+
+  // RN-WEB-RELAYS-005: sem autenticador (ninguem logado) o desafio AUTH e ignorado.
+  definirAutenticador(autenticador: Autenticador | null): void {
+    this.autenticador = autenticador
   }
 
   // Formato estavel entre chamadas: serve direto ao useSyncExternalStore.
@@ -177,6 +196,26 @@ export class GerenteDeRelays {
     }
   }
 
+  // RN-WEB-RELAYS-005. Falha ou recusa na assinatura nao derruba nada: os outros relays seguem.
+  private async responderAuth(entrada: Entrada, desafio: string): Promise<void> {
+    const socket = entrada.socket
+    if (!this.autenticador || !socket) return
+    try {
+      const prova = await this.autenticador(desafio, entrada.url)
+      if (!prova || entrada.socket !== socket) return
+      entrada.autenticacaoPendente = prova.id
+      socket.send(JSON.stringify(['AUTH', prova]))
+    } catch {
+      // assinante recusou ou socket fechou
+    }
+  }
+
+  private refazerPedidos(entrada: Entrada): void {
+    for (const inscricao of this.inscricoes.values()) {
+      if (inscricao.alvos.includes(entrada)) this.enviarPedido(entrada, inscricao)
+    }
+  }
+
   private enviarPedido(entrada: Entrada, inscricao: Inscricao): void {
     if (entrada.estado !== 'conectado') return
     try {
@@ -189,7 +228,17 @@ export class GerenteDeRelays {
   private aoReceberMensagem(entrada: Entrada, msg: MessageEvent): void {
     try {
       const dados: unknown = JSON.parse(String(msg.data))
-      if (!Array.isArray(dados) || dados[0] !== 'EVENT' || typeof dados[1] !== 'string') return
+      if (!Array.isArray(dados)) return
+      if (dados[0] === 'AUTH' && typeof dados[1] === 'string') {
+        void this.responderAuth(entrada, dados[1])
+        return
+      }
+      if (dados[0] === 'OK' && dados[1] === entrada.autenticacaoPendente) {
+        entrada.autenticacaoPendente = null
+        if (dados[2] === true) this.refazerPedidos(entrada)
+        return
+      }
+      if (dados[0] !== 'EVENT' || typeof dados[1] !== 'string') return
       this.inscricoes.get(dados[1])?.ouvinte(dados[2], entrada.url)
     } catch {
       // mensagem que nao e JSON: ignora
@@ -326,9 +375,7 @@ export class GerenteDeRelays {
       entrada.estado = 'conectado'
       entrada.tentativas = 0
       this.avisar()
-      for (const inscricao of this.inscricoes.values()) {
-        if (inscricao.alvos.includes(entrada)) this.enviarPedido(entrada, inscricao)
-      }
+      this.refazerPedidos(entrada)
     }
     socket.addEventListener('message', (msg) => this.aoReceberMensagem(entrada, msg))
     socket.onerror = () => {
@@ -343,6 +390,7 @@ export class GerenteDeRelays {
   private aoCair(entrada: Entrada): void {
     entrada.socket = null
     entrada.estado = 'desconectado'
+    entrada.autenticacaoPendente = null
     if (this.ativo) {
       const espera = esperaDaTentativa(entrada.tentativas)
       entrada.tentativas += 1

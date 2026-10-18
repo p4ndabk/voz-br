@@ -35,6 +35,7 @@ vi.mock('@/nostr/relays', async (original) => ({
   relays: {
     assinar: vi.fn(() => () => {}),
     conectados: vi.fn(() => 0),
+    definirAutenticador: vi.fn(),
     publicar: vi.fn(async (evento: EventoNostr, _t?: number, urls?: readonly string[]) => {
       if (rede.falhaAoPublicar) throw new Error('rede caiu')
       rede.publicados.push({ evento, urls })
