@@ -52,6 +52,17 @@ export function Identidade({ pubkey, tamanho = 40 }: Props) {
       <Modal aberto={aberto} titulo={t.perfil.cartaoTitulo} aoFechar={() => setAberto(false)}>
         <div className="flex flex-col gap-4">
           <LinhaIdentidade pubkey={pubkey} tamanho={56} />
+          {perfil?.sobre && <p className="whitespace-pre-wrap break-words">{perfil.sobre}</p>}
+          {/* Para quem quiser pagar: o endereco Lightning da pessoa, com copiar. */}
+          {perfil?.lightning && (
+            <div className="flex flex-col items-start gap-1">
+              <h3 className="font-bold">{t.perfil.lightning}</h3>
+              <p className="break-all rounded-cordel border-2 border-borda bg-fundo p-3 font-mono text-sm">
+                {perfil.lightning}
+              </p>
+              <BotaoCopiar texto={perfil.lightning} />
+            </div>
+          )}
           <div className="flex flex-col gap-1">
             <h3 className="font-bold">{t.perfil.chavePublica}</h3>
             {/* RN-WEB-PERFIL-006: o cartao sempre mostra a chave, nao so o nome. */}

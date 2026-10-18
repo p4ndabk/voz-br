@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import type { Perfil } from '@/nostr/perfis'
@@ -64,5 +64,36 @@ describe('Identidade', () => {
     fireEvent.error(img)
     expect(container.querySelector('img')).toBeNull()
     expect(container.querySelector('svg')).not.toBeNull()
+  })
+
+  it('o cartao mostra o "sobre" e o endereco Lightning, com copiar, para quem quiser pagar', async () => {
+    estado.perfil = {
+      nome: 'maria',
+      sobre: 'Leio filosofia.\nEscrevo pouco.',
+      lightning: 'maria@getalby.com',
+    }
+    render(<Identidade pubkey={pubkey} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Ver a chave de maria' }))
+    const cartao = within(screen.getByRole('dialog', { name: 'Quem é' }))
+    expect(cartao.getByText(/Leio filosofia\./)).toBeInTheDocument()
+    expect(cartao.getByText('Endereço Lightning')).toBeInTheDocument()
+    expect(cartao.getByText('maria@getalby.com')).toBeInTheDocument()
+    expect(cartao.getAllByRole('button', { name: 'Copiar' })).toHaveLength(2) // npub e lightning
+  })
+
+  it('RN-WEB-PERFIL-002: o sobre e texto puro', async () => {
+    estado.perfil = { nome: 'maria', sobre: '<img src=x onerror=alert(1)>' }
+    render(<Identidade pubkey={pubkey} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Ver a chave de maria' }))
+    const cartao = screen.getByRole('dialog', { name: 'Quem é' })
+    expect(within(cartao).getByText('<img src=x onerror=alert(1)>')).toBeInTheDocument()
+    expect(cartao.querySelector('img')).toBeNull()
+  })
+
+  it('sem endereco lightning nao mostra o bloco de pagamento', async () => {
+    estado.perfil = { nome: 'maria' }
+    render(<Identidade pubkey={pubkey} />)
+    await userEvent.click(screen.getByRole('button', { name: 'Ver a chave de maria' }))
+    expect(screen.queryByText('Endereço Lightning')).not.toBeInTheDocument()
   })
 })

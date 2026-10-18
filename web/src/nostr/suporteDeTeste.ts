@@ -41,3 +41,20 @@ export async function embrulhoComSeloForjado(
 
 // So para testes: a assinatura do evento confere com o autor.
 export const assinaturaConfere = (evento: EventoNostr): boolean => verifyEvent(evento)
+
+// So para testes: um kind 0 assinado por `chave`. `conteudo` pode ser um objeto ou texto cru.
+export function perfilAssinado(
+  chave: Uint8Array,
+  conteudo: object | string,
+  created_at: number,
+): EventoNostr {
+  return finalizeEvent(
+    {
+      kind: 0,
+      created_at,
+      tags: [],
+      content: typeof conteudo === 'string' ? conteudo : JSON.stringify(conteudo),
+    },
+    chave,
+  )
+}

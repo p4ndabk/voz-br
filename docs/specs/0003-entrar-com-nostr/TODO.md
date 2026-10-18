@@ -5,14 +5,6 @@ futuro começa lendo daqui.
 
 ## Abertas
 
-### PT-01 — Editar o perfil completo
-**O quê:** tela para mudar nome, foto, bio e NIP-05, publicando um kind 0 novo.
-**Por que ficou de fora:** o chat 1:1 só precisa do nome; o resto é perfil social.
-**Onde:** `web/src/pages/conta/`.
-**Impacto se continuar assim:** quem criou a identidade no Voz não consegue trocar o nome sem outro cliente.
-**Esforço estimado:** baixo.
-**Work item:** não criado.
-
 ### PT-02 — Revogar a sessão NIP-46 ao sair
 **O quê:** ao sair, além de apagar a chave efêmera local, avisar o app assinante para revogar a conexão.
 **Por que ficou de fora:** nem todo assinante suporta revogação remota de forma igual; apagar localmente já impede o Voz de assinar.
@@ -59,4 +51,4 @@ futuro começa lendo daqui.
 
 | ID | Título | Resolvida em | Onde |
 |---|---|---|---|
-| | | | |
+| PT-01 | Editar o perfil completo | 2026-10-18 | spec [0009](../0009-gestao-de-perfil/SPEC.md) (nome, sobre, foto e endereço Lightning; NIP-05 ficou em PT-04 da 0009) |

@@ -5,6 +5,9 @@ export interface Perfil {
   nomeExibicao?: string
   nome?: string
   foto?: string
+  sobre?: string
+  // Endereco Lightning (LUD-16), "nome@dominio.com": e por ele que a pessoa recebe pagamentos.
+  lightning?: string
 }
 
 export interface PerfilSalvo {
@@ -38,6 +41,29 @@ function enderecoDeFoto(valor: unknown): string | undefined {
   }
 }
 
+const LIGHTNING = /^[a-z0-9._+-]{1,64}@[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/
+
+// RN-WEB-PERFIL-012: o formato precisa ser "usuario@dominio.tld" (o TLD tem letras, o que
+// descarta IP e localhost: o endereco vira uma URL que o navegador consultaria).
+export function normalizarLightning(entrada: string): string {
+  return entrada
+    .trim()
+    .replace(/^lightning:/i, '')
+    .toLowerCase()
+}
+
+export function enderecoLightningValido(entrada: string): boolean {
+  const e = normalizarLightning(entrada)
+  return e.length <= 120 && LIGHTNING.test(e)
+}
+
+function enderecoLightning(valor: unknown): string | undefined {
+  const bruto = texto(valor)
+  if (!bruto) return undefined
+  const e = normalizarLightning(bruto)
+  return enderecoLightningValido(e) ? e : undefined
+}
+
 // RN-WEB-PERFIL-004: JSON invalido, ou que nao e um objeto, e "sem perfil".
 export function lerPerfil(evento: Pick<NostrEvent, 'content'>): Perfil | null {
   let dados: unknown
@@ -52,6 +78,8 @@ export function lerPerfil(evento: Pick<NostrEvent, 'content'>): Perfil | null {
     nomeExibicao: texto(campos.display_name),
     nome: texto(campos.name),
     foto: enderecoDeFoto(campos.picture),
+    sobre: texto(campos.about),
+    lightning: enderecoLightning(campos.lud16),
   }
 }
 

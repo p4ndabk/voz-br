@@ -1,4 +1,5 @@
 import { get, set } from 'idb-keyval'
+import type { NostrEvent } from 'nostr-tools'
 import { create } from 'zustand'
 import { lerPerfil, maisRecente, VALIDADE_CACHE_MS, type Perfil, type PerfilSalvo } from './perfis'
 import { relays } from './relays'
@@ -9,10 +10,16 @@ type Entrada = Perfil | null | undefined
 interface EstadoPerfis {
   perfis: Record<string, Entrada>
   carregar(pubkey: string): Promise<void>
+  // Usado ao publicar o proprio perfil: a tela e o cache mudam na hora, sem esperar o relay.
+  definirPerfil(pubkey: string, evento: NostrEvent): Promise<void>
 }
 
 const emAndamento = new Map<string, Promise<void>>()
 const chaveCache = (pubkey: string) => `voz:perfil:${pubkey}`
+
+export function eventoEmCache(pubkey: string): Promise<PerfilSalvo | undefined> {
+  return get<PerfilSalvo>(chaveCache(pubkey)).catch(() => undefined)
+}
 
 async function carregarPerfil(pubkey: string, aplicar: (perfil: Perfil | null) => void) {
   const salvo = await get<PerfilSalvo>(chaveCache(pubkey)).catch(() => undefined)
@@ -52,5 +59,11 @@ export const usePerfis = create<EstadoPerfis>((definir) => ({
     ).finally(() => emAndamento.delete(pubkey))
     emAndamento.set(pubkey, tarefa)
     return tarefa
+  },
+  async definirPerfil(pubkey, evento) {
+    await set(chaveCache(pubkey), { evento, buscadoEm: Date.now() } satisfies PerfilSalvo).catch(
+      () => {},
+    )
+    definir((estado) => ({ perfis: { ...estado.perfis, [pubkey]: lerPerfil(evento) } }))
   },
 }))

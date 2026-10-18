@@ -120,6 +120,7 @@ export const t = {
       nsec: 'Entrou com chave guardada neste navegador',
     },
     verChave: 'Ver chave secreta',
+    editarPerfil: 'Editar perfil',
     verChaveTitulo: 'Mostrar chave secreta',
     verChaveAviso:
       'Qualquer pessoa que veja esta chave controla sua identidade. Ela ficará visível por 60 segundos.',
@@ -151,6 +152,7 @@ export const t = {
     verChave: (nome: string) => `Ver a chave de ${nome}`,
     cartaoTitulo: 'Quem é',
     chavePublica: 'Chave pública (npub)',
+    lightning: 'Endereço Lightning',
     alerta: 'Nomes não são únicos: confira a chave antes de confiar.',
   },
   conversas: {
@@ -241,6 +243,45 @@ export const t = {
     linhaEu: (data: string) => `Histórico apagado em ${data}`,
     linhaOutro: (nome: string, data: string) =>
       `${nome} apagou o histórico desta conversa em ${data}.`,
+  },
+  editarPerfil: {
+    titulo: 'Editar perfil',
+    carregando: 'Carregando seu perfil…',
+    naoEncontrado:
+      'Não encontramos um perfil seu nos relays. Se você já tinha um em outro aplicativo, salvar aqui pode substituí-lo. Se a conta é nova, pode salvar.',
+    nome: { rotulo: 'Nome', ajuda: 'Aparece para quem conversar com você.' },
+    sobre: { rotulo: 'Sobre você', ajuda: 'Um texto curto, se quiser.' },
+    foto: {
+      rotulo: 'Foto (endereço da imagem)',
+      ajuda: 'Cole o endereço (https) de uma imagem na internet. O Voz ainda não guarda fotos.',
+      previa: 'Pré-visualização da foto',
+      falhou: 'Não foi possível carregar essa imagem.',
+    },
+    lightning: {
+      rotulo: 'Endereço Lightning',
+      ajuda:
+        'Parece um e-mail, por exemplo maria@getalby.com. É por ele que as pessoas podem te enviar bitcoin pela rede Lightning.',
+      verificar: 'Verificar endereço',
+      verificando: 'Verificando…',
+      privacidade: 'A verificação consulta o servidor do endereço, que fica sabendo o seu IP.',
+      ok: (min: number, max: number) => `Endereço encontrado. Aceita de ${min} a ${max} sats.`,
+      aceitaZap: 'Aceita zaps (gorjetas pelo Nostr).',
+      semZap:
+        'Esse serviço não declara suporte a zaps (gorjetas pelo Nostr), mas recebe pagamentos Lightning normais.',
+      indisponivel:
+        'Não foi possível verificar agora. Isso não significa que o endereço esteja errado.',
+      invalido: 'O serviço não reconheceu esse endereço.',
+    },
+    erros: {
+      longo: (max: number) => `Use no máximo ${max} caracteres.`,
+      fotoInvalida: 'Use um endereço que comece com https://',
+      lightningInvalido: 'Use o formato usuario@dominio.com',
+    },
+    salvar: 'Salvar perfil',
+    salvando: 'Publicando…',
+    salvo: (aceitos: number, total: number) => `Perfil publicado em ${aceitos} de ${total} relays.`,
+    falhou: 'Nenhum relay aceitou o perfil. Tente de novo.',
+    voltar: 'Voltar à conta',
   },
   naoEncontrada: {
     titulo: 'Página não encontrada',

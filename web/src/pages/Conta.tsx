@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Aviso } from '@/components/ui/Aviso'
 import { Botao } from '@/components/ui/Botao'
 import { Identidade } from '@/components/ui/Identidade'
@@ -61,6 +61,12 @@ export function Conta() {
       </section>
 
       <div className="flex flex-wrap gap-3">
+        <Link
+          to="/conta/perfil"
+          className="inline-flex items-center justify-center rounded-cordel border-2 border-borda bg-vermelho px-5 py-2.5 font-bold text-sobre-vermelho shadow-carimbo active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+        >
+          {t.conta.editarPerfil}
+        </Link>
         {assinante.exportarNsec && (
           <Botao variante="secundario" onClick={() => setModalChave(true)}>
             {t.conta.verChave}

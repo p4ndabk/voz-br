@@ -1,7 +1,15 @@
 import { finalizeEvent } from 'nostr-tools'
 import { describe, expect, it } from 'vitest'
 import { gerarChave, pubkeyDe } from './signer/chaves'
-import { limitarTexto, lerPerfil, maisRecente, nomeExibido, npubAbreviada } from './perfis'
+import {
+  enderecoLightningValido,
+  limitarTexto,
+  lerPerfil,
+  maisRecente,
+  nomeExibido,
+  normalizarLightning,
+  npubAbreviada,
+} from './perfis'
 
 const chave = gerarChave()
 const pubkey = pubkeyDe(chave)
@@ -72,6 +80,8 @@ describe('lerPerfil', () => {
       nomeExibicao: undefined,
       nome: undefined,
       foto: undefined,
+      sobre: undefined,
+      lightning: undefined,
     })
   })
 
@@ -115,5 +125,41 @@ describe('maisRecente', () => {
     const menor = a.id < b.id ? a : b
     expect(maisRecente([a, b], pubkey)).toEqual(menor)
     expect(maisRecente([b, a], pubkey)).toEqual(menor)
+  })
+})
+
+describe('endereco Lightning no perfil', () => {
+  it('RN-WEB-PERFIL-012: aceita usuario@dominio.tld e normaliza (minusculas, prefixo lightning:)', () => {
+    expect(enderecoLightningValido('maria@getalby.com')).toBe(true)
+    expect(enderecoLightningValido('  Maria.Silva+pix@sub.exemplo.com.br ')).toBe(true)
+    expect(normalizarLightning('  lightning:Maria@GetAlby.com ')).toBe('maria@getalby.com')
+  })
+
+  it('RN-WEB-PERFIL-012: recusa o que nao parece um endereco (e IP ou localhost)', () => {
+    for (const ruim of [
+      '',
+      'maria',
+      '@getalby.com',
+      'maria@',
+      'maria@localhost',
+      'maria@127.0.0.1',
+      'maria@exemplo',
+      'maria silva@exemplo.com',
+      'maria@exemplo.com/caminho',
+      'maria@exemplo.c',
+      `${'a'.repeat(100)}@exemplo.com`,
+    ]) {
+      expect(enderecoLightningValido(ruim), ruim).toBe(false)
+    }
+  })
+
+  it('lerPerfil traz lud16 valido normalizado, ignora o invalido e le o about', () => {
+    const ler = (c: object) => lerPerfil({ content: JSON.stringify(c) })
+    expect(ler({ lud16: 'Maria@GetAlby.com', about: ' sou da Maria ' })).toMatchObject({
+      lightning: 'maria@getalby.com',
+      sobre: 'sou da Maria',
+    })
+    expect(ler({ lud16: 'nao é endereço' })?.lightning).toBeUndefined()
+    expect(ler({ lud16: 123 })?.lightning).toBeUndefined()
   })
 })

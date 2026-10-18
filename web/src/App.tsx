@@ -5,6 +5,7 @@ import { useConversas } from '@/conversas/useConversas'
 import { useMensagens } from '@/conversas/useMensagens'
 import { useSessao } from '@/nostr/useSessao'
 import { Conta } from '@/pages/Conta'
+import { EditarPerfil } from '@/pages/EditarPerfil'
 import { Conversa } from '@/pages/Conversa'
 import { LayoutConversas } from '@/pages/conversas/LayoutConversas'
 import { PainelVazio } from '@/pages/conversas/PainelVazio'
@@ -94,6 +95,14 @@ export function App() {
             element={
               <SomenteLogado>
                 <Conta />
+              </SomenteLogado>
+            }
+          />
+          <Route
+            path="/conta/perfil"
+            element={
+              <SomenteLogado>
+                <EditarPerfil />
               </SomenteLogado>
             }
           />
