@@ -52,6 +52,8 @@ abreviada, sempre com a opção de ver a chave completa.
 | 4 | Perfil com JSON inválido é tratado como "sem perfil" | ao receber perfil | tela quebra |
 | 5 | A npub completa está sempre a um toque de distância | toda exibição | pessoa não consegue conferir com quem fala |
 | 6 | Nome nunca é a única forma de identificar: o cartão sempre mostra a npub | cartão de identidade | risco de alguém se passar por outra pessoa usando o mesmo nome |
+| 7 | Perfil em cache aparece na hora e só é buscado de novo se tiver mais de 24 h | ao carregar o perfil | nome demora a aparecer |
+| 8 | Só endereços http(s) viram foto, pedida sem referrer; se falhar, vale o avatar gerado | ao ler o perfil e exibir o avatar | defeito de segurança ou de privacidade |
 
 ## 6. Contrato da API
 
@@ -112,7 +114,7 @@ Cenário: cache
 
 | # | Dúvida | Responsável | Prazo | Status |
 |---|---|---|---|---|
-| 1 | Carregar a foto do perfil direto do endereço revela o IP do usuário para o servidor da imagem. Aceitamos agora, mostramos só o avatar gerado, ou deixamos a pessoa escolher "carregar fotos"? Recomendação: carregar, com opção de desligar em "Privacidade" depois (TODO). | David | antes de implementar a 0004 | aberta |
+| 1 | Carregar a foto do perfil direto do endereço revela o IP do usuário para o servidor da imagem. Aceitamos agora, mostramos só o avatar gerado, ou deixamos a pessoa escolher "carregar fotos"? Recomendação: carregar, com opção de desligar em "Privacidade" depois (TODO). | David | antes de implementar a 0004 | aberta. **Implementado** pela recomendação: a foto carrega, sem enviar referrer |
 
 **Decisões tomadas no refinamento**
 
@@ -125,7 +127,7 @@ Cenário: cache
 ## 10. Definition of Ready
 
 - [x] Seções 1 a 8 preenchidas
-- [ ] Nenhuma dúvida bloqueante em aberto (seção 9): **dúvida 1 aberta**
+- [x] Nenhuma dúvida bloqueante em aberto (seção 9): a 1 foi implementada pela recomendação, a revisar
 - [x] Contrato da API: N/A nesta spec
 - [ ] Regras de negócio aprovadas pelo P.O.
 - [x] Impacto em dados existentes: nenhum

@@ -19,3 +19,21 @@ Formato definido em [../README.md](../README.md).
 **Se violada:** o relay fica desconectado indefinidamente, ou sobrecarrega o relay com tentativas seguidas.
 **Onde vive:** `web/src/nostr/relays.ts` (`esperaDaTentativa`, `GerenteDeRelays`)
 **Teste:** `web/src/nostr/relays.test.ts`
+
+---
+
+### RN-WEB-RELAYS-003 — Relays extras são limitados e não aparecem no indicador
+**Regra:** os relays que não são padrão (os do amigo, as listas de DM) viram conexões extras, só ws/wss, no máximo 12; elas não entram na contagem "N de M relays conectados" e somem ao parar o gerenciador.
+**Quando:** publicar, consultar ou assinar em relays específicos.
+**Se violada:** um relay malicioso poderia encher o navegador de conexões, ou o indicador mudaria de acordo com o amigo.
+**Onde vive:** `web/src/nostr/relays.ts` (`garantirEntradas`, `normalizarRelay`)
+**Teste:** `web/src/nostr/relays.test.ts::relays extras`
+
+---
+
+### RN-WEB-RELAYS-004 — A assinatura contínua é refeita a cada reconexão
+**Regra:** quem se inscreve (`inscrever`) continua recebendo eventos depois que o relay cai e volta, porque o pedido (REQ) é reenviado; por isso o mesmo evento pode chegar mais de uma vez e quem usa precisa ignorar duplicados.
+**Quando:** relay reconecta com assinatura ativa.
+**Se violada:** a pessoa deixa de receber mensagens depois de uma queda de rede.
+**Onde vive:** `web/src/nostr/relays.ts` (`inscrever`, `conectar`)
+**Teste:** `web/src/nostr/relays.test.ts::inscrever`

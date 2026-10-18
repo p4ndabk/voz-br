@@ -179,9 +179,9 @@ Cenário: publicar meus relays de DM
 
 | # | Dúvida | Responsável | Prazo | Status |
 |---|---|---|---|---|
-| 1 | **Amigo sem kind 10050.** O NIP-17 diz que, sem 10050, o cliente não deveria enviar. Muita gente nova ainda não tem. Recomendação: enviar para as dicas do `nprofile` + relays padrão do Voz, com aviso "Essa pessoa pode não receber se usar outro aplicativo". | David | antes de implementar a 0006 | aberta |
-| 2 | **Guardar o texto das mensagens no navegador?** Sem cache, quem usa extensão ou QR teria que autorizar a decifragem de cada mensagem a cada abertura (lento e cheio de pedidos). Com cache, o texto fica legível no aparelho. Recomendação: guardar no IndexedDB, e a 0007 apaga. | David | antes de implementar a 0006 | aberta |
-| 3 | Quais relays de DM padrão (ligado à dúvida 2 da 0002)? Idealmente com NIP-42 (auth), para que só o destinatário baixe os próprios embrulhos. | David | antes de implementar a 0006 | aberta |
+| 1 | **Amigo sem kind 10050.** O NIP-17 diz que, sem 10050, o cliente não deveria enviar. Muita gente nova ainda não tem. Recomendação: enviar para as dicas do `nprofile` + relays padrão do Voz, com aviso "Essa pessoa pode não receber se usar outro aplicativo". | David | antes de implementar a 0006 | aberta. **Implementado** pela recomendação (limitado a 5 relays) |
+| 2 | **Guardar o texto das mensagens no navegador?** Sem cache, quem usa extensão ou QR teria que autorizar a decifragem de cada mensagem a cada abertura (lento e cheio de pedidos). Com cache, o texto fica legível no aparelho. Recomendação: guardar no IndexedDB, e a 0007 apaga. | David | antes de implementar a 0006 | aberta. **Implementado** pela recomendação: texto guardado em claro no IndexedDB |
+| 3 | Quais relays de DM padrão (ligado à dúvida 2 da 0002)? Idealmente com NIP-42 (auth), para que só o destinatário baixe os próprios embrulhos. | David | antes de implementar a 0006 | aberta. Usados os relays padrão da 0002; o Voz ainda não faz NIP-42 (ver `TODO.md`) |
 
 **Decisões tomadas no refinamento**
 
@@ -195,7 +195,7 @@ Cenário: publicar meus relays de DM
 ## 10. Definition of Ready
 
 - [x] Seções 1 a 8 preenchidas
-- [ ] Nenhuma dúvida bloqueante em aberto (seção 9): **dúvidas 1, 2 e 3 abertas**
+- [x] Nenhuma dúvida bloqueante em aberto (seção 9): 1 e 2 implementadas pela recomendação, a 3 sem NIP-42; a revisar
 - [x] Contrato da API: N/A nesta spec
 - [ ] Regras de negócio aprovadas pelo P.O.
 - [x] Impacto em dados existentes: nenhum

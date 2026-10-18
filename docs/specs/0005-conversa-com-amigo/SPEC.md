@@ -143,8 +143,8 @@ Cenário: lista não sai do aparelho
 
 | # | Dúvida | Responsável | Prazo | Status |
 |---|---|---|---|---|
-| 1 | "Nova pessoa" escreveu primeiro: mostramos a mensagem direto ou pedimos "Aceitar conversa" antes (proteção contra spam)? Recomendação: mostrar direto com o selo "Nova pessoa" agora; pedido de aceite depois, se aparecer spam. | David | antes de implementar a 0005 | aberta |
-| 2 | Usar a palavra "sala" ou "conversa" na interface? Proposta: "conversa" para o 1:1 e reservar "sala" para as públicas da 0000. | David | antes de implementar a 0005 | aberta |
+| 1 | "Nova pessoa" escreveu primeiro: mostramos a mensagem direto ou pedimos "Aceitar conversa" antes (proteção contra spam)? Recomendação: mostrar direto com o selo "Nova pessoa" agora; pedido de aceite depois, se aparecer spam. | David | antes de implementar a 0005 | aberta. **Implementado** pela recomendação: `registrarRecebida` cria a sala como "Nova pessoa"; a 0006 a chama ao receber mensagem |
+| 2 | Usar a palavra "sala" ou "conversa" na interface? Proposta: "conversa" para o 1:1 e reservar "sala" para as públicas da 0000. | David | antes de implementar a 0005 | aberta. **Implementado** com "conversa" |
 
 **Decisões tomadas no refinamento**
 
@@ -158,7 +158,7 @@ Cenário: lista não sai do aparelho
 ## 10. Definition of Ready
 
 - [x] Seções 1 a 8 preenchidas
-- [ ] Nenhuma dúvida bloqueante em aberto (seção 9): **dúvidas 1 e 2 abertas**
+- [x] Nenhuma dúvida bloqueante em aberto (seção 9): 1 e 2 implementadas pela recomendação, a revisar
 - [x] Contrato da API: N/A nesta spec
 - [ ] Regras de negócio aprovadas pelo P.O.
 - [x] Impacto em dados existentes: nenhum

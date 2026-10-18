@@ -29,6 +29,30 @@ futuro começa lendo daqui.
 **Esforço estimado:** médio.
 **Work item:** não criado.
 
+### PT-04 — Testar com outro cliente Nostr e com relays reais
+**O quê:** trocar mensagens entre o Voz e um cliente NIP-17 de verdade (0xchat, Amethyst, Coracle) e conferir o caminho completo pelos relays padrão.
+**Por que ficou de fora:** o ambiente de desenvolvimento não tinha outro cliente; os testes cobrem o formato nos dois sentidos contra a implementação de referência do `nostr-tools`, mas os relays foram simulados.
+**Onde:** `web/src/nostr/relays.ts`, `web/src/conversas/mensageria.ts`.
+**Impacto se continuar assim:** a troca pode falhar na prática por política de relay ou detalhe de cliente, sem aparecer nos testes.
+**Esforço estimado:** baixo para testar; médio se aparecerem incompatibilidades.
+**Work item:** não criado.
+
+### PT-05 — NIP-42 (autenticação no relay)
+**O quê:** responder ao desafio AUTH dos relays que só entregam embrulhos (kind 1059) a quem prova ser o destinatário.
+**Por que ficou de fora:** não estava na spec; exige assinar um evento por relay e decidir quando autenticar.
+**Onde:** `web/src/nostr/relays.ts`.
+**Impacto se continuar assim:** em relays que exigem AUTH para ler DMs o Voz não recebe mensagens (e pode ter o envio recusado).
+**Esforço estimado:** médio.
+**Work item:** não criado.
+
+### PT-06 — Mensagem de controle do pedido de apagar
+**O quê:** reconhecer a tag `voz` do pedido de apagar histórico.
+**Por que ficou de fora:** é a spec 0007; por enquanto esse texto apareceria como mensagem comum.
+**Onde:** `web/src/conversas/mensageria.ts` (`receberRumor`).
+**Impacto se continuar assim:** nenhum até a 0007 existir.
+**Esforço estimado:** baixo.
+**Work item:** não criado.
+
 ---
 
 ## Resolvidas

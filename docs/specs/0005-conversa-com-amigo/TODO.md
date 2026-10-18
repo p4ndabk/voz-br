@@ -21,6 +21,30 @@ futuro começa lendo daqui.
 **Esforço estimado:** baixo.
 **Work item:** não criado.
 
+### PT-03 — Testar a leitura de QR com a câmera de verdade
+**O quê:** abrir "Ler QR code" num celular e num notebook reais e conferir permissão, enquadramento e leitura de QR de outros clientes Nostr.
+**Por que ficou de fora:** o ambiente de desenvolvimento não tem câmera; os testes cobrem só o caso de câmera indisponível e a interpretação do texto lido.
+**Onde:** `web/src/components/ui/LeitorQr.tsx`.
+**Impacto se continuar assim:** a leitura pode falhar em algum navegador sem ninguém perceber; a pessoa ainda pode colar a chave.
+**Esforço estimado:** baixo para testar.
+**Work item:** não criado.
+
+### PT-04 — Ilustração do estado vazio
+**O quê:** trocar a moldura tracejada do estado vazio por uma ilustração em traço de xilogravura.
+**Por que ficou de fora:** depende da dúvida 3 da spec 0002 (quem faz a arte).
+**Onde:** `web/src/pages/Conversas.tsx`.
+**Impacto se continuar assim:** o estado vazio funciona, mas sem a identidade visual final.
+**Esforço estimado:** baixo.
+**Work item:** não criado.
+
+### PT-05 — Cadastro automático de "Nova pessoa" ao receber mensagem
+**O quê:** chamar `registrarRecebida` quando chega um embrulho NIP-17 de quem não tem sala.
+**Por que ficou de fora:** receber mensagens é a spec 0006; a função e a regra já existem e estão testadas.
+**Onde:** `web/src/conversas/useConversas.ts`, a ser ligada em `web/src/nostr/dm.ts`.
+**Impacto se continuar assim:** quem escreve primeiro só aparece depois que a 0006 estiver pronta.
+**Esforço estimado:** baixo.
+**Work item:** não criado.
+
 ---
 
 ## Resolvidas
