@@ -2,7 +2,7 @@ import { clear, entries, set } from 'idb-keyval'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 vi.setConfig({ testTimeout: 30_000 })
-import { iniciarRecebimento } from '@/conversas/mensageria'
+import { aguardarRecebimento, iniciarRecebimento } from '@/conversas/mensageria'
 import { useMensagens } from '@/conversas/useMensagens'
 import type { EventoNostr } from '@/nostr/dm'
 import { gerarChave } from '@/nostr/signer/chaves'
@@ -105,7 +105,8 @@ async function receber(pessoa: Assinante, todos = false) {
     ja.add(e.id)
     rede.ouvinte?.(JSON.parse(JSON.stringify(e)), 'wss://x')
   }
-  await new Promise((r) => setTimeout(r, 60))
+  // Espera de verdade o recebimento terminar (nao um tempo fixo): em maquina lenta 60 ms nao basta.
+  await aguardarRecebimento()
 }
 
 // Troca de mensagens ate nada novo sair (admin responde aceites, etc.).
@@ -203,6 +204,7 @@ describe('fluxo do grupo (RN-WEB-GRUPOS-002 a 009)', () => {
       return (useMensagens.getState().porConversa[chaveDaConversa(id)] ?? [])
         .filter((m) => m.sistema === 'entrou')
         .map((m) => m.texto)
+        .sort() // na mesma hora a ordem entre avisos vale pelo id, que e aleatorio
     }
     await receber(bia)
     await aceitarConvite(bia, id, nome(bia))
@@ -213,12 +215,12 @@ describe('fluxo do grupo (RN-WEB-GRUPOS-002 a 009)', () => {
     await receber(caio)
     await aceitarConvite(caio, id, nome(caio))
     await assentar(ana, bia, caio)
-    expect(await entrou(ana)).toEqual([bia.pubkey, caio.pubkey])
+    expect(await entrou(ana)).toEqual([bia.pubkey, caio.pubkey].sort())
     expect(await entrou(bia)).toEqual([caio.pubkey]) // quem ja estava ve a chegada do Caio
     expect(await entrou(caio)).toEqual([])
     // o relay reentrega tudo: o aviso nao se repete
     await receber(ana, true)
-    expect(await entrou(ana)).toEqual([bia.pubkey, caio.pubkey])
+    expect(await entrou(ana)).toEqual([bia.pubkey, caio.pubkey].sort())
   })
 
   it('RN-WEB-GRUPOS-008: quem nao e membro nao consegue escrever no grupo', async () => {

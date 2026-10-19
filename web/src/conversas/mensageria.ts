@@ -194,11 +194,24 @@ async function receberRumor(assinante: Assinante, rumor: Rumor): Promise<void> {
 
 // RN-WEB-MENSAGENS-001/006: assina os embrulhos enderecados a mim, abre um de cada vez e
 // ignora o que nao for mensagem valida. Devolve a funcao que encerra.
+// Para os testes: espera o recebimento terminar tudo o que ja entrou na fila (abrir, aplicar, responder).
+let filaAtual: () => Promise<void> = () => Promise.resolve()
+export async function aguardarRecebimento(): Promise<void> {
+  await filaAtual()
+}
+
 export function iniciarRecebimento(assinante: Assinante): () => void {
   let parado = false
   let cancelar: (() => void) | undefined
   const vistos = new Set<string>()
   let fila: Promise<void> = Promise.resolve()
+  filaAtual = async () => {
+    let anterior: Promise<void>
+    do {
+      anterior = fila
+      await anterior
+    } while (anterior !== fila)
+  }
 
   const aoEvento = (evento: unknown) => {
     const id = (evento as { id?: unknown } | null)?.id
