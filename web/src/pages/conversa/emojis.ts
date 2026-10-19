@@ -1,0 +1,48 @@
+// Emojis mais usados, em ordem fixa. Sem biblioteca: cabem numa grade pequena.
+export const EMOJIS = [
+  '😀',
+  '😂',
+  '🤣',
+  '😊',
+  '😍',
+  '😘',
+  '😉',
+  '😎',
+  '🤔',
+  '😅',
+  '😢',
+  '😭',
+  '😡',
+  '🙄',
+  '😴',
+  '🥳',
+  '👍',
+  '👎',
+  '👏',
+  '🙏',
+  '💪',
+  '🤝',
+  '👋',
+  '🙌',
+  '❤️',
+  '💔',
+  '🔥',
+  '✨',
+  '🎉',
+  '💯',
+  '⚡',
+  '🧡',
+  '🌎',
+  '☀️',
+  '🌙',
+  '🍺',
+  '☕',
+  '🍕',
+  '🎶',
+  '📚',
+] as const
+
+// Texto novo com o emoji no lugar da selecao, e onde fica o cursor depois dele.
+export function inserirNoCursor(texto: string, emoji: string, inicio: number, fim: number) {
+  return { texto: texto.slice(0, inicio) + emoji + texto.slice(fim), cursor: inicio + emoji.length }
+}

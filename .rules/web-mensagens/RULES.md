@@ -99,3 +99,6 @@ na segurança, não um status HTTP: as mensagens vão do navegador direto aos re
 **Se violada:** textos longos ficam espremidos numa caixa que não dá para aumentar, ou o campo desfaz o tamanho escolhido a cada letra.
 **Onde vive:** `web/src/pages/conversa/{CampoMensagem.tsx,alturaCampo.ts}`
 **Teste:** `web/src/pages/conversa/alturaCampo.test.ts`
+
+## RN-WEB-MENSAGENS-012 — Emojis no campo de mensagem
+O botão 🙂 ao lado do campo abre uma grade fixa de emojis; tocar em um insere no cursor (ou no lugar da seleção) e mantém o foco no campo. O emoji vai junto com o texto, como qualquer caractere.

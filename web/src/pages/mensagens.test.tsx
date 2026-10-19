@@ -74,6 +74,17 @@ beforeEach(async () => {
 })
 
 describe('mensagens na tela', () => {
+  it('RN-WEB-MENSAGENS-012: emoji entra no cursor e vai junto com o texto', async () => {
+    const u = userEvent.setup()
+    await abrir([])
+    await u.type(campo(), 'oi maria')
+    await u.click(screen.getByRole('button', { name: 'Emojis' }))
+    await u.click(screen.getByRole('button', { name: 'Inserir 👍' }))
+    expect(campo()).toHaveValue('oi maria👍')
+    await u.click(botaoEnviar())
+    expect(enviarMensagem).toHaveBeenCalledWith(expect.anything(), expect.anything(), 'oi maria👍')
+  })
+
   it('mostra as mensagens com hora e o dia, as minhas e as do amigo', async () => {
     await abrir([mensagem('1', 'amigo', 'oi, tudo bem?'), mensagem('2', 'eu', 'tudo! e Platão?')])
     const lista = screen.getByRole('list', { name: 'Mensagens' })

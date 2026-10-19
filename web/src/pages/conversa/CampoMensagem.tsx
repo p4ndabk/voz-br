@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } fr
 import { Botao } from '@/components/ui/Botao'
 import { LIMITE_MENSAGEM, validarTexto } from '@/conversas/mensageria'
 import { t } from '@/i18n/pt-BR'
+import { EMOJIS, inserirNoCursor } from './emojis'
 import {
   ALTURA_MINIMA,
   alturaDoCampo,
@@ -19,6 +20,7 @@ interface Props {
 
 export function CampoMensagem({ aoEnviar }: Props) {
   const [texto, setTexto] = useState('')
+  const [emojisAbertos, setEmojisAbertos] = useState(false)
   const area = useRef<HTMLTextAreaElement>(null)
   const validacao = validarTexto(texto)
 
@@ -79,6 +81,22 @@ export function CampoMensagem({ aoEnviar }: Props) {
     area.current?.focus()
   }
 
+  const colocarEmoji = (emoji: string) => {
+    const el = area.current
+    const r = inserirNoCursor(
+      texto,
+      emoji,
+      el?.selectionStart ?? texto.length,
+      el?.selectionEnd ?? texto.length,
+    )
+    setTexto(r.texto)
+    requestAnimationFrame(() => {
+      el?.focus()
+      el?.setSelectionRange(r.cursor, r.cursor)
+      ajustarAltura()
+    })
+  }
+
   // Enter envia, Shift+Enter quebra a linha. Durante a composicao (acentos, IME) Enter nao envia.
   const aoTeclar = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
@@ -110,7 +128,35 @@ export function CampoMensagem({ aoEnviar }: Props) {
       >
         <span className="h-1 w-12 rounded-full bg-borda opacity-50 group-hover:opacity-100 group-focus-visible:opacity-100" />
       </div>
+      {emojisAbertos && (
+        <div
+          role="group"
+          aria-label={t.mensagens.emojis}
+          className="grid grid-cols-8 gap-1 rounded-cordel border-2 border-borda bg-superficie p-2"
+        >
+          {EMOJIS.map((e) => (
+            <button
+              key={e}
+              type="button"
+              aria-label={t.mensagens.inserirEmoji(e)}
+              onClick={() => colocarEmoji(e)}
+              className="rounded-cordel py-1 text-2xl hover:bg-fundo"
+            >
+              {e}
+            </button>
+          ))}
+        </div>
+      )}
       <div className="flex items-end gap-3">
+        <button
+          type="button"
+          aria-label={t.mensagens.emojis}
+          aria-expanded={emojisAbertos}
+          onClick={() => setEmojisAbertos((a) => !a)}
+          className="h-11 shrink-0 rounded-cordel border-2 border-borda bg-superficie px-3 text-2xl"
+        >
+          <span aria-hidden>🙂</span>
+        </button>
         <textarea
           ref={area}
           rows={1}

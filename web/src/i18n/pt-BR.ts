@@ -345,6 +345,8 @@ export const t = {
     campo: 'Escreva uma mensagem',
     redimensionar: 'Arraste para mudar o tamanho do campo (ou use as setas para cima e para baixo)',
     enviar: 'Enviar',
+    emojis: 'Emojis',
+    inserirEmoji: (e: string) => `Inserir ${e}`,
     enviando: 'enviando…',
     falhou: 'Não foi possível enviar',
     tentarDeNovo: 'Tentar de novo',
