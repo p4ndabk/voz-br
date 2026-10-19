@@ -32,10 +32,10 @@ Formato definido em [../README.md](../README.md). "Se violada" descreve o efeito
 ---
 
 ### RN-WEB-LAYOUT-004 — O pé da lateral tem a conta, com engrenagem, e o código
-**Regra:** a lateral das conversas termina em dois botões com cara de botão: um cartão com a foto, o nome e o rótulo "Configurações" com uma engrenagem (leva a `/conta`, e fica destacado enquanto `/conta`, `/conta/perfil` ou `/conta/relays` estão abertas), e um botão com o ícone de QR para "Meu código". "Editar perfil", "Relays", "Meu código" e "Ver chave secreta" ficam no alto da página de conta, e "Sair" (com confirmação) dentro dela. Essas telas abrem no painel do meio, sem tirar a lista de vista. (Antes eram quatro botões soltos e a foto clicável sem pista; decisão do David em 2026-10-19.)
+**Regra:** a lateral das conversas termina em dois botões com cara de botão: um cartão com a foto, o nome e o rótulo "Configurações" com uma engrenagem (leva a `/configuracoes`, RN-WEB-LAYOUT-008), e um botão com o ícone de QR para "Meu código". Perfil, relays, senha e sair ficam dentro das configurações. (Antes eram quatro botões soltos e a foto clicável sem pista; decisão do David em 2026-10-19.)
 **Quando:** qualquer tela dentro do layout de conversas.
 **Se violada:** a pessoa não percebe que a foto é o caminho para as configurações, ou o pé da lateral volta a ficar poluído.
-**Onde vive:** `web/src/pages/conversas/MenuConta.tsx`, `web/src/pages/Conta.tsx`, `web/src/components/ui/{IconeEngrenagem,IconeQr}.tsx`, rotas em `web/src/App.tsx`
+**Onde vive:** `web/src/pages/conversas/MenuConta.tsx`, `web/src/components/ui/{IconeEngrenagem,IconeQr}.tsx`
 **Teste:** `web/src/pages/layout.test.tsx::RN-WEB-LAYOUT-004`
 
 ### RN-WEB-LAYOUT-005 — Navegação sempre com saída
@@ -61,3 +61,10 @@ Formato definido em [../README.md](../README.md). "Se violada" descreve o efeito
 **Se violada:** em conversa longa a pessoa precisa rolar para achar o "Mais" (apagar histórico, remover da lista).
 **Onde vive:** `web/src/pages/conversas/{LayoutConversas.tsx,useAlturaVisivel.ts}`, `web/src/pages/Conversa.tsx`, `web/src/components/ui/CabecalhoPagina.tsx`, `web/index.html`
 **Teste:** `web/src/pages/conversas/useAlturaVisivel.test.tsx`
+
+### RN-WEB-LAYOUT-008 — Configurações são uma tela inteira, com menu de seções
+**Regra:** tocar no cartão da conta abre `/configuracoes`, uma tela que **não mostra a lista de conversas**: de um lado um menu de seções (Minha conta, Perfil, **Carteira**, Relays, Sons e avisos, Segurança, Vários aparelhos, mais o botão Sair com confirmação) e do outro a seção escolhida; a seta ← do menu volta às conversas. Em tela larga os dois aparecem juntos (Minha conta abre por padrão, e a seção atual fica destacada); no celular, o menu aparece sozinho e cada seção abre sozinha, com a seta voltando ao menu. A **Carteira** é onde se configura o endereço Lightning para receber (o mesmo perfil Nostr; salvar uma seção não mexe nos campos da outra, RN-WEB-PERFIL-010) e explica que para pagar o Voz abre a carteira da pessoa e nunca guarda chave de pagamento. Os endereços antigos `/conta`, `/conta/perfil` e `/conta/relays` redirecionam.
+**Quando:** abrir as configurações.
+**Se violada:** as configurações ficam espalhadas numa página só, a carteira não tem onde ser configurada, ou o chat fica ao lado de telas que não têm a ver com ele.
+**Onde vive:** `web/src/pages/configuracoes/`, `web/src/pages/EditarPerfil.tsx` (`secao`), rotas em `web/src/App.tsx`
+**Teste:** `web/src/pages/configuracoes.test.tsx`, `web/src/pages/editarPerfil.test.tsx::secoes das configuracoes`

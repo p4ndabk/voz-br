@@ -5,10 +5,10 @@ Formato definido em [../README.md](../README.md).
 ---
 
 ### RN-WEB-NOTIF-001 — Avisos só por escolha
-**Regra:** os avisos nascem desligados. A permissão do navegador só é pedida quando a pessoa clica em "Ligar avisos" em *Conta*; ela pode desligar quando quiser.
+**Regra:** os avisos nascem desligados. A permissão do navegador só é pedida quando a pessoa clica em "Ligar avisos" em *Configurações → Sons e avisos*; ela pode desligar quando quiser.
 **Quando:** primeiro uso e tela de conta.
 **Se violada:** pedido de permissão fora de hora, que o navegador passa a bloquear.
-**Onde vive:** `web/src/conversas/notificacoes.ts`, `web/src/pages/Conta.tsx`
+**Onde vive:** `web/src/conversas/notificacoes.ts`, `web/src/pages/configuracoes/SecaoSons.tsx`
 **Teste:** `web/src/conversas/notificacoes.test.ts::RN-WEB-NOTIF-001`
 
 ### RN-WEB-NOTIF-002 — O aviso não mostra a mensagem
@@ -29,5 +29,5 @@ Formato definido em [../README.md](../README.md).
 **Regra:** quando chega mensagem nova (a que conta como não lida, RN-WEB-CONVERSAS-011), o Voz toca um "plin" curto gerado no navegador. O som vem ligado; em *Conta* a pessoa silencia ou religa, e a escolha fica guardada neste navegador. O botão "Ouvir o som" toca na hora. O navegador só libera áudio depois de um gesto da pessoa; por isso o Voz destrava o áudio no primeiro clique, toque ou tecla.
 **Quando:** chega mensagem do outro; tela de conta.
 **Se violada:** som que não se consegue desligar, ou tocando com o histórico ao entrar.
-**Onde vive:** `web/src/conversas/{som,mensageria}.ts`, `web/src/pages/Conta.tsx`
+**Onde vive:** `web/src/conversas/{som,mensageria}.ts`, `web/src/pages/configuracoes/SecaoSons.tsx`
 **Teste:** `web/src/conversas/som.test.ts`

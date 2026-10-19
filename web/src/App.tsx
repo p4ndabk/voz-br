@@ -5,9 +5,13 @@ import { iniciarMensageria } from '@/conversas/mensageria'
 import { useConversas } from '@/conversas/useConversas'
 import { useMensagens } from '@/conversas/useMensagens'
 import { useSessao } from '@/nostr/useSessao'
-import { Conta } from '@/pages/Conta'
 import { EditarPerfil } from '@/pages/EditarPerfil'
 import { Conversa } from '@/pages/Conversa'
+import { LayoutConfiguracoes } from '@/pages/configuracoes/LayoutConfiguracoes'
+import { SecaoConta } from '@/pages/configuracoes/SecaoConta'
+import { SecaoSeguranca } from '@/pages/configuracoes/SecaoSeguranca'
+import { SecaoSincronizacao } from '@/pages/configuracoes/SecaoSincronizacao'
+import { SecaoSons } from '@/pages/configuracoes/SecaoSons'
 import { LayoutConversas } from '@/pages/conversas/LayoutConversas'
 import { PainelVazio } from '@/pages/conversas/PainelVazio'
 import { Destravar } from '@/pages/Destravar'
@@ -86,10 +90,29 @@ export function App() {
               <Route path=":pubkey" element={<Conversa />} />
             </Route>
             <Route path="/meu-codigo" element={<MeuCodigo />} />
-            <Route path="/conta" element={<Conta />} />
-            <Route path="/conta/perfil" element={<EditarPerfil />} />
-            <Route path="/conta/relays" element={<Relays />} />
           </Route>
+          {/* RN-WEB-LAYOUT-008: configuracoes ocupam a tela toda, sem a lista de conversas. */}
+          <Route
+            path="/configuracoes"
+            element={
+              <SomenteLogado>
+                <LayoutConfiguracoes />
+              </SomenteLogado>
+            }
+          >
+            <Route index element={<SecaoConta />} />
+            <Route path="conta" element={<SecaoConta />} />
+            <Route path="perfil" element={<EditarPerfil secao="perfil" />} />
+            <Route path="carteira" element={<EditarPerfil secao="carteira" />} />
+            <Route path="relays" element={<Relays />} />
+            <Route path="sons" element={<SecaoSons />} />
+            <Route path="seguranca" element={<SecaoSeguranca />} />
+            <Route path="sincronizacao" element={<SecaoSincronizacao />} />
+          </Route>
+          {/* Enderecos antigos continuam funcionando. */}
+          <Route path="/conta" element={<Navigate to="/configuracoes/conta" replace />} />
+          <Route path="/conta/perfil" element={<Navigate to="/configuracoes/perfil" replace />} />
+          <Route path="/conta/relays" element={<Navigate to="/configuracoes/relays" replace />} />
           {Estilo && <Route path="/estilo" element={<Estilo />} />}
           <Route path="*" element={<NaoEncontrada />} />
         </Routes>

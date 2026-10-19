@@ -1,12 +1,14 @@
 import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
+import type { ReactElement } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apagarTudoDoVoz, destravarSessao, lerSessaoSalva } from '@/nostr/sessao'
 import { gerarChave, nsecDe } from '@/nostr/signer/chaves'
 import { useSincronia } from '@/conversas/useSincronia'
 import { useSessao } from '@/nostr/useSessao'
-import { Conta } from './Conta'
+import { SecaoSeguranca } from './configuracoes/SecaoSeguranca'
+import { SecaoSincronizacao } from './configuracoes/SecaoSincronizacao'
 
 vi.mock('@/nostr/relays', () => ({ relays: { publicar: vi.fn() } }))
 
@@ -18,15 +20,11 @@ beforeEach(async () => {
   useSessao.setState({ fase: 'fora', assinante: null })
 })
 
-function abrir() {
-  render(
-    <MemoryRouter initialEntries={['/conta']}>
-      <Conta />
-    </MemoryRouter>,
-  )
+function abrir(pagina: ReactElement = <SecaoSeguranca />) {
+  render(<MemoryRouter initialEntries={['/configuracoes']}>{pagina}</MemoryRouter>)
 }
 
-describe('senha da chave em Conta', () => {
+describe('senha da chave em Configuracoes > Seguranca', () => {
   it('RN-WEB-AUTH-011: conta sem senha ganha "Proteger com senha" e passa a ser protegida', async () => {
     await useSessao.getState().entrarComNsec(nsecDe(gerarChave()))
     abrir()
@@ -109,12 +107,12 @@ describe('senha da chave em Conta', () => {
   })
 })
 
-describe('lista em varios aparelhos em Conta', () => {
+describe('lista em varios aparelhos em Configuracoes > Varios aparelhos', () => {
   it('RN-WEB-SYNC-004: o interruptor desliga e religa a sincronizacao', async () => {
     await useSessao.getState().entrarComNsec(nsecDe(gerarChave()))
     localStorage.clear()
     useSincronia.setState({ ligada: true, estado: 'parada' })
-    abrir()
+    abrir(<SecaoSincronizacao />)
     expect(await screen.findByText('Lista em vários aparelhos')).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Desligar sincronização' }))
     expect(screen.getByText(/Sincronização desligada/)).toBeInTheDocument()

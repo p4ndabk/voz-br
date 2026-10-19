@@ -7,7 +7,7 @@
 | **Work item (Azure DevOps)** | não criado |
 | **Tipo** | Feature |
 | **Épico / Feature pai** | Chat 1:1 do Voz (specs 0002–0007) |
-| **Módulo afetado** | `web/src/conversas/`, `web/src/nostr/listaPortatil.ts`, `web/src/pages/Conta.tsx` |
+| **Módulo afetado** | `web/src/conversas/`, `web/src/nostr/listaPortatil.ts`, `web/src/pages/configuracoes/SecaoSincronizacao.tsx` |
 | **P.O.** | David |
 | **Tech Lead** | David |
 | **Data do refinamento** | 2026-10-19 |
@@ -26,7 +26,7 @@
 - [ ] Evento kind 30078 (NIP-78, `d = voz:conversas`) com a lista cifrada por NIP-44 para a própria chave
 - [ ] Restaurar e mesclar ao entrar; publicar a cada mudança (com 5 s de espera)
 - [ ] "Remover da lista" vira marcador (`removidaEm`) para a remoção também viajar
-- [ ] Em *Conta*: interruptor (padrão ligado), estado e "Sincronizar agora"
+- [ ] Em *Configurações → Vários aparelhos*: interruptor (padrão ligado), estado e "Sincronizar agora"
 
 ## 4. Fora de escopo
 

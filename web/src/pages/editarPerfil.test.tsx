@@ -9,7 +9,6 @@ import { criarAssinanteLocal } from '@/nostr/signer/local'
 import { perfilAssinado } from '@/nostr/suporteDeTeste'
 import { useSessao } from '@/nostr/useSessao'
 import type { ResultadoLightning } from '@/perfil/lightning'
-import { Conta } from './Conta'
 import { EditarPerfil } from './EditarPerfil'
 
 const rede = vi.hoisted(() => ({
@@ -44,20 +43,21 @@ const perfilExistente = {
   nip05: 'maria@maria.org',
 }
 
-async function abrir(existente: object | null = perfilExistente) {
+async function abrir(existente: object | null = perfilExistente, secao?: 'perfil' | 'carteira') {
   rede.noRelay = existente ? [perfilAssinado(chave, existente, 1000)] : []
   render(
-    <MemoryRouter initialEntries={['/conta/perfil']}>
+    <MemoryRouter initialEntries={['/configuracoes/perfil']}>
       <Routes>
-        <Route path="/conta/perfil" element={<EditarPerfil />} />
-        <Route path="/conta" element={<Conta />} />
+        <Route path="/configuracoes/perfil" element={<EditarPerfil secao={secao} />} />
+        <Route path="/configuracoes/conta" element={<p>tela da conta</p>} />
       </Routes>
     </MemoryRouter>,
   )
-  await screen.findByLabelText('Nome')
+  // Na secao Carteira nao ha o campo Nome: espera pelo que existe em cada tela.
+  await screen.findByLabelText(secao === 'carteira' ? 'Endereço Lightning' : 'Nome')
 }
 
-const salvar = () => screen.getByRole('button', { name: 'Salvar perfil' })
+const salvar = () => screen.getByRole('button', { name: /^Salvar (perfil|carteira)$/ })
 const campo = (nome: string | RegExp) => screen.getByLabelText(nome)
 const limparEEscrever = async (rotulo: string | RegExp, texto: string) => {
   await userEvent.clear(campo(rotulo))
@@ -275,16 +275,46 @@ describe('editar perfil', () => {
     })
   })
 
-  it('"Editar perfil" na conta leva a esta tela', async () => {
-    render(
-      <MemoryRouter initialEntries={['/conta']}>
-        <Routes>
-          <Route path="/conta" element={<Conta />} />
-          <Route path="/conta/perfil" element={<p>tela do perfil</p>} />
-        </Routes>
-      </MemoryRouter>,
-    )
-    await userEvent.click(screen.getByRole('link', { name: 'Editar perfil' }))
-    expect(screen.getByText('tela do perfil')).toBeInTheDocument()
+  describe('secoes das configuracoes (RN-WEB-LAYOUT-008)', () => {
+    it('Perfil mostra nome, sobre e foto, sem o endereco Lightning', async () => {
+      await abrir(perfilExistente, 'perfil')
+      expect(campo('Nome')).toBeInTheDocument()
+      expect(campo('Sobre você')).toBeInTheDocument()
+      expect(campo(/Foto/)).toBeInTheDocument()
+      expect(screen.queryByLabelText('Endereço Lightning')).not.toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Editar perfil' })).toBeInTheDocument()
+    })
+
+    it('Carteira mostra so o endereco Lightning, com a explicacao de receber e de pagar', async () => {
+      await abrir(perfilExistente, 'carteira')
+      expect(campo('Endereço Lightning')).toHaveValue('maria@getalby.com')
+      expect(screen.queryByLabelText('Nome')).not.toBeInTheDocument()
+      expect(screen.queryByLabelText(/Foto/)).not.toBeInTheDocument()
+      expect(screen.getByRole('heading', { name: 'Carteira' })).toBeInTheDocument()
+      expect(screen.getByText(/por onde você recebe bitcoin/)).toBeInTheDocument()
+      expect(screen.getByText(/nunca guarda chave de pagamento/)).toBeInTheDocument()
+    })
+
+    it('RN-WEB-PERFIL-010: trocar o endereco pela Carteira publica o perfil sem perder nome, sobre, foto nem o banner', async () => {
+      await abrir(perfilExistente, 'carteira')
+      await limparEEscrever('Endereço Lightning', 'nova@getalby.com')
+      await userEvent.click(salvar())
+      await screen.findByText(/Perfil publicado/)
+      expect(publicado()).toEqual({ ...perfilExistente, lud16: 'nova@getalby.com' })
+    })
+
+    it('RN-WEB-PERFIL-010: salvar o Perfil nao mexe no endereco Lightning', async () => {
+      await abrir(perfilExistente, 'perfil')
+      await limparEEscrever('Nome', 'Maria Nova')
+      await userEvent.click(salvar())
+      await screen.findByText(/Perfil publicado/)
+      expect(publicado()).toEqual({ ...perfilExistente, display_name: 'Maria Nova' })
+    })
+
+    it('a seta de voltar so aparece no celular nas secoes (e nao existe o link antigo de voltar)', async () => {
+      await abrir(perfilExistente, 'perfil')
+      expect(screen.getByRole('link', { name: 'Voltar' })).toHaveClass('md:hidden')
+      expect(screen.queryByRole('link', { name: 'Voltar à conta' })).not.toBeInTheDocument()
+    })
   })
 })

@@ -103,7 +103,7 @@ export function Relays() {
 
   return (
     <main className="mx-auto flex h-full w-full max-w-xl flex-col gap-6 overflow-y-auto px-4 py-8">
-      <CabecalhoPagina titulo={t.relaysConfig.titulo} voltarPara="/conta" />
+      <CabecalhoPagina titulo={t.relaysConfig.titulo} voltarPara="/configuracoes" soNoCelular />
       <p className="text-tinta-suave">{t.relaysConfig.intro}</p>
       <Aviso>{t.relaysConfig.privacidade}</Aviso>
 

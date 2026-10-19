@@ -26,10 +26,10 @@ Formato definido em [../README.md](../README.md).
 **Teste:** `web/src/conversas/sincronia.test.ts`
 
 ### RN-WEB-SYNC-004 — O interruptor desliga tudo
-**Regra:** com a sincronia desligada em *Conta* (padrão: ligada) nada é lido nem publicado.
+**Regra:** com a sincronia desligada em *Configurações → Vários aparelhos* (padrão: ligada) nada é lido nem publicado.
 **Quando:** sempre.
 **Se violada:** publica sem a pessoa querer.
-**Onde vive:** `web/src/conversas/sincronia.ts`, `web/src/pages/Conta.tsx`
+**Onde vive:** `web/src/conversas/sincronia.ts`, `web/src/pages/configuracoes/SecaoSincronizacao.tsx`
 **Teste:** `web/src/conversas/sincronia.test.ts::RN-WEB-SYNC-004`
 
 ### RN-WEB-SYNC-005 — Só vale se um relay aceitou, e com espera

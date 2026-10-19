@@ -68,7 +68,7 @@ describe('tela de relays', () => {
     abrir()
     for (const url of relaysPadrao) expect(screen.getByText(url)).toBeInTheDocument()
     expect(screen.getAllByText('conectado')).toHaveLength(relaysPadrao.length)
-    expect(screen.getByRole('link', { name: 'Voltar' })).toHaveAttribute('href', '/conta')
+    expect(screen.getByRole('link', { name: 'Voltar' })).toHaveAttribute('href', '/configuracoes')
     expect(screen.getByRole('button', { name: 'Salvar relays' })).toBeDisabled()
   })
 

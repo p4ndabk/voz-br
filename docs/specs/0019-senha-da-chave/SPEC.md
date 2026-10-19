@@ -17,7 +17,7 @@
 
 **Problema:** a senha que protege a `nsec` guardada no navegador (NIP-49) já existe, mas é opcional e fácil de pular, não tem tamanho mínimo e só dá para escolhê-la ao entrar. Quem criou a conta sem senha fica com a chave em claro no IndexedDB, e como todas as páginas de `p4ndabk.github.io` dividem a origem, isso pesa.
 
-**Objetivo:** a senha vira o caminho principal (mínimo de 8 caracteres), pular exige confirmar um aviso, e em *Conta* dá para proteger uma conta sem senha, trocar a senha e ver a chave secreta só digitando a senha.
+**Objetivo:** a senha vira o caminho principal (mínimo de 8 caracteres), pular exige confirmar um aviso, e em *Configurações → Segurança* dá para proteger uma conta sem senha, trocar a senha e ver a chave secreta só digitando a senha.
 
 **Quem usa:** quem entra com `nsec` ou cria identidade no Voz. Extensão (NIP-07) e app assinante (NIP-46) não guardam chave no Voz e ficam de fora.
 
@@ -40,7 +40,7 @@
 | # | Regra | Quando é avaliada | Se violada |
 |---|---|---|---|
 | 1 | Senha nova tem no mínimo 8 caracteres; criar conta e entrar com `nsec` pedem senha e confirmação; seguir sem senha exige confirmar o aviso | criar, entrar, proteger, trocar | a tela recusa e explica |
-| 2 | Em *Conta*, proteger (sem senha) e trocar (com a atual) recifram a `nsec` com NIP-49; a senha nunca é guardada nem registrada | tela de conta | defeito de segurança |
+| 2 | Em *Configurações → Segurança*, proteger (sem senha) e trocar (com a atual) recifram a `nsec` com NIP-49; a senha nunca é guardada nem registrada | tela de conta | defeito de segurança |
 | 3 | Ver a chave secreta com sessão protegida exige digitar a senha | tela de conta | defeito de segurança |
 
 ## 6. Contrato da API

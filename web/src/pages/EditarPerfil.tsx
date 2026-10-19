@@ -36,7 +36,14 @@ type Salvamento =
 type Verificacao =
   { fase: 'parada' } | { fase: 'verificando' } | { fase: 'pronta'; r: ResultadoLightning }
 
-export function EditarPerfil() {
+interface Props {
+  // 'perfil' = nome, sobre e foto; 'carteira' = so o endereco Lightning; sem valor = tudo (tela antiga).
+  secao?: 'perfil' | 'carteira'
+  voltarPara?: string
+}
+
+// RN-WEB-PERFIL-010: perfil e carteira editam o MESMO kind 0; quem nao esta na tela fica como esta.
+export function EditarPerfil({ secao, voltarPara = '/configuracoes/perfil' }: Props = {}) {
   const assinante = useSessao((s) => s.assinante)
   const [atual, setAtual] = useState<PerfilAtual>()
   const [campos, setCampos] = useState<CamposEditaveis>(VAZIOS)
@@ -108,7 +115,12 @@ export function EditarPerfil() {
 
   return (
     <main className="mx-auto flex h-full w-full max-w-xl flex-col gap-6 overflow-y-auto px-4 py-8">
-      <CabecalhoPagina titulo={t.editarPerfil.titulo} voltarPara="/conta" />
+      <CabecalhoPagina
+        titulo={secao === 'carteira' ? t.carteira.titulo : t.editarPerfil.titulo}
+        voltarPara={voltarPara}
+        soNoCelular={secao !== undefined}
+      />
+      {secao === 'carteira' && <p className="text-tinta-suave">{t.carteira.intro}</p>}
 
       {!atual ? (
         <p role="status" className="text-tinta-suave">
@@ -118,83 +130,89 @@ export function EditarPerfil() {
         <form onSubmit={salvar} className="flex flex-col gap-5">
           {!atual.encontrado && <Aviso>{t.editarPerfil.naoEncontrado}</Aviso>}
 
-          <Campo
-            rotulo={t.editarPerfil.nome.rotulo}
-            ajuda={t.editarPerfil.nome.ajuda}
-            erro={textoDoErro('nome')}
-            autoComplete="off"
-            value={campos.nome}
-            onChange={(e) => mudar({ nome: e.target.value })}
-          />
+          {secao !== 'carteira' && (
+            <>
+              <Campo
+                rotulo={t.editarPerfil.nome.rotulo}
+                ajuda={t.editarPerfil.nome.ajuda}
+                erro={textoDoErro('nome')}
+                autoComplete="off"
+                value={campos.nome}
+                onChange={(e) => mudar({ nome: e.target.value })}
+              />
 
-          <AreaDeTexto
-            rotulo={t.editarPerfil.sobre.rotulo}
-            ajuda={t.editarPerfil.sobre.ajuda}
-            erro={textoDoErro('sobre')}
-            value={campos.sobre}
-            onChange={(e) => mudar({ sobre: e.target.value })}
-          />
+              <AreaDeTexto
+                rotulo={t.editarPerfil.sobre.rotulo}
+                ajuda={t.editarPerfil.sobre.ajuda}
+                erro={textoDoErro('sobre')}
+                value={campos.sobre}
+                onChange={(e) => mudar({ sobre: e.target.value })}
+              />
 
-          <div className="flex flex-col gap-3">
-            <Campo
-              rotulo={t.editarPerfil.foto.rotulo}
-              ajuda={t.editarPerfil.foto.ajuda}
-              erro={textoDoErro('foto')}
-              type="url"
-              autoComplete="off"
-              spellCheck={false}
-              value={campos.foto}
-              onChange={(e) => mudar({ foto: e.target.value })}
-            />
-            <div className="flex items-center gap-3">
-              {fotoValida && fotoFalhou !== campos.foto.trim() ? (
-                // RN-WEB-PERFIL-008: sem referrer; se a imagem nao carregar, cai no aviso abaixo.
-                <img
-                  src={campos.foto.trim()}
-                  alt={t.editarPerfil.foto.previa}
-                  width={64}
-                  height={64}
-                  referrerPolicy="no-referrer"
-                  onError={() => setFotoFalhou(campos.foto.trim())}
-                  className="size-16 shrink-0 rounded-cordel border-2 border-borda bg-superficie object-cover"
+              <div className="flex flex-col gap-3">
+                <Campo
+                  rotulo={t.editarPerfil.foto.rotulo}
+                  ajuda={t.editarPerfil.foto.ajuda}
+                  erro={textoDoErro('foto')}
+                  type="url"
+                  autoComplete="off"
+                  spellCheck={false}
+                  value={campos.foto}
+                  onChange={(e) => mudar({ foto: e.target.value })}
                 />
-              ) : (
-                <Avatar semente={assinante.pubkey} tamanho={64} />
-              )}
-              {fotoValida && fotoFalhou === campos.foto.trim() && (
-                <p role="alert" className="text-sm font-bold text-vermelho">
-                  {t.editarPerfil.foto.falhou}
-                </p>
-              )}
-            </div>
-          </div>
+                <div className="flex items-center gap-3">
+                  {fotoValida && fotoFalhou !== campos.foto.trim() ? (
+                    // RN-WEB-PERFIL-008: sem referrer; se a imagem nao carregar, cai no aviso abaixo.
+                    <img
+                      src={campos.foto.trim()}
+                      alt={t.editarPerfil.foto.previa}
+                      width={64}
+                      height={64}
+                      referrerPolicy="no-referrer"
+                      onError={() => setFotoFalhou(campos.foto.trim())}
+                      className="size-16 shrink-0 rounded-cordel border-2 border-borda bg-superficie object-cover"
+                    />
+                  ) : (
+                    <Avatar semente={assinante.pubkey} tamanho={64} />
+                  )}
+                  {fotoValida && fotoFalhou === campos.foto.trim() && (
+                    <p role="alert" className="text-sm font-bold text-vermelho">
+                      {t.editarPerfil.foto.falhou}
+                    </p>
+                  )}
+                </div>
+              </div>
+            </>
+          )}
 
-          <div className="flex flex-col gap-3">
-            <Campo
-              rotulo={t.editarPerfil.lightning.rotulo}
-              ajuda={t.editarPerfil.lightning.ajuda}
-              erro={textoDoErro('lightning')}
-              type="email"
-              inputMode="email"
-              autoComplete="off"
-              spellCheck={false}
-              value={campos.lightning}
-              onChange={(e) => mudar({ lightning: e.target.value })}
-            />
-            <div className="flex flex-col items-start gap-2">
-              <Botao
-                variante="secundario"
-                onClick={verificar}
-                disabled={!lightningVerificavel || verificacao.fase === 'verificando'}
-              >
-                {verificacao.fase === 'verificando'
-                  ? t.editarPerfil.lightning.verificando
-                  : t.editarPerfil.lightning.verificar}
-              </Botao>
-              <p className="text-xs text-tinta-suave">{t.editarPerfil.lightning.privacidade}</p>
-              {verificacao.fase === 'pronta' && <ResultadoDaVerificacao r={verificacao.r} />}
+          {secao !== 'perfil' && (
+            <div className="flex flex-col gap-3">
+              <Campo
+                rotulo={t.editarPerfil.lightning.rotulo}
+                ajuda={t.editarPerfil.lightning.ajuda}
+                erro={textoDoErro('lightning')}
+                type="email"
+                inputMode="email"
+                autoComplete="off"
+                spellCheck={false}
+                value={campos.lightning}
+                onChange={(e) => mudar({ lightning: e.target.value })}
+              />
+              <div className="flex flex-col items-start gap-2">
+                <Botao
+                  variante="secundario"
+                  onClick={verificar}
+                  disabled={!lightningVerificavel || verificacao.fase === 'verificando'}
+                >
+                  {verificacao.fase === 'verificando'
+                    ? t.editarPerfil.lightning.verificando
+                    : t.editarPerfil.lightning.verificar}
+                </Botao>
+                <p className="text-xs text-tinta-suave">{t.editarPerfil.lightning.privacidade}</p>
+                {verificacao.fase === 'pronta' && <ResultadoDaVerificacao r={verificacao.r} />}
+              </div>
             </div>
-          </div>
+          )}
 
           {salvamento.fase === 'falhou' && <Aviso tom="erro">{t.editarPerfil.falhou}</Aviso>}
           {salvamento.fase === 'salvo' && (
@@ -202,14 +220,22 @@ export function EditarPerfil() {
           )}
 
           <Botao type="submit" disabled={!podeSalvar}>
-            {salvamento.fase === 'salvando' ? t.editarPerfil.salvando : t.editarPerfil.salvar}
+            {salvamento.fase === 'salvando'
+              ? t.editarPerfil.salvando
+              : secao === 'carteira'
+                ? t.carteira.salvar
+                : t.editarPerfil.salvar}
           </Botao>
         </form>
       )}
 
-      <Link to="/conta" className="font-bold underline underline-offset-4">
-        {t.editarPerfil.voltar}
-      </Link>
+      {secao === 'carteira' && <p className="text-sm text-tinta-suave">{t.carteira.pagar}</p>}
+
+      {secao === undefined && (
+        <Link to="/configuracoes/conta" className="font-bold underline underline-offset-4">
+          {t.editarPerfil.voltar}
+        </Link>
+      )}
     </main>
   )
 }

@@ -23,7 +23,7 @@
 
 ## 3. Escopo — o que entra
 
-- [ ] Página `/conta/relays` com a lista, o estado ao vivo de cada relay e o botão Remover
+- [ ] Página `/configuracoes/relays` (era `/conta/relays`) com a lista, o estado ao vivo de cada relay e o botão Remover
 - [ ] Adicionar relay `wss://…` (valida, testa a conexão, avisa se não conectar, deixa adicionar mesmo assim)
 - [ ] Restaurar a lista padrão
 - [ ] Salvar publica o kind 10050 e passa a escutar e publicar nos novos relays sem recarregar a página

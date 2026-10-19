@@ -2,7 +2,9 @@ import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
-import { Conta } from '@/pages/Conta'
+import { LayoutConfiguracoes } from '@/pages/configuracoes/LayoutConfiguracoes'
+import { SecaoConta } from '@/pages/configuracoes/SecaoConta'
+import { SecaoSeguranca } from '@/pages/configuracoes/SecaoSeguranca'
 import { gerarChave, nsecDe, npubDe, pubkeyDe } from '@/nostr/signer/chaves'
 import { apagarTudoDoVoz, lerSessaoSalva } from '@/nostr/sessao'
 import { useSessao } from '@/nostr/useSessao'
@@ -217,8 +219,8 @@ describe('conta', () => {
   it('RN-WEB-AUTH-009: a nsec so aparece depois de confirmar no modal', async () => {
     const chave = await entrarComNsec()
     render(
-      <MemoryRouter initialEntries={['/conta']}>
-        <Conta />
+      <MemoryRouter initialEntries={['/configuracoes/seguranca']}>
+        <SecaoSeguranca />
       </MemoryRouter>,
     )
     expect(screen.queryByText(nsecDe(chave))).not.toBeInTheDocument()
@@ -233,8 +235,8 @@ describe('conta', () => {
     try {
       const chave = await entrarComNsec()
       render(
-        <MemoryRouter initialEntries={['/conta']}>
-          <Conta />
+        <MemoryRouter initialEntries={['/configuracoes/seguranca']}>
+          <SecaoSeguranca />
         </MemoryRouter>,
       )
       await userEvent.click(screen.getByRole('button', { name: 'Ver chave secreta' }))
@@ -253,9 +255,11 @@ describe('conta', () => {
   it('RN-WEB-AUTH-008: sair apaga a sessao e volta ao inicio', async () => {
     await entrarComNsec()
     render(
-      <MemoryRouter initialEntries={['/conta']}>
+      <MemoryRouter initialEntries={['/configuracoes/conta']}>
         <Routes>
-          <Route path="/conta" element={<Conta />} />
+          <Route path="/configuracoes" element={<LayoutConfiguracoes />}>
+            <Route path="conta" element={<SecaoConta />} />
+          </Route>
           <Route path="/" element={<p>inicio</p>} />
         </Routes>
       </MemoryRouter>,

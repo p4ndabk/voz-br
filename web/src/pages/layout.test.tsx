@@ -9,7 +9,6 @@ import { npubDe } from '@/nostr/perfis'
 import { gerarChave, pubkeyDe } from '@/nostr/signer/chaves'
 import { criarAssinanteLocal } from '@/nostr/signer/local'
 import { useSessao } from '@/nostr/useSessao'
-import { Conta } from './Conta'
 import { Conversa } from './Conversa'
 import { LayoutConversas } from './conversas/LayoutConversas'
 import { PainelVazio } from './conversas/PainelVazio'
@@ -40,7 +39,6 @@ function abrir(rota: string) {
             <Route path="nova" element={<NovaConversa />} />
             <Route path=":pubkey" element={<Conversa />} />
           </Route>
-          <Route path="/conta" element={<Conta />} />
         </Route>
       </Routes>
     </MemoryRouter>,
@@ -157,7 +155,7 @@ describe('layout de duas colunas', () => {
       '/conversas/nova',
     )
     const conta = nav.getByRole('link', { name: 'Minha conta' })
-    expect(conta).toHaveAttribute('href', '/conta')
+    expect(conta).toHaveAttribute('href', '/configuracoes')
     expect(conta).toHaveTextContent('Configurações')
     expect(conta.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
     expect(nav.getByRole('link', { name: 'Meu código' })).toHaveAttribute('href', '/meu-codigo')
@@ -165,31 +163,6 @@ describe('layout de duas colunas', () => {
     expect(nav.queryByRole('link', { name: 'Editar perfil' })).not.toBeInTheDocument()
     expect(nav.queryByRole('link', { name: 'Relays' })).not.toBeInTheDocument()
     expect(nav.queryByRole('button', { name: 'Sair' })).not.toBeInTheDocument()
-  })
-
-  it('RN-WEB-LAYOUT-004: a conta fica destacada quando a pagina de conta esta aberta', async () => {
-    abrir('/conta')
-    await screen.findByRole('heading', { name: 'Minha conta' })
-    expect(within(lateral()).getByRole('link', { name: 'Minha conta' })).toHaveAttribute(
-      'aria-current',
-      'page',
-    )
-  })
-
-  it('Sair (dentro da conta) pede confirmacao e so entao encerra a sessao', async () => {
-    abrir('/conta')
-    await screen.findByRole('heading', { name: 'Minha conta' })
-    await userEvent.click(within(meio()).getByRole('button', { name: 'Sair' }))
-    expect(useSessao.getState().assinante).not.toBeNull()
-    await userEvent.click(screen.getByRole('button', { name: 'Sair mesmo' }))
-    expect(useSessao.getState().assinante).toBeNull()
-  })
-
-  it('a conta abre no painel do meio e a lista continua na lateral', async () => {
-    abrir('/conta')
-    await screen.findByRole('heading', { name: 'Minha conta' })
-    expect(within(meio()).getByRole('heading', { name: 'Minha conta' })).toBeInTheDocument()
-    expect(within(lateral()).getByRole('list', { name: 'Suas conversas' })).toBeInTheDocument()
   })
 
   it('RN-WEB-LAYOUT-006: a busca filtra a lista pelo trecho sem sair dela', async () => {

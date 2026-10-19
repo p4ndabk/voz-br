@@ -182,6 +182,27 @@ export const t = {
     aindaNao: 'Ainda não sincronizada neste aparelho.',
     falhou: 'Não foi possível sincronizar. O Voz tenta de novo quando um relay responder.',
   },
+  configuracoes: {
+    titulo: 'Configurações',
+    menu: 'Seções das configurações',
+    voltarConversas: 'Voltar às conversas',
+    conta: 'Minha conta',
+    perfil: 'Perfil',
+    carteira: 'Carteira',
+    relays: 'Relays',
+    sons: 'Sons e avisos',
+    seguranca: 'Segurança',
+    sincronizacao: 'Vários aparelhos',
+    sair: 'Sair',
+  },
+  carteira: {
+    titulo: 'Carteira',
+    salvar: 'Salvar carteira',
+    intro:
+      'O seu endereço Lightning é por onde você recebe bitcoin (zaps) de quem conversa com você. Ele fica no seu perfil Nostr, que é público.',
+    pagar:
+      'Para pagar, o Voz abre a sua carteira (a extensão WebLN ou o botão "Abrir na carteira"). Ele nunca guarda chave de pagamento nem mexe no seu saldo.',
+  },
   notificacoes: {
     titulo: 'Voz',
     corpo: (nome: string) => `Nova mensagem de ${nome}`,
