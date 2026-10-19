@@ -65,7 +65,6 @@ Sempre estes cinco campos, nesta ordem — nem mais, nem menos:
 - **Quando** — em que operações a regra é avaliada.
 - **Se violada** — a consequência na tela ou no fluxo (mensagem de erro, botão desabilitado, nada é enviado).
 - **Onde vive** — o arquivo que implementa.
-  essa é a única camada onde regra de negócio pode morar.
 - **Teste** — o teste que prova a regra. Se não existe teste, a regra não está pronta.
 
 ## Como amarrar regra ↔ código ↔ teste
