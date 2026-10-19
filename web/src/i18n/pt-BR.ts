@@ -446,6 +446,9 @@ export const t = {
     encerrarGrupo: 'Encerrar grupo',
     passarCargo: 'Passar o admin',
     tirar: 'Tirar do grupo',
+    tirarApagar: 'Tirar e apagar conversas',
+    encerrarApagar: 'Encerrar grupo e apagar conversas',
+    excluir: 'Excluir grupo',
     cancelarConvite: 'Cancelar convite',
     // Janelas
     membrosTitulo: 'Membros do grupo',
@@ -466,6 +469,12 @@ export const t = {
     encerrarAviso:
       'O grupo acaba para todos. Cada pessoa mantém o histórico no próprio aparelho até limpar.',
     encerrarConfirmar: 'Encerrar',
+    excluirTitulo: 'Excluir grupo?',
+    excluirAviso:
+      'O grupo some da sua lista e o histórico é apagado deste aparelho. Se você ainda está nele, você sai antes; se você é o admin, o grupo é encerrado e todos são convidados a apagar o histórico.',
+    encerrarApagarTitulo: 'Encerrar e apagar conversas?',
+    encerrarApagarAviso:
+      'O grupo acaba para todos e você pede a todos os membros que apaguem o histórico, além de apagar o seu. A maioria atende, mas não dá para garantir: quem já leu ou copiou pode ter guardado.',
     passarTitulo: 'Passar o admin',
     passarAjuda: 'Escolha quem passa a mandar no grupo. Depois você vira membro comum e pode sair.',
     passarConfirmar: 'Passar o cargo',

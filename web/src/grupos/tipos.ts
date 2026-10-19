@@ -24,6 +24,9 @@ export interface Grupo {
   // Quando o admin (neste aparelho) mudou a lista pela ultima vez. Pedidos de membros mais velhos que isso
   // sao reentregas de um relay e nao valem de novo (um "sair" antigo nao tira quem voltou).
   alteradoEm?: number
+  // "Excluir grupo": some da lista e do aparelho, mas o registro fica para um convite antigo reentregue pelo
+  // relay nao ressuscitar o grupo.
+  excluido?: boolean
   // Mesmos campos da lista de conversas, para ordenar e contar nao lidas.
   ultimaMensagemEm?: number
   trecho?: string

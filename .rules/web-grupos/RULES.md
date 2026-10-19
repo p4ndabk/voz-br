@@ -101,3 +101,19 @@ entra não vê o passado" vêm disso, não de uma chave compartilhada.
 **Se violada:** ninguém sabe que alguém novo está lendo o grupo.
 **Onde vive:** `web/src/grupos/receber.ts` (`avisarEntrada`), `web/src/pages/conversa/ListaMensagens.tsx`
 **Teste:** `web/src/grupos/fluxo.test.ts::RN-WEB-GRUPOS-012`, `web/src/pages/grupo/grupos.test.tsx::RN-WEB-GRUPOS-012`
+
+### RN-WEB-GRUPOS-013 — Encerrar e apagar conversas; tirar e apagar conversas
+
+**Regra:** o admin tem "Encerrar grupo e apagar conversas": o grupo acaba, todos os membros recebem o pedido de apagar o histórico até o instante do pedido e o admin apaga o dele (com o fogo). Na lista de membros, "Tirar e apagar conversas" tira a pessoa e pede ao aparelho dela que apague o histórico do grupo; o pedido do admin vale mesmo depois de a pessoa ser tirada ou o grupo acabar. Só o admin faz isso.
+**Quando:** ao escolher a ação no menu ou na lista de membros.
+**Se violada:** o histórico fica com quem foi tirado, ou um membro comum apaga o dos outros.
+**Onde vive:** `web/src/grupos/acoes.ts`, `web/src/grupos/regras.ts` (`limpar`), `web/src/pages/grupo/`
+**Teste:** `web/src/grupos/fluxo.test.ts::RN-WEB-GRUPOS-013`
+
+### RN-WEB-GRUPOS-014 — Excluir grupo
+
+**Regra:** qualquer pessoa pode excluir o grupo (menos quem só recebeu o convite, que recusa): ele some da lista e o histórico é apagado deste aparelho. Quem ainda é membro sai antes; o admin encerra o grupo para todos e pede que apaguem o histórico. O registro fica marcado como excluído para que um convite antigo reentregue pelo relay não faça o grupo reaparecer; um convite novo (versão maior) vale.
+**Quando:** ao escolher "Excluir grupo".
+**Se violada:** o grupo volta sozinho na lista, ou o admin some deixando os outros num grupo sem dono.
+**Onde vive:** `web/src/grupos/acoes.ts` (`excluirGrupo`), `web/src/pages/conversas/ListaConversas.tsx`
+**Teste:** `web/src/grupos/fluxo.test.ts::RN-WEB-GRUPOS-014`

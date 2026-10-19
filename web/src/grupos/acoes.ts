@@ -127,6 +127,66 @@ export async function encerrarGrupo(assinante: Assinante, id: string): Promise<b
   return true
 }
 
+// RN-WEB-GRUPOS-013: encerra o grupo e pede a todos os membros que apaguem o historico (e apaga o meu).
+export async function encerrarGrupoEApagar(
+  assinante: Assinante,
+  id: string,
+  meuNome: string,
+  ate = agora(),
+): Promise<boolean> {
+  const grupo = await obterGrupo(id)
+  if (!grupo || grupo.admin !== assinante.pubkey || grupo.estado !== 'ativo') return false
+  await useGrupos.getState().gravar({ ...grupo, estado: 'encerrado' })
+  await Promise.all([
+    pedirLimpezaGeral(assinante, grupo, meuNome, ate)
+      .then(() => avisarEncerramento(assinante, grupo))
+      .catch(() => {}),
+    limparGrupoLocal(id, ate),
+  ])
+  return true
+}
+
+// RN-WEB-GRUPOS-013: tira o membro e pede ao aparelho dele que apague o historico do grupo.
+export async function removerPessoaEApagar(
+  assinante: Assinante,
+  id: string,
+  pessoa: string,
+  meuNome: string,
+  ate = agora(),
+): Promise<ResultadoAcao> {
+  const r = await doAdmin(id, (g) => remover(g, assinante.pubkey, pessoa, agora()))
+  if (!r.ok) return r
+  // O pedido sai primeiro e a lista nova depois; os dois chegam a pessoa, que aceita o pedido do admin
+  // mesmo depois de ser tirada.
+  await pedirLimpezaGeral(assinante, r.grupo, meuNome, ate, [pessoa]).catch(() => {})
+  await publicarMembros(assinante, r.grupo, [pessoa]).catch(() => {})
+  return r
+}
+
+// RN-WEB-GRUPOS-014: tira o grupo da minha lista e apaga o historico daqui. Se ainda estou nele, saio antes;
+// se sou o admin, o grupo e encerrado e todos sao convidados a apagar o historico.
+export async function excluirGrupo(
+  assinante: Assinante,
+  id: string,
+  meuNome: string,
+): Promise<boolean> {
+  const grupo = await obterGrupo(id)
+  if (!grupo || grupo.estado === 'convidado') return false
+  const ate = agora()
+  if (grupo.estado === 'ativo') {
+    if (grupo.admin === assinante.pubkey) await encerrarGrupoEApagar(assinante, id, meuNome, ate)
+    else {
+      await sairDoGrupo(assinante, id, meuNome)
+      await limparGrupoLocal(id, ate)
+    }
+  } else {
+    await limparGrupoLocal(id, ate)
+  }
+  const atual = await obterGrupo(id)
+  if (atual) await useGrupos.getState().gravar({ ...atual, excluido: true, naoLidas: 0 })
+  return true
+}
+
 // RN-WEB-GRUPOS-009: cada um limpa o seu; o admin tambem pode limpar o de todos.
 export async function limparMeuHistorico(id: string, ate = agora()): Promise<number> {
   return limparGrupoLocal(id, ate)

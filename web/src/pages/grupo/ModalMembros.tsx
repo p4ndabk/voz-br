@@ -3,7 +3,7 @@ import { Aviso } from '@/components/ui/Aviso'
 import { Botao } from '@/components/ui/Botao'
 import { Campo } from '@/components/ui/Campo'
 import { Modal } from '@/components/ui/Modal'
-import { convidarPessoa, passarOCargo, removerPessoa } from '@/grupos/acoes'
+import { convidarPessoa, passarOCargo, removerPessoa, removerPessoaEApagar } from '@/grupos/acoes'
 import type { Grupo } from '@/grupos/tipos'
 import { t } from '@/i18n/pt-BR'
 import { lerChaveDoAmigo } from '@/nostr/contatos'
@@ -77,6 +77,17 @@ export function ModalMembros({ grupo, assinante, aoFechar }: Props) {
           >
             {situacao === 'pendente' ? t.grupos.cancelarConvite : t.grupos.tirar}
           </Botao>
+          {situacao === 'membro' && (
+            <Botao
+              variante="secundario"
+              className="px-3 py-1 text-sm"
+              onClick={async () =>
+                mostrar(await removerPessoaEApagar(assinante, grupo.id, pk, meuNome))
+              }
+            >
+              {t.grupos.tirarApagar}
+            </Botao>
+          )}
         </div>
       )}
     </li>

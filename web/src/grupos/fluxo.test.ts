@@ -13,6 +13,9 @@ import {
   convidarPessoa,
   criarNovoGrupo,
   encerrarGrupo,
+  encerrarGrupoEApagar,
+  excluirGrupo,
+  removerPessoaEApagar,
   limparMeuHistorico,
   limparParaTodos,
   passarOCargo,
@@ -365,5 +368,80 @@ describe('fluxo do grupo (RN-WEB-GRUPOS-002 a 009)', () => {
     expect((await convidarPessoa(ana, id, duda.pubkey, nome(ana))).ok).toBe(false)
     await receber(duda)
     expect((await grupoDe(duda, id))?.estado).toBe('convidado')
+  })
+
+  it('RN-WEB-GRUPOS-013: encerrar e apagar conversas acaba o grupo e limpa o historico de todos', async () => {
+    const id = await grupoComAnaBiaCaio()
+    for (const p of [bia, caio]) {
+      await receber(p)
+      await aceitarConvite(p, id, nome(p))
+    }
+    await assentar(ana, bia, caio)
+    await como(ana)
+    await enviarMensagemDeGrupo(ana, (await obterGrupo(id))!, 'vai sumir')
+    await assentar(ana, bia, caio)
+    await receber(bia)
+    expect(await textos(id)).toEqual(['vai sumir'])
+    await como(ana)
+    expect(await encerrarGrupoEApagar(ana, id, nome(ana))).toBe(true)
+    await assentar(ana, bia, caio)
+    for (const p of [ana, bia, caio]) {
+      expect((await grupoDe(p, id))?.estado).toBe('encerrado')
+      expect(await textos(id)).toEqual([])
+    }
+  })
+
+  it('RN-WEB-GRUPOS-013: tirar e apagar conversas limpa so o aparelho de quem foi tirado', async () => {
+    const id = await grupoComAnaBiaCaio()
+    for (const p of [bia, caio]) {
+      await receber(p)
+      await aceitarConvite(p, id, nome(p))
+    }
+    await assentar(ana, bia, caio)
+    await como(ana)
+    await enviarMensagemDeGrupo(ana, (await obterGrupo(id))!, 'historico do grupo')
+    await assentar(ana, bia, caio)
+    await como(bia)
+    expect((await removerPessoaEApagar(bia, id, caio.pubkey, nome(bia))).ok).toBe(false)
+    await como(ana)
+    expect((await removerPessoaEApagar(ana, id, caio.pubkey, nome(ana))).ok).toBe(true)
+    await assentar(ana, bia, caio)
+    expect((await grupoDe(caio, id))?.estado).toBe('removido')
+    expect(await textos(id)).toEqual([]) // o do Caio foi apagado
+    await como(bia)
+    expect(await textos(id)).toEqual(['historico do grupo']) // o da Bia continua
+  })
+
+  it('RN-WEB-GRUPOS-014: excluir grupo tira da lista, apaga o historico e o convite antigo nao volta', async () => {
+    const id = await grupoComAnaBiaCaio()
+    await receber(bia)
+    await aceitarConvite(bia, id, nome(bia))
+    await assentar(ana, bia)
+    await como(ana)
+    await enviarMensagemDeGrupo(ana, (await obterGrupo(id))!, 'ola')
+    await assentar(ana, bia)
+    await como(bia)
+    expect(await excluirGrupo(bia, id, nome(bia))).toBe(true) // ainda membro: sai e exclui
+    const g = await obterGrupo(id)
+    expect(g).toMatchObject({ excluido: true, estado: 'saiu' })
+    expect(await textos(id)).toEqual([])
+    await assentar(ana, bia)
+    expect((await grupoDe(ana, id))?.membros).toEqual([ana.pubkey])
+    // o relay reentrega tudo (convite antigo inclusive): o grupo continua excluido
+    await receber(bia, true)
+    expect((await grupoDe(bia, id))?.excluido).toBe(true)
+    expect((await grupoDe(bia, id))?.estado).toBe('saiu')
+  })
+
+  it('RN-WEB-GRUPOS-014: o admin que exclui encerra o grupo para todos', async () => {
+    const id = await grupoComAnaBiaCaio()
+    await receber(bia)
+    await aceitarConvite(bia, id, nome(bia))
+    await assentar(ana, bia)
+    await como(ana)
+    expect(await excluirGrupo(ana, id, nome(ana))).toBe(true)
+    expect(await obterGrupo(id)).toMatchObject({ excluido: true, estado: 'encerrado' })
+    await assentar(ana, bia)
+    expect((await grupoDe(bia, id))?.estado).toBe('encerrado')
   })
 })

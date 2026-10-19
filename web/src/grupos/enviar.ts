@@ -249,11 +249,12 @@ export async function pedirLimpezaGeral(
   grupo: Grupo,
   meuNome: string,
   ate: number,
+  destinos: readonly string[] = grupo.membros,
 ): Promise<void> {
   await publicarControle(
     assinante,
     t.grupos.textoLimpar(meuNome, grupo.nome),
-    tagsDeLimpar(grupo.id, ate, grupo.membros),
-    grupo.membros,
+    tagsDeLimpar(grupo.id, ate, destinos),
+    destinos,
   )
 }

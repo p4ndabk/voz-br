@@ -15,6 +15,8 @@ import { useMensagens } from '@/conversas/useMensagens'
 import {
   aceitarConvite,
   encerrarGrupo,
+  encerrarGrupoEApagar,
+  excluirGrupo,
   limparMeuHistorico,
   limparParaTodos,
   recusarConvite,
@@ -35,7 +37,8 @@ import { ModalMembros } from './ModalMembros'
 const MARGEM_DO_FIM_PX = 80
 const SEM_MENSAGENS: never[] = []
 
-type Janela = 'membros' | 'limpar' | 'limpar-todos' | 'sair' | 'encerrar' | null
+type Janela =
+  'membros' | 'limpar' | 'limpar-todos' | 'sair' | 'encerrar' | 'encerrar-apagar' | 'excluir' | null
 
 // Coluna do meio para um grupo: mesmo desenho da conversa de dois, com o nome de quem escreve, a lista
 // de membros e o menu do admin (RN-WEB-GRUPOS-003, 006 e 009).
@@ -151,7 +154,7 @@ export function Grupo() {
     return () => observador.disconnect()
   }, [montada])
 
-  if (carregada && !grupo) return <Navigate to="/conversas" replace />
+  if (carregada && (!grupo || grupo.excluido)) return <Navigate to="/conversas" replace />
   if (!grupo || !assinante) return null
 
   const eu = assinante.pubkey
@@ -169,6 +172,11 @@ export function Grupo() {
     if (pertoDoFim.current) setNovas(false)
   }
 
+  const itemExcluir = {
+    rotulo: t.grupos.excluir,
+    icone: <IconeMenos />,
+    aoEscolher: () => setJanela('excluir' as const),
+  }
   const itensDoMenu = [
     ...(grupo.estado === 'convidado'
       ? []
@@ -195,6 +203,11 @@ export function Grupo() {
             icone: <IconeMenos />,
             aoEscolher: () => setJanela('encerrar' as const),
           },
+          {
+            rotulo: t.grupos.encerrarApagar,
+            icone: <IconeFogo />,
+            aoEscolher: () => setJanela('encerrar-apagar' as const),
+          },
         ]
       : []),
     ...(!souAdmin && ativo
@@ -206,6 +219,7 @@ export function Grupo() {
           },
         ]
       : []),
+    ...(grupo.estado !== 'convidado' ? [itemExcluir] : []),
   ]
 
   return (
@@ -323,6 +337,27 @@ export function Grupo() {
           botao={t.grupos.limparConfirmar}
           aoFechar={fechar}
           aoApagar={() => limparMeuHistorico(grupo.id)}
+        />
+      )}
+      {janela === 'encerrar-apagar' && (
+        <ModalApagarHistorico
+          titulo={t.grupos.encerrarApagarTitulo}
+          aviso={t.grupos.encerrarApagarAviso}
+          botao={t.grupos.encerrarConfirmar}
+          aoFechar={fechar}
+          aoApagar={() => encerrarGrupoEApagar(assinante, grupo.id, meuNome)}
+        />
+      )}
+      {janela === 'excluir' && (
+        <ModalApagarHistorico
+          titulo={t.grupos.excluirTitulo}
+          aviso={t.grupos.excluirAviso}
+          botao={t.grupos.excluir}
+          aoFechar={fechar}
+          aoApagar={async () => {
+            await excluirGrupo(assinante, grupo.id, meuNome)
+            navigate('/conversas')
+          }}
         />
       )}
       {janela === 'limpar-todos' && (

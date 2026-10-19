@@ -41,7 +41,7 @@ const paraDados = (g: Grupo): DadosGrupo => ({
 export { paraDados }
 
 function deDados(d: DadosGrupo, estado: Grupo['estado'], criadoEm: number, antigo?: Grupo): Grupo {
-  return { ...antigo, ...d, estado, criadoEm: antigo?.criadoEm ?? criadoEm }
+  return { ...antigo, ...d, estado, criadoEm: antigo?.criadoEm ?? criadoEm, excluido: false }
 }
 
 // RN-WEB-GRUPOS-001 a 008: decide o que fazer com uma acao de grupo vinda de `autor` (a chave do selo,
@@ -135,7 +135,10 @@ export function aplicarAcao(
     case 'limpar': {
       if (!local) return recusa('desconhecido')
       if (autor !== local.admin) return recusa('nao-e-admin')
-      if (local.estado !== 'ativo') return recusa('inativo')
+      // Tambem vale depois de ser tirado ou de o grupo acabar: "tirar e apagar conversas" e "encerrar e apagar".
+      if (local.estado !== 'ativo' && local.estado !== 'removido' && local.estado !== 'encerrado') {
+        return recusa('inativo')
+      }
       const ate = Math.max(local.apagadoAte ?? 0, acao.ate)
       return ok({ ...local, apagadoAte: ate }, { limparAte: acao.ate })
     }

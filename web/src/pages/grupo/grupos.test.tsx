@@ -98,6 +98,7 @@ describe('grupos na tela', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Mais' }))
     expect(screen.getByRole('menuitem', { name: 'Sair do grupo' })).toBeInTheDocument()
     expect(screen.queryByRole('menuitem', { name: 'Limpar para todos' })).not.toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Excluir grupo' })).toBeInTheDocument()
   })
 
   it('RN-WEB-GRUPOS-006: o admin ve Limpar para todos, Passar o admin e Encerrar, sem Sair', async () => {
@@ -109,6 +110,10 @@ describe('grupos na tela', () => {
     expect(screen.getByRole('menuitem', { name: 'Limpar para todos' })).toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: 'Passar o admin' })).toBeInTheDocument()
     expect(screen.getByRole('menuitem', { name: 'Encerrar grupo' })).toBeInTheDocument()
+    expect(
+      screen.getByRole('menuitem', { name: 'Encerrar grupo e apagar conversas' }),
+    ).toBeInTheDocument()
+    expect(screen.getByRole('menuitem', { name: 'Excluir grupo' })).toBeInTheDocument()
     expect(screen.queryByRole('menuitem', { name: 'Sair do grupo' })).not.toBeInTheDocument()
   })
 

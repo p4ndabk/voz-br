@@ -172,10 +172,11 @@ export function ListaConversas({ busca = '', aoAbrir }: Propriedades) {
   const gruposVisiveis = grupos.filter(
     (g) =>
       g.estado !== 'convidado' &&
+      !g.excluido &&
       !(g.estado === 'saiu' && g.ultimaMensagemEm === undefined) &&
       g.nome.toLowerCase().includes(termo),
   )
-  const convites = grupos.filter((g) => g.estado === 'convidado')
+  const convites = grupos.filter((g) => g.estado === 'convidado' && !g.excluido)
   const lista = [
     ...visiveis.map((c) => ({
       tipo: 'conversa' as const,
