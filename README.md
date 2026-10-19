@@ -35,6 +35,10 @@ O Voz funciona de outro jeito:
 - Um zap é público: fica registrado nos relays quem pagou quem, e quanto. Se preferir, escolha a fatura comum.
 - Alguns serviços Lightning (como `bipa.app`) não aceitam pedidos pelo navegador. Nesse caso o Voz mostra o endereço para você copiar e pagar pela sua carteira.
 
+## Usar agora
+
+O Voz está no ar em **https://p4ndabk.github.io/voz-br/**. Abra no navegador e siga os passos acima.
+
 ## Rodar no seu computador
 
 Precisa de [Node.js](https://nodejs.org) 20 ou mais. Use o gerenciador que preferir:
@@ -58,3 +62,12 @@ Antes de enviar uma mudança: `npm run lint && npm test && npm run build` (ou o 
 - Por que cada coisa foi decidida: [`docs/specs/`](docs/specs/README.md)
 
 O código é todo um app web (React, Vite, TypeScript) na pasta `web/`. Não há backend.
+
+## Como o site é publicado
+
+A cada envio à `main` do GitHub, uma Action roda lint, testes e build e publica o site no GitHub Pages
+([`.github/workflows/pages.yml`](.github/workflows/pages.yml)). Se algo falhar, o site no ar não muda.
+O código principal fica no Nostr (ngit); o GitHub é um espelho usado para publicar.
+
+> **Aviso:** todas as páginas de `p4ndabk.github.io` dividem a mesma origem, e portanto o mesmo armazenamento do navegador.
+> Não hospede outras páginas nesse domínio. Um domínio próprio resolve isso (veja [spec 0017](docs/specs/0017-publicar-github-pages/SPEC.md)).

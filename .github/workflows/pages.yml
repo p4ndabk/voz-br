@@ -1,0 +1,62 @@
+# RN-WEB-PUBLICACAO-004: so publica se lint, testes e build passarem.
+name: Publicar no GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+
+      # O pnpm vem do campo packageManager do package.json.
+      - run: corepack enable
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+          cache-dependency-path: web/pnpm-lock.yaml
+
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm lint
+      - run: pnpm test
+
+      # Caminho-base do site: https://p4ndabk.github.io/voz-br/ (RN-WEB-PUBLICACAO-001)
+      - run: pnpm build
+        env:
+          VITE_BASE: /voz-br/
+
+      # RN-WEB-PUBLICACAO-002: o Pages entrega o 404.html em qualquer caminho desconhecido,
+      # e o app assume a rota. Por isso ele e uma copia do index.html.
+      - run: cp dist/index.html dist/404.html
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -70,6 +70,8 @@ Plano para as próximas entregas depois da tela de relays (spec 0013). Cada fase
 
 ## Fase 4 — Publicar e instalar como app (specs 0017 e 0018)
 
+> **0017 feita:** publicado no GitHub Pages (`p4ndabk.github.io/voz-br`), com espelho do código no GitHub. Domínio próprio e nsite seguem como pendências da spec.
+
 **0017 — Publicar**
 - Como não há backend, o build (`web/dist`) é só arquivo estático. Opções: Cloudflare Pages/Netlify (grátis, com HTTPS) e/ou **nsite** (site dentro do Nostr, combina com o projeto).
 - Cabeçalhos de segurança (CSP restringindo `connect-src` a `wss:` e serviços Lightning, sem scripts de terceiros), `_redirects` para o roteamento do SPA.
