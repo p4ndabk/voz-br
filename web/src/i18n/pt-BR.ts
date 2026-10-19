@@ -135,6 +135,10 @@ export const t = {
     ajuda: 'Comece com wss://. Máximo de 5 relays.',
     adicionarBotao: 'Adicionar',
     testando: 'Testando a conexão…',
+    medir: 'Testar velocidade',
+    medindo: 'Medindo…',
+    latencia: (ms: number) => `${ms} ms`,
+    semResposta: 'sem resposta',
     erros: {
       formato: 'Use um endereço que comece com wss://, como wss://meu.relay.com.',
       duplicado: 'Esse relay já está na lista.',

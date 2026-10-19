@@ -6,7 +6,7 @@ import { Campo } from '@/components/ui/Campo'
 import { useMeusRelays, validarRelay } from '@/conversas/meusRelays'
 import { t } from '@/i18n/pt-BR'
 import { relaysPadrao } from '@/nostr/config'
-import { testarRelay } from '@/nostr/relays'
+import { medirRelay } from '@/nostr/relays'
 import { useRelays } from '@/nostr/useRelays'
 import { useSessao } from '@/nostr/useSessao'
 
@@ -33,6 +33,9 @@ export function Relays() {
   const [testando, setTestando] = useState(false)
   const [semConexao, setSemConexao] = useState<string>()
   const [salvando, setSalvando] = useState(false)
+  // Ultima medida de cada relay: ms, ou null se nao conectou. Ausente = ainda nao medido.
+  const [medidas, setMedidas] = useState<Record<string, number | null>>({})
+  const [medindo, setMedindo] = useState(false)
   const [resultado, setResultado] = useState<Resultado>()
 
   if (!assinante) return null
@@ -55,9 +58,10 @@ export function Relays() {
     const r = validarRelay(entrada, mostrada)
     if (!r.ok) return setErroCampo(t.relaysConfig.erros[r.motivo])
     setTestando(true)
-    const conectou = await testarRelay(r.url)
+    const ms = await medirRelay(r.url)
     setTestando(false)
-    if (conectou) incluir(r.url)
+    setMedidas((m) => ({ ...m, [r.url]: ms }))
+    if (ms !== null) incluir(r.url)
     else setSemConexao(r.url)
   }
 
@@ -73,6 +77,22 @@ export function Relays() {
     } finally {
       setSalvando(false)
     }
+  }
+
+  // RN-WEB-RELAYS-011: mede todos da lista de uma vez para a pessoa comparar.
+  const medirTodos = async () => {
+    setMedindo(true)
+    const resultados = await Promise.all(
+      mostrada.map(async (url) => [url, await medirRelay(url)] as const),
+    )
+    setMedidas((m) => ({ ...m, ...Object.fromEntries(resultados) }))
+    setMedindo(false)
+  }
+
+  const latenciaDe = (url: string) => {
+    if (!(url in medidas)) return null
+    const ms = medidas[url]
+    return ms === null ? t.relaysConfig.semResposta : t.relaysConfig.latencia(ms ?? 0)
   }
 
   const estadoDe = (url: string) => {
@@ -98,7 +118,10 @@ export function Relays() {
               className="flex flex-wrap items-center gap-3 rounded-cordel border-2 border-borda bg-superficie px-3 py-2"
             >
               <span className="min-w-0 flex-1 break-all font-mono text-sm">{url}</span>
-              <span className="text-sm text-tinta-suave">{estadoDe(url)}</span>
+              <span className="text-sm text-tinta-suave">
+                {estadoDe(url)}
+                {latenciaDe(url) && ` · ${latenciaDe(url)}`}
+              </span>
               <Botao
                 variante="secundario"
                 className="px-3 py-1 text-sm"
@@ -111,6 +134,11 @@ export function Relays() {
             </li>
           ))}
         </ul>
+        <div>
+          <Botao variante="secundario" onClick={() => void medirTodos()} disabled={medindo}>
+            {medindo ? t.relaysConfig.medindo : t.relaysConfig.medir}
+          </Botao>
+        </div>
         {mostrada.length <= 1 && (
           <p className="text-sm text-tinta-suave">{t.relaysConfig.ultimo}</p>
         )}

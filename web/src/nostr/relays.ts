@@ -475,20 +475,22 @@ function ordem(lista: string[], entrada: Entrada): number {
   return entrada.extra || i < 0 ? lista.length : i
 }
 
-// RN-WEB-RELAYS-009: abre uma conexao descartavel para ver se o relay responde. Nao mexe no gerente.
-export function testarRelay(
+// RN-WEB-RELAYS-009 e 011: abre uma conexao descartavel e mede o tempo ate ela abrir (ms).
+// null = nao conectou. Nao mexe no gerente.
+export function medirRelay(
   url: string,
   tempoMs = 5_000,
   Socket: typeof WebSocket = WebSocket,
-): Promise<boolean> {
+): Promise<number | null> {
   return new Promise((resolve) => {
     let socket: WebSocket
     try {
       socket = new Socket(url)
     } catch {
-      return resolve(false)
+      return resolve(null)
     }
-    const terminar = (ok: boolean) => {
+    const inicio = performance.now()
+    const terminar = (conectou: boolean) => {
       clearTimeout(limite)
       socket.onopen = socket.onerror = socket.onclose = null
       try {
@@ -496,13 +498,21 @@ export function testarRelay(
       } catch {
         // ja fechou
       }
-      resolve(ok)
+      resolve(conectou ? Math.max(1, Math.round(performance.now() - inicio)) : null)
     }
     const limite = setTimeout(() => terminar(false), tempoMs)
     socket.onopen = () => terminar(true)
     socket.onerror = () => terminar(false)
     socket.onclose = () => terminar(false)
   })
+}
+
+export async function testarRelay(
+  url: string,
+  tempoMs = 5_000,
+  Socket: typeof WebSocket = WebSocket,
+): Promise<boolean> {
+  return (await medirRelay(url, tempoMs, Socket)) !== null
 }
 
 export const relays = new GerenteDeRelays(relaysPadrao)

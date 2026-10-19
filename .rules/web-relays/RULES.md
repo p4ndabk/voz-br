@@ -91,3 +91,10 @@ Formato definido em [../README.md](../README.md).
 **Se violada:** a pessoa deixa de receber mensagens até recarregar a página.
 **Onde vive:** `web/src/nostr/relays.ts` (`definirRelays`), `web/src/conversas/mensageria.ts`
 **Teste:** `web/src/nostr/relays.test.ts::definirRelays`, `web/src/conversas/mensageria.test.ts`
+
+### RN-WEB-RELAYS-011 — Dá para medir a velocidade dos relays
+**Regra:** a tela de relays mostra, ao adicionar um relay e no botão "Testar velocidade", quanto cada relay levou para abrir a conexão (em ms) ou "sem resposta". A medida usa uma conexão descartável e não mexe nas conexões em uso nem muda a lista.
+**Quando:** pessoa adiciona um relay ou pede o teste.
+**Se violada:** escolher relays vira chute.
+**Onde vive:** `web/src/nostr/relays.ts` (`medirRelay`), `web/src/pages/Relays.tsx`
+**Teste:** `web/src/nostr/relays.test.ts::RN-WEB-RELAYS-011`, `web/src/pages/relays.test.tsx::RN-WEB-RELAYS-011`

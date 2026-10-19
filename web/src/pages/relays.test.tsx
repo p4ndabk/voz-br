@@ -18,7 +18,7 @@ const rede = vi.hoisted(() => ({
 
 vi.mock('@/nostr/relays', async (original) => ({
   ...(await original<typeof import('@/nostr/relays')>()),
-  testarRelay: vi.fn(async () => rede.conecta),
+  medirRelay: vi.fn(async () => (rede.conecta ? 42 : null)),
   relays: {
     snapshot: vi.fn(() => []),
     consultar: vi.fn(async () => []),
@@ -72,11 +72,24 @@ describe('tela de relays', () => {
     expect(screen.getByRole('button', { name: 'Salvar relays' })).toBeDisabled()
   })
 
+  it('RN-WEB-RELAYS-011: testar velocidade mostra o tempo de cada relay', async () => {
+    abrir()
+    await userEvent.click(screen.getByRole('button', { name: 'Testar velocidade' }))
+    expect(await screen.findAllByText(/conectado · 42 ms/)).toHaveLength(relaysPadrao.length)
+  })
+
+  it('RN-WEB-RELAYS-011: relay sem conexao aparece como sem resposta', async () => {
+    rede.conecta = false
+    abrir()
+    await userEvent.click(screen.getByRole('button', { name: 'Testar velocidade' }))
+    expect(await screen.findAllByText(/sem resposta/)).toHaveLength(relaysPadrao.length)
+  })
+
   it('RN-WEB-RELAYS-007: adiciona o relay proprio, salva e publica o kind 10050', async () => {
     abrir()
     await adicionar('wss://meu.relay.com/')
     expect(await screen.findByText('wss://meu.relay.com')).toBeInTheDocument()
-    expect(screen.getByText('ainda não salvo')).toBeInTheDocument()
+    expect(screen.getByText(/ainda não salvo/)).toBeInTheDocument()
 
     await userEvent.click(screen.getByRole('button', { name: 'Salvar relays' }))
     expect(await screen.findByText(/Lista publicada em 1 de/)).toBeInTheDocument()

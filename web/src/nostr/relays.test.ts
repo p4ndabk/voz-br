@@ -4,6 +4,7 @@ import {
   esperaDaTentativa,
   GerenteDeRelays,
   normalizarRelay,
+  medirRelay,
   testarRelay,
   type EstadoRelay,
 } from './relays'
@@ -340,6 +341,19 @@ describe('GerenteDeRelays', () => {
       const r = testarRelay('wss://ruim', 5_000, Falso)
       ultimoSocket('wss://ruim').cair()
       expect(await r).toBe(false)
+    })
+
+    it('RN-WEB-RELAYS-011: medirRelay devolve o tempo ate abrir, em ms', async () => {
+      const r = medirRelay('wss://lento', 5_000, Falso)
+      await vi.advanceTimersByTimeAsync(120)
+      ultimoSocket('wss://lento').abrir()
+      expect(await r).toBeGreaterThanOrEqual(100)
+    })
+
+    it('RN-WEB-RELAYS-011: medirRelay devolve null quando nao conecta', async () => {
+      const r = medirRelay('wss://fora', 5_000, Falso)
+      ultimoSocket('wss://fora').cair()
+      expect(await r).toBeNull()
     })
 
     it('false quando passa do tempo', async () => {
