@@ -351,7 +351,7 @@ export const t = {
     semServicoAjuda:
       'Alguns serviços Lightning não aceitam pedidos feitos pelo navegador. Se continuar assim, copie o endereço e pague pela sua carteira.',
     copiarEndereco: 'Copiar endereço Lightning',
-    abrirCarteira: 'Abrir na minha carteira',
+    abrirCarteiraEndereco: 'Abrir na minha carteira',
     tentarDeNovo: 'Tentar de novo',
     valor: 'Quantos sats?',
     valorLimite: (min: number, max: number) =>
