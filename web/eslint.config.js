@@ -33,6 +33,10 @@ export default tseslint.config(
     rules: { 'no-restricted-imports': 'off' },
   },
   {
+    files: ['public/sw.js'],
+    languageOptions: { globals: { ...globals.serviceworker } },
+  },
+  {
     files: ['scripts/**/*.mjs', '*.config.js'],
     languageOptions: { globals: { ...globals.node } },
   },

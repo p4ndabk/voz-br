@@ -46,3 +46,5 @@ Formato definido em [../README.md](../README.md).
 **Se violada:** terceiros veem o IP de quem abre o Voz.
 **Onde vive:** `web/vite.config.ts`
 **Teste:** verificação com navegador real (nenhuma violação de CSP, nenhum pedido a domínio de terceiros no carregamento)
+
+> O app instalável (manifesto e service worker) está em [`../web-pwa/RULES.md`](../web-pwa/RULES.md).
