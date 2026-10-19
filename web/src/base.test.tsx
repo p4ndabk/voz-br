@@ -17,7 +17,7 @@ describe('caminhoBase', () => {
 
   it('os links ficam sob o caminho-base', () => {
     render(
-      <MemoryRouter basename="/voz-br">
+      <MemoryRouter basename="/voz-br" initialEntries={['/voz-br/']}>
         <Inicio />
       </MemoryRouter>,
     )
