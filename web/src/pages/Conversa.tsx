@@ -2,6 +2,8 @@ import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Botao } from '@/components/ui/Botao'
 import { Fogo } from '@/components/ui/Fogo'
+import { IconeFogo } from '@/components/ui/IconeFogo'
+import { IconeMenos } from '@/components/ui/IconeMenos'
 import { Identidade } from '@/components/ui/Identidade'
 import { Modal } from '@/components/ui/Modal'
 import { Selo } from '@/components/ui/Selo'
@@ -198,8 +200,12 @@ export function Conversa() {
         </Botao>
         <MenuMais
           itens={[
-            { rotulo: t.apagar.botao, aoEscolher: () => setApagando(true) },
-            { rotulo: t.conversas.remover, aoEscolher: () => setModal(true) },
+            { rotulo: t.apagar.botao, icone: <IconeFogo />, aoEscolher: () => setApagando(true) },
+            {
+              rotulo: t.conversas.remover,
+              icone: <IconeMenos />,
+              aoEscolher: () => setModal(true),
+            },
           ]}
         />
       </header>

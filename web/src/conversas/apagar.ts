@@ -137,7 +137,7 @@ export async function apagarHistorico(
   const { apagadas, semChave, fila } = await apagarLocal(assinante.pubkey, amigo, limite, 'eu')
 
   // Mensagem de controle: texto legivel para quem usa outro cliente e a tag para o Voz.
-  const texto = `${meuNome} apagou o histórico desta conversa no Voz e pediu que você apague também.`
+  const texto = `${meuNome} apagou esta conversa no Voz e pediu que você apague também.`
   const { paraAmigo, paraMim } = await criarEmbrulhos(
     assinante,
     amigo,

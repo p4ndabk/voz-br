@@ -7,7 +7,7 @@ existe é o pedido (NIP-09), e estas regras existem para o Voz nunca prometer ma
 ---
 
 ### RN-WEB-APAGAR-001 — Apagar tem um aviso e um clique
-**Regra:** "Apagar histórico" abre um aviso que diz o que é certo e o que é só um pedido (RN-WEB-APAGAR-004); o botão **Apagar** dentro dele apaga e dispara o fogo, sem campo de confirmação. Fechar o aviso não apaga nem publica nada. (Decisão do David em 2026-10-19: antes eram duas etapas, com `APAGAR` digitado.)
+**Regra:** "Apagar conversa" abre um aviso que diz o que é certo e o que é só um pedido (RN-WEB-APAGAR-004); o botão **Apagar** dentro dele apaga e dispara o fogo, sem campo de confirmação. Fechar o aviso não apaga nem publica nada. (Decisão do David em 2026-10-19: antes eram duas etapas, com `APAGAR` digitado.)
 **Quando:** ao apagar.
 **Se violada:** o aviso apagaria só de abrir, ou fechar não cancelaria.
 **Onde vive:** `web/src/pages/conversa/ModalApagarHistorico.tsx`
@@ -16,7 +16,7 @@ existe é o pedido (NIP-09), e estas regras existem para o Voz nunca prometer ma
 ---
 
 ### RN-WEB-APAGAR-002 — O apagamento local acontece sempre, mesmo sem internet
-**Regra:** as mensagens da conversa saem do aparelho (memória e IndexedDB) antes de qualquer tentativa de rede, e a sala continua na lista, vazia, com a marca "Histórico apagado em dd/mm/aaaa".
+**Regra:** as mensagens da conversa saem do aparelho (memória e IndexedDB) antes de qualquer tentativa de rede, e a sala continua na lista, vazia, com a marca "Conversa apagada em dd/mm/aaaa".
 **Quando:** ao apagar.
 **Se violada:** defeito de produto: o que é garantido (o aparelho) dependeria da rede.
 **Onde vive:** `web/src/conversas/apagar.ts` (`apagarLocal`), `web/src/pages/Conversa.tsx`

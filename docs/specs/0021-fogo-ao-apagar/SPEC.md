@@ -6,7 +6,7 @@
 |---|---|
 | **Work item (Azure DevOps)** | não criado |
 | **Tipo** | Melhoria de experiência |
-| **Épico / Feature pai** | Apagar histórico (spec 0007) |
+| **Épico / Feature pai** | Apagar conversa (spec 0007) |
 | **Módulo afetado** | `web/src/conversas/{apagar,queima}.ts`, `web/src/components/ui/{motorDoFogo.ts,Fogo.tsx}`, `web/src/pages/Conversa.tsx` |
 | **P.O.** | David |
 | **Tech Lead** | David |
@@ -52,7 +52,7 @@
 
 ```gherkin
 Cenário: apagar o histórico
-  Quando confirmo "Apagar histórico"
+  Quando confirmo "Apagar conversa"
   Então vejo chamas subirem e as mensagens queimarem em cerca de 2,4 s
   E depois vejo o resultado do apagamento
 

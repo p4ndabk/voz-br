@@ -63,8 +63,8 @@ function abrir() {
 
 const abrirModal = async () => {
   await userEvent.click(await screen.findByRole('button', { name: 'Mais' }))
-  await userEvent.click(screen.getByRole('menuitem', { name: 'Apagar histórico' }))
-  return screen.getByRole('dialog', { name: 'Apagar histórico' })
+  await userEvent.click(screen.getByRole('menuitem', { name: 'Apagar conversa' }))
+  return screen.getByRole('dialog', { name: 'Apagar conversa' })
 }
 
 beforeEach(async () => {
@@ -106,7 +106,7 @@ describe('apagar historico (interface)', () => {
     abrir()
     const modal = within(await abrirModal())
     await userEvent.click(modal.getByRole('button', { name: 'Fechar' }))
-    expect(screen.queryByRole('dialog', { name: 'Apagar histórico' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog', { name: 'Apagar conversa' })).not.toBeInTheDocument()
     expect(apagarHistorico).not.toHaveBeenCalled()
   })
 
@@ -129,7 +129,7 @@ describe('apagar historico (interface)', () => {
     await apagarTudo()
     const hoje = new Intl.DateTimeFormat('pt-BR').format(new Date())
     expect(await screen.findByTestId('linha-apagado')).toHaveTextContent(
-      `Histórico apagado em ${hoje}`,
+      `Conversa apagada em ${hoje}`,
     )
     const meio = within(screen.getByTestId('coluna-conversa'))
     expect(meio.queryByText('Nenhuma mensagem ainda')).not.toBeInTheDocument()
@@ -147,7 +147,7 @@ describe('apagar historico (interface)', () => {
     await useConversas.getState().registrarApagamento(maria, Math.floor(Date.now() / 1000), 'outro')
     abrir()
     expect(await screen.findByTestId('linha-apagado')).toHaveTextContent(
-      /Maria apagou o histórico desta conversa em \d{2}\/\d{2}\/\d{4}\./,
+      /Maria apagou esta conversa em \d{2}\/\d{2}\/\d{4}\./,
     )
   })
 
@@ -224,7 +224,7 @@ describe('apagar historico (interface)', () => {
       // RN-WEB-APAGAR-014: o som toca junto com o fogo.
       expect(tocarFogo).toHaveBeenCalledOnce()
       expect(screen.getByText('primeira').closest('li')).toHaveClass('queimar')
-      expect(screen.getByText('Queimando o histórico da conversa…')).toBeInTheDocument()
+      expect(screen.getByText('Queimando a conversa…')).toBeInTheDocument()
       // O aviso fecha no clique: so o fogo fica na tela.
       expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 

@@ -335,15 +335,14 @@ export const t = {
     lista: 'Mensagens',
   },
   apagar: {
-    botao: 'Apagar histórico',
-    titulo: 'Apagar histórico',
+    botao: 'Apagar conversa',
+    titulo: 'Apagar conversa',
     aviso: (nome: string) =>
       `Do seu aparelho, apagamos com certeza. Dos relays e do aparelho de ${nome}, enviamos um pedido. A maioria atende, mas não dá para garantir, e quem já leu ou copiou pode ter guardado.`,
     apagarTudo: 'Apagar',
-    queimando: 'Queimando o histórico da conversa…',
-    linhaEu: (data: string) => `Histórico apagado em ${data}`,
-    linhaOutro: (nome: string, data: string) =>
-      `${nome} apagou o histórico desta conversa em ${data}.`,
+    queimando: 'Queimando a conversa…',
+    linhaEu: (data: string) => `Conversa apagada em ${data}`,
+    linhaOutro: (nome: string, data: string) => `${nome} apagou esta conversa em ${data}.`,
   },
   editarPerfil: {
     titulo: 'Editar perfil',

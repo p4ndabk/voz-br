@@ -3,6 +3,8 @@ import userEvent from '@testing-library/user-event'
 import { MemoryRouter } from 'react-router-dom'
 import { describe, expect, it, vi } from 'vitest'
 import { CabecalhoPagina } from './CabecalhoPagina'
+import { IconeFogo } from './IconeFogo'
+import { IconeMenos } from './IconeMenos'
 import { Logo } from './Logo'
 import { MenuMais } from './MenuMais'
 
@@ -17,6 +19,41 @@ describe('MenuMais', () => {
     await userEvent.click(screen.getByRole('menuitem', { name: 'Apagar' }))
     expect(aoEscolher).toHaveBeenCalledTimes(1)
     expect(screen.queryByRole('menuitem')).not.toBeInTheDocument()
+  })
+
+  it('RN-WEB-LAYOUT-005: o botao e so tres pontinhos na vertical, com nome acessivel "Mais"', () => {
+    render(<MenuMais itens={[{ rotulo: 'Apagar', aoEscolher: vi.fn() }]} />)
+    const botao = screen.getByRole('button', { name: 'Mais' })
+    expect(botao).toHaveTextContent('')
+    expect(botao.querySelectorAll('svg circle')).toHaveLength(3)
+    expect(botao).toHaveAttribute('title', 'Mais')
+  })
+
+  it('RN-WEB-LAYOUT-005: o item pode ter um icone de uma cor so, fora do nome lido', async () => {
+    render(
+      <MenuMais
+        itens={[{ rotulo: 'Apagar conversa', icone: <IconeFogo />, aoEscolher: vi.fn() }]}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Mais' }))
+    const item = screen.getByRole('menuitem', { name: 'Apagar conversa' })
+    const icone = item.querySelector('svg')
+    expect(icone).toHaveAttribute('aria-hidden', 'true')
+    expect(icone).toHaveAttribute('fill', 'currentColor')
+    expect(item.textContent).toBe('Apagar conversa')
+  })
+
+  it('RN-WEB-LAYOUT-005: o menos de "Remover da lista" tambem e de uma cor so e fora do nome', async () => {
+    render(
+      <MenuMais
+        itens={[{ rotulo: 'Remover da lista', icone: <IconeMenos />, aoEscolher: vi.fn() }]}
+      />,
+    )
+    await userEvent.click(screen.getByRole('button', { name: 'Mais' }))
+    const item = screen.getByRole('menuitem', { name: 'Remover da lista' })
+    expect(item.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
+    expect(item.querySelector('svg')).toHaveAttribute('stroke', 'currentColor')
+    expect(item.textContent).toBe('Remover da lista')
   })
 
   it('Esc fecha sem executar nada', async () => {

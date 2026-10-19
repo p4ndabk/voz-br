@@ -3,10 +3,12 @@ import { t } from '@/i18n/pt-BR'
 
 export interface ItemMenu {
   rotulo: string
+  // Icone antes do texto (em uma cor so); fica fora do nome lido por leitores de tela.
+  icone?: ReactNode
   aoEscolher: () => void
 }
 
-// Menu de acoes secundarias. Fecha com Esc, clique fora ou ao escolher um item.
+// Menu de acoes secundarias, aberto por tres pontinhos na vertical (como no WhatsApp). Fecha com Esc, clique fora ou ao escolher um item.
 export function MenuMais({ itens, icone }: { itens: ItemMenu[]; icone?: ReactNode }) {
   const [aberto, setAberto] = useState(false)
   const raiz = useRef<HTMLDivElement>(null)
@@ -36,10 +38,16 @@ export function MenuMais({ itens, icone }: { itens: ItemMenu[]; icone?: ReactNod
         aria-expanded={aberto}
         aria-controls={id}
         onClick={() => setAberto((a) => !a)}
-        className="inline-flex items-center gap-1 rounded-cordel border-2 border-borda bg-superficie px-3 py-1.5 text-sm font-bold shadow-carimbo-pequeno active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
+        aria-label={t.mais}
+        title={t.mais}
+        className="inline-flex h-9 w-9 items-center justify-center rounded-cordel border-2 border-borda bg-superficie shadow-carimbo-pequeno active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
       >
         {icone}
-        {t.mais}
+        <svg aria-hidden="true" viewBox="0 0 24 24" className="h-5 w-5" fill="currentColor">
+          <circle cx="12" cy="4.5" r="2.3" />
+          <circle cx="12" cy="12" r="2.3" />
+          <circle cx="12" cy="19.5" r="2.3" />
+        </svg>
       </button>
       {aberto && (
         <ul
@@ -58,7 +66,10 @@ export function MenuMais({ itens, icone }: { itens: ItemMenu[]; icone?: ReactNod
                   item.aoEscolher()
                 }}
               >
-                {item.rotulo}
+                <span className="flex items-center gap-2">
+                  {item.icone}
+                  {item.rotulo}
+                </span>
               </button>
             </li>
           ))}

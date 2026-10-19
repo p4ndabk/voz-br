@@ -191,9 +191,7 @@ describe('apagarHistorico', () => {
     )
     expect(paraBia?.urls).toEqual(['wss://dm-da-bia'])
     const rumor = await abrirEmbrulho(bia, JSON.parse(JSON.stringify(paraBia!.evento)))
-    expect(rumor?.content).toBe(
-      'Ana apagou o histórico desta conversa no Voz e pediu que você apague também.',
-    )
+    expect(rumor?.content).toBe('Ana apagou esta conversa no Voz e pediu que você apague também.')
     expect(rumor?.created_at).toBe(limite)
     expect(lerPedidoDeApagar(rumor!)).toBe(limite)
   })
