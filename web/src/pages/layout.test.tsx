@@ -8,6 +8,7 @@ import { useMensagens } from '@/conversas/useMensagens'
 import { gerarChave, pubkeyDe } from '@/nostr/signer/chaves'
 import { criarAssinanteLocal } from '@/nostr/signer/local'
 import { useSessao } from '@/nostr/useSessao'
+import { Conta } from './Conta'
 import { Conversa } from './Conversa'
 import { LayoutConversas } from './conversas/LayoutConversas'
 import { PainelVazio } from './conversas/PainelVazio'
@@ -32,10 +33,13 @@ function abrir(rota: string) {
   render(
     <MemoryRouter initialEntries={[rota]}>
       <Routes>
-        <Route path="/conversas" element={<LayoutConversas />}>
-          <Route index element={<PainelVazio />} />
-          <Route path="nova" element={<NovaConversa />} />
-          <Route path=":pubkey" element={<Conversa />} />
+        <Route element={<LayoutConversas />}>
+          <Route path="/conversas">
+            <Route index element={<PainelVazio />} />
+            <Route path="nova" element={<NovaConversa />} />
+            <Route path=":pubkey" element={<Conversa />} />
+          </Route>
+          <Route path="/conta" element={<Conta />} />
         </Route>
       </Routes>
     </MemoryRouter>,
@@ -142,7 +146,8 @@ describe('layout de duas colunas', () => {
     expect(screen.getByText('Selecione uma conversa')).toBeInTheDocument()
   })
 
-  it('a lateral sempre oferece Nova conversa, Meu codigo e Minha conta', async () => {
+  // RN-WEB-LAYOUT-004
+  it('a lateral oferece Nova conversa e, no pe, Editar perfil, Meu codigo e Sair', async () => {
     abrir(`/conversas/${maria}`)
     await screen.findByText('Privado')
     const nav = within(lateral())
@@ -150,7 +155,27 @@ describe('layout de duas colunas', () => {
       'href',
       '/conversas/nova',
     )
+    expect(nav.getByRole('link', { name: 'Editar perfil' })).toHaveAttribute(
+      'href',
+      '/conta/perfil',
+    )
     expect(nav.getByRole('link', { name: 'Meu código' })).toHaveAttribute('href', '/meu-codigo')
-    expect(nav.getByRole('link', { name: 'Minha conta' })).toHaveAttribute('href', '/conta')
+    expect(nav.getAllByRole('link', { name: 'Minha conta' })[0]).toHaveAttribute('href', '/conta')
+  })
+
+  it('Sair pede confirmacao e so entao encerra a sessao', async () => {
+    abrir(`/conversas/${maria}`)
+    await screen.findByText('Privado')
+    await userEvent.click(within(lateral()).getByRole('button', { name: 'Sair' }))
+    expect(useSessao.getState().assinante).not.toBeNull()
+    await userEvent.click(screen.getByRole('button', { name: 'Sair mesmo' }))
+    expect(useSessao.getState().assinante).toBeNull()
+  })
+
+  it('a conta abre no painel do meio e a lista continua na lateral', async () => {
+    abrir('/conta')
+    await screen.findByRole('heading', { name: 'Minha conta' })
+    expect(within(meio()).getByRole('heading', { name: 'Minha conta' })).toBeInTheDocument()
+    expect(within(lateral()).getByRole('list', { name: 'Suas conversas' })).toBeInTheDocument()
   })
 })

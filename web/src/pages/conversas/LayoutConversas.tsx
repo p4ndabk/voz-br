@@ -3,6 +3,7 @@ import { Link, Outlet, useMatch } from 'react-router-dom'
 import { useConversas } from '@/conversas/useConversas'
 import { t } from '@/i18n/pt-BR'
 import { ListaConversas } from './ListaConversas'
+import { MenuConta } from './MenuConta'
 
 const botao =
   'inline-flex items-center rounded-cordel border-2 border-borda px-3 py-1.5 text-sm font-bold shadow-carimbo-pequeno active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
@@ -32,17 +33,12 @@ export function LayoutConversas() {
             <Link to="/conversas/nova" className={`${botao} bg-vermelho text-sobre-vermelho`}>
               {t.conversas.nova}
             </Link>
-            <Link to="/meu-codigo" className={`${botao} bg-superficie`}>
-              {t.conversas.meuCodigo}
-            </Link>
-            <Link to="/conta" className={`${botao} bg-superficie`}>
-              {t.minhaConta}
-            </Link>
           </nav>
         </header>
         <div className="flex-1 overflow-y-auto">
           <ListaConversas />
         </div>
+        <MenuConta />
       </aside>
 
       <section

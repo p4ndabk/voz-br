@@ -28,3 +28,12 @@ Formato definido em [../README.md](../README.md). "Se violada" descreve o efeito
 **Se violada:** a lista piscaria e perderia o destaque a cada troca.
 **Onde vive:** `web/src/pages/conversas/LayoutConversas.tsx`
 **Teste:** `web/src/pages/layout.test.tsx::RN-WEB-LAYOUT-003`
+
+---
+
+### RN-WEB-LAYOUT-004 — Perfil, código e sair ficam no pé da lateral
+**Regra:** a lateral das conversas termina num menu com a pessoa logada (nome e foto, link para a conta), "Editar perfil", "Meu código" e "Sair" (com confirmação); essas telas (`/conta`, `/conta/perfil`, `/meu-codigo`) abrem no painel do meio, sem tirar a lista de vista.
+**Quando:** qualquer tela dentro do layout de conversas.
+**Se violada:** para mudar o perfil ou sair é preciso deixar a conversa e voltar para a lista.
+**Onde vive:** `web/src/pages/conversas/MenuConta.tsx`, `web/src/components/ModalSair.tsx`, rotas em `web/src/App.tsx`
+**Teste:** `web/src/pages/layout.test.tsx::menu da conta`

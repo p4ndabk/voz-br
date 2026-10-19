@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react'
+import { render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { clear } from 'idb-keyval'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
@@ -64,7 +64,7 @@ describe('nova conversa', () => {
     abrir('/conversas/nova')
     await colarEContinuar(npubDe(amigo))
     expect(screen.getByText('É essa pessoa?')).toBeInTheDocument()
-    expect(screen.getByText('Maria')).toBeInTheDocument()
+    expect(within(screen.getByTestId('coluna-conversa')).getByText('Maria')).toBeInTheDocument()
     expect(lista()).toHaveLength(0)
 
     await userEvent.click(screen.getByRole('button', { name: 'Sim, abrir conversa' }))
@@ -76,7 +76,9 @@ describe('nova conversa', () => {
     estado.perfil = null
     abrir('/conversas/nova')
     await colarEContinuar(npubDe(amigo))
-    expect(screen.getByText(/^npub1.{8}….{4}$/)).toBeInTheDocument()
+    expect(
+      within(screen.getByTestId('coluna-conversa')).getByText(/^npub1.{8}….{4}$/),
+    ).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Sim, abrir conversa' }))
     expect(await screen.findByText('Privado')).toBeInTheDocument()
   })

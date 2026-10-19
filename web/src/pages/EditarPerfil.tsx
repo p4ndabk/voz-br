@@ -106,7 +106,7 @@ export function EditarPerfil() {
   }
 
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 px-4 py-8">
+    <main className="mx-auto flex h-full w-full max-w-xl flex-col gap-6 overflow-y-auto px-4 py-8">
       <h1 className="font-display text-4xl">{t.editarPerfil.titulo}</h1>
 
       {!atual ? (

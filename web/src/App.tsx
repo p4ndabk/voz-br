@@ -70,42 +70,23 @@ export function App() {
               </SomenteDeslogado>
             }
           />
+          {/* RN-WEB-LAYOUT-004: conversas, conta, perfil e codigo dividem a mesma lateral. */}
           <Route
-            path="/conversas"
             element={
               <SomenteLogado>
                 <LayoutConversas />
               </SomenteLogado>
             }
           >
-            <Route index element={<PainelVazio />} />
-            <Route path="nova" element={<NovaConversa />} />
-            <Route path=":pubkey" element={<Conversa />} />
+            <Route path="/conversas">
+              <Route index element={<PainelVazio />} />
+              <Route path="nova" element={<NovaConversa />} />
+              <Route path=":pubkey" element={<Conversa />} />
+            </Route>
+            <Route path="/meu-codigo" element={<MeuCodigo />} />
+            <Route path="/conta" element={<Conta />} />
+            <Route path="/conta/perfil" element={<EditarPerfil />} />
           </Route>
-          <Route
-            path="/meu-codigo"
-            element={
-              <SomenteLogado>
-                <MeuCodigo />
-              </SomenteLogado>
-            }
-          />
-          <Route
-            path="/conta"
-            element={
-              <SomenteLogado>
-                <Conta />
-              </SomenteLogado>
-            }
-          />
-          <Route
-            path="/conta/perfil"
-            element={
-              <SomenteLogado>
-                <EditarPerfil />
-              </SomenteLogado>
-            }
-          />
           {Estilo && <Route path="/estilo" element={<Estilo />} />}
           <Route path="*" element={<NaoEncontrada />} />
         </Routes>

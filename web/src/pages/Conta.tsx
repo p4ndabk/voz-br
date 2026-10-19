@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { Aviso } from '@/components/ui/Aviso'
 import { Botao } from '@/components/ui/Botao'
 import { Identidade } from '@/components/ui/Identidade'
 import { BotaoCopiar } from '@/components/ui/BotaoCopiar'
+import { ModalSair } from '@/components/ModalSair'
 import { Modal } from '@/components/ui/Modal'
 import { t } from '@/i18n/pt-BR'
 import { npubDe } from '@/nostr/signer/chaves'
@@ -13,9 +14,7 @@ import { useSessao } from '@/nostr/useSessao'
 const TEMPO_NSEC_VISIVEL_MS = 60_000
 
 export function Conta() {
-  const navigate = useNavigate()
   const assinante = useSessao((s) => s.assinante)
-  const sair = useSessao((s) => s.sair)
   const [modalChave, setModalChave] = useState(false)
   const [nsecVisivel, setNsecVisivel] = useState<string>()
   const [modalSair, setModalSair] = useState(false)
@@ -31,20 +30,14 @@ export function Conta() {
 
   if (!assinante) return null
   const npub = npubDe(assinante.pubkey)
-  const guardaChave = assinante.metodo === 'nsec'
 
   const fecharChave = () => {
     setNsecVisivel(undefined)
     setModalChave(false)
   }
 
-  const confirmarSaida = async () => {
-    await sair()
-    navigate('/')
-  }
-
   return (
-    <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 px-4 py-8">
+    <main className="mx-auto flex h-full w-full max-w-xl flex-col gap-6 overflow-y-auto px-4 py-8">
       <h1 className="font-display text-4xl">{t.conta.titulo}</h1>
       <Identidade pubkey={assinante.pubkey} tamanho={56} />
       <p className="text-tinta-suave">{t.conta.metodo[assinante.metodo]}</p>
@@ -104,14 +97,7 @@ export function Conta() {
         </div>
       </Modal>
 
-      <Modal
-        aberto={modalSair}
-        titulo={t.conta.sairTitulo}
-        aoFechar={() => setModalSair(false)}
-        acoes={<Botao onClick={confirmarSaida}>{t.conta.confirmarSair}</Botao>}
-      >
-        {guardaChave ? t.conta.sairAviso.nsec : t.conta.sairAviso.padrao}
-      </Modal>
+      <ModalSair aberto={modalSair} aoFechar={() => setModalSair(false)} />
     </main>
   )
 }
