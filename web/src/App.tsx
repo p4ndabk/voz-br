@@ -1,5 +1,6 @@
 import { lazy, Suspense, useEffect, type ReactNode } from 'react'
 import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { caminhoBase } from '@/base'
 import { iniciarMensageria } from '@/conversas/mensageria'
 import { useConversas } from '@/conversas/useConversas'
 import { useMensagens } from '@/conversas/useMensagens'
@@ -59,7 +60,7 @@ export function App() {
   if (fase === 'precisa-senha') return <Destravar />
 
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={caminhoBase(import.meta.env.BASE_URL)}>
       <Suspense fallback={null}>
         <Routes>
           <Route path="/" element={<Inicio />} />
