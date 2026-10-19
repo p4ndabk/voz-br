@@ -121,3 +121,14 @@ Priorizar pelo retorno dos primeiros usuários.
 | 6 | acessibilidade, desempenho, relays | contínuo | — |
 
 Cada fase termina com `pnpm lint && pnpm test && pnpm build` verdes, regras `RN-*` escritas antes do código e commit próprio por etapa.
+
+
+---
+
+## Feito depois do plano (2026-10-19)
+
+| Entrega | Spec / regras |
+|---|---|
+| Senha da chave como padrão (mínimo de 8, proteger e trocar em Conta, ver a chave pede a senha) | 0019, `RN-WEB-AUTH-010..012` |
+| Lista de conversas portátil e cifrada nos relays (kind 30078), com sincronia automática e interruptor | 0020, `RN-WEB-SYNC-001..005` |
+| Campo de mensagem redimensionável, zap com "Outro valor", som e ícone de aviso na aba | `RN-WEB-MENSAGENS-011`, `RN-WEB-ZAP-010`, `RN-WEB-NOTIF-004`, `RN-WEB-CONVERSAS-012` |

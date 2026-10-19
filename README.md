@@ -21,6 +21,7 @@ O Voz funciona de outro jeito:
 1. **Entre.** Escolha um jeito:
    - *Já tem Nostr?* Use uma extensão (Alby, nos2x), cole sua chave secreta (`nsec`) ou escaneie um QR code de um app como Amber.
    - *Nunca ouviu falar?* Clique em criar identidade. O Voz gera sua chave e pede que você a guarde. **Quem perde a chave perde a conta, e ninguém pode recuperar.**
+   - **Crie uma senha (mínimo de 8 caracteres).** Ela protege a chave guardada neste navegador e é pedida ao abrir o Voz. Dá para seguir sem senha, depois de confirmar um aviso, e proteger a conta mais tarde em *Conta* → *Senha da chave* (lá também se troca a senha). A senha não tem recuperação: se esquecer, você entra de novo com a sua chave secreta.
 2. **Passe seu código a um amigo.** Em *Meu código* há um QR code e um texto (`npub`). É como seu número de telefone: pode compartilhar à vontade.
 3. **Comece uma conversa.** Toque em **+ Nova conversa** ou, na busca da lista, cole o código do seu amigo (ou use *Nova conversa* para ler o QR dele). A busca também acha conversas antigas pelo nome ou pelo texto.
 4. **Converse.** O selo *Privado* fica sempre visível. Mensagens que você ainda não leu aparecem com um número na lista e no título da aba. Em *Conta* você pode ligar avisos do navegador (eles nunca mostram o texto da mensagem e só funcionam com o Voz aberto em segundo plano).
@@ -31,7 +32,7 @@ O Voz funciona de outro jeito:
 ## O que o Voz não esconde
 
 - Os relays não leem suas mensagens, mas veem **quando** elas passam e o tamanho. Isso é inevitável hoje.
-- A lista de conversas fica só no seu navegador. Limpou os dados do navegador, perdeu a lista (a conta continua, pela chave).
+- Sua lista de conversas é guardada nos relays, **cifrada só para você**, e volta ao entrar em outro aparelho (em *Conta* dá para desligar). Nunca vai o texto das mensagens, mas os relays veem que existe uma lista, o tamanho dela e quando muda. As mensagens em si voltam dos relays, enquanto eles as guardarem.
 - Um zap é público: fica registrado nos relays quem pagou quem, e quanto. Se preferir, escolha a fatura comum.
 - Alguns serviços Lightning (como `bipa.app`) não aceitam pedidos pelo navegador. Nesse caso o Voz mostra o endereço para você copiar e pagar pela sua carteira.
 
