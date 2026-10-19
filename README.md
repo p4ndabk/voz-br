@@ -31,8 +31,11 @@ O Voz funciona de outro jeito:
 
 ## O que o Voz não esconde
 
-- Os relays não leem suas mensagens, mas veem **quando** elas passam e o tamanho. Isso é inevitável hoje.
-- Sua lista de conversas é guardada nos relays, **cifrada só para você**, e volta ao entrar em outro aparelho (em *Configurações* → *Vários aparelhos* dá para desligar). Nunca vai o texto das mensagens, mas os relays veem que existe uma lista, o tamanho dela e quando muda. As mensagens em si voltam dos relays, enquanto eles as guardarem.
+- Os relays não leem suas mensagens, mas veem **para quem** vão, **quando** passam, o tamanho aproximado e o seu endereço de rede (IP). A maioria dos relays abertos entrega esses embrulhos a qualquer pessoa que pergunte; em *Configurações* → *Relays*, "Usar relay privado" troca para um que só entrega a quem prova ser o destinatário. Para esconder o IP, use VPN ou Tor.
+- A cópia da mensagem que fica para você só sai depois de um tempo, para os relays não ligarem quem escreveu a quem recebeu.
+- A foto de perfil de alguém que você não conhece só é baixada se você pedir (*Mostrar foto*), porque quem hospeda a foto fica sabendo o seu IP.
+- Com **senha**, o histórico guardado no navegador também fica cifrado; sem senha, mensagens e chave ficam em claro neste aparelho. Os nomes dos registros ainda trazem as chaves públicas dos seus contatos.
+- Sua lista de conversas é guardada nos relays, **cifrada só para você**, e volta ao entrar em outro aparelho (em *Configurações* → *Vários aparelhos* dá para desligar). Nunca vai o texto das mensagens, mas os relays veem que existe uma lista, uma faixa de tamanho (8, 16 ou 32 KB) e que ela mudou. As mensagens em si voltam dos relays, enquanto eles as guardarem.
 - Um zap é público: fica registrado nos relays quem pagou quem, e quanto. Se preferir, escolha a fatura comum.
 - Alguns serviços Lightning (como `bipa.app`) não aceitam pedidos pelo navegador. Nesse caso o Voz mostra o endereço para você copiar e pagar pela sua carteira.
 
