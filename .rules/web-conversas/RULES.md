@@ -74,3 +74,11 @@ na privacidade, não um status HTTP: a lista de conversas nunca passa pela API.
 **Se violada:** defeito de produto: a pessoa acharia que apagou algo que continua nos relays.
 **Onde vive:** `web/src/pages/Conversa.tsx`, `web/src/conversas/useConversas.ts` (`remover`)
 **Teste:** `web/src/pages/conversas.test.tsx::RN-WEB-CONVERSAS-008` e `web/src/conversas/useConversas.test.ts::RN-WEB-CONVERSAS-008`
+
+### RN-WEB-CONVERSAS-009 — Colar uma chave na busca abre a conversa
+
+**Regra:** se o texto da busca for um `npub`, `nprofile` ou hex válido (e não a minha chave), a lista mostra "Conversar com npub1…"; escolher abre (ou cria) a sala com essa pessoa. As mesmas recusas da *Nova conversa* valem (`nsec` e chave própria não oferecem nada).
+**Quando:** busca preenchida com uma chave.
+**Se violada:** falar com alguém novo exige trocar de tela.
+**Onde vive:** `web/src/pages/conversas/ListaConversas.tsx`
+**Teste:** `web/src/pages/layout.test.tsx::RN-WEB-CONVERSAS-009`

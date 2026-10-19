@@ -5,6 +5,7 @@ import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useConversas } from '@/conversas/useConversas'
 import { useMensagens } from '@/conversas/useMensagens'
+import { npubDe } from '@/nostr/perfis'
 import { gerarChave, pubkeyDe } from '@/nostr/signer/chaves'
 import { criarAssinanteLocal } from '@/nostr/signer/local'
 import { useSessao } from '@/nostr/useSessao'
@@ -177,5 +178,49 @@ describe('layout de duas colunas', () => {
     await screen.findByRole('heading', { name: 'Minha conta' })
     expect(within(meio()).getByRole('heading', { name: 'Minha conta' })).toBeInTheDocument()
     expect(within(lateral()).getByRole('list', { name: 'Suas conversas' })).toBeInTheDocument()
+  })
+
+  it('RN-WEB-LAYOUT-006: a busca filtra a lista pelo trecho sem sair dela', async () => {
+    const usuario = userEvent.setup()
+    abrir('/conversas')
+    await screen.findByRole('list', { name: 'Suas conversas' })
+    await usuario.type(screen.getByRole('searchbox'), 'platão')
+    expect(itemDa('João')).toBeInTheDocument()
+    expect(
+      within(screen.getByRole('list', { name: 'Suas conversas' })).queryByRole('link', {
+        name: /Maria/,
+      }),
+    ).toBeNull()
+    await usuario.clear(screen.getByRole('searchbox'))
+    expect(itemDa('Maria')).toBeInTheDocument()
+  })
+
+  it('RN-WEB-LAYOUT-006: busca sem resultado avisa', async () => {
+    const usuario = userEvent.setup()
+    abrir('/conversas')
+    await screen.findByRole('list', { name: 'Suas conversas' })
+    await usuario.type(screen.getByRole('searchbox'), 'zzzz')
+    expect(screen.getByText('Nenhuma conversa encontrada.')).toBeInTheDocument()
+  })
+
+  it('RN-WEB-CONVERSAS-009: colar um npub oferece conversar e abre a sala', async () => {
+    const usuario = userEvent.setup()
+    const novo = pubkeyDe(gerarChave())
+    abrir('/conversas')
+    await screen.findByRole('list', { name: 'Suas conversas' })
+    await usuario.click(screen.getByRole('searchbox'))
+    await usuario.paste(npubDe(novo))
+    await usuario.click(await screen.findByRole('button', { name: /Conversar com npub1/ }))
+    expect(await screen.findByText('Privado')).toBeInTheDocument()
+    expect(useConversas.getState().conversas.some((c) => c.pubkey === novo)).toBe(true)
+  })
+
+  it('o + leva a Nova conversa', async () => {
+    abrir('/conversas')
+    await screen.findByRole('list', { name: 'Suas conversas' })
+    expect(screen.getByRole('link', { name: 'Nova conversa' })).toHaveAttribute(
+      'href',
+      '/conversas/nova',
+    )
   })
 })

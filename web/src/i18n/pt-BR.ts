@@ -199,6 +199,9 @@ export const t = {
   conversas: {
     titulo: 'Conversas',
     nova: 'Nova conversa',
+    buscar: 'Buscar conversa ou colar uma chave',
+    nadaEncontrado: 'Nenhuma conversa encontrada.',
+    conversarCom: (npub: string) => `Conversar com ${npub}`,
     meuCodigo: 'Meu código',
     vazio: 'Cole a chave de alguém para começar uma conversa',
     semMensagens: 'Nenhuma mensagem ainda',

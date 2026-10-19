@@ -45,3 +45,11 @@ Formato definido em [../README.md](../README.md). "Se violada" descreve o efeito
 **Se violada:** em tela estreita a lateral some e a pessoa fica sem caminho de volta; ações destrutivas ao lado do zap são clicadas por engano.
 **Onde vive:** `web/src/components/ui/{CabecalhoPagina,MenuMais}.tsx`, `web/src/pages/conversas/MenuConta.tsx`
 **Teste:** `web/src/components/ui/navegacao.test.tsx`
+
+### RN-WEB-LAYOUT-006 — Busca filtra sem sair da lista
+
+**Regra:** o campo de busca acima da lista filtra as conversas por nome, trecho da última mensagem e `npub` (sem diferenciar acento nem caixa); o botão **+** fixo no canto da lista leva a *Nova conversa*.
+**Quando:** lista de conversas aberta.
+**Se violada:** achar uma conversa antiga exige rolar a lista toda.
+**Onde vive:** `web/src/conversas/buscar.ts`, `web/src/pages/conversas/{LayoutConversas,ListaConversas}.tsx`
+**Teste:** `web/src/conversas/buscar.test.ts`, `web/src/pages/layout.test.tsx::RN-WEB-LAYOUT-006`

@@ -83,6 +83,8 @@ export function lerPerfil(evento: Pick<NostrEvent, 'content'>): Perfil | null {
   }
 }
 
+export const npubDe = (pubkey: string): string => nip19.npubEncode(pubkey)
+
 // npub1 + 8 primeiros e 4 ultimos caracteres: "npub1q3sle0kv…x4ku".
 export function npubAbreviada(pubkey: string): string {
   const npub = nip19.npubEncode(pubkey)
