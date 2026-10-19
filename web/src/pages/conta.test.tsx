@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { apagarTudoDoVoz, destravarSessao, lerSessaoSalva } from '@/nostr/sessao'
 import { gerarChave, nsecDe } from '@/nostr/signer/chaves'
+import { useSincronia } from '@/conversas/useSincronia'
 import { useSessao } from '@/nostr/useSessao'
 import { Conta } from './Conta'
 
@@ -105,5 +106,22 @@ describe('senha da chave em Conta', () => {
     expect(screen.queryByLabelText('Sua senha')).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Mostrar minha chave secreta' }))
     expect(screen.getByText(nsecDe(chave))).toBeInTheDocument()
+  })
+})
+
+describe('lista em varios aparelhos em Conta', () => {
+  it('RN-WEB-SYNC-004: o interruptor desliga e religa a sincronizacao', async () => {
+    await useSessao.getState().entrarComNsec(nsecDe(gerarChave()))
+    localStorage.clear()
+    useSincronia.setState({ ligada: true, estado: 'parada' })
+    abrir()
+    expect(await screen.findByText('Lista em vários aparelhos')).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Desligar sincronização' }))
+    expect(screen.getByText(/Sincronização desligada/)).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Sincronizar agora' })).not.toBeInTheDocument()
+    expect(localStorage.getItem('voz:sincronia')).toBe('off')
+    await userEvent.click(screen.getByRole('button', { name: 'Ligar sincronização' }))
+    expect(localStorage.getItem('voz:sincronia')).toBeNull()
+    expect(screen.getByRole('button', { name: 'Sincronizar agora' })).toBeInTheDocument()
   })
 })

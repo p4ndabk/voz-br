@@ -32,7 +32,7 @@
 
 - **Mensagens:** continuam vindo dos relays (embrulhos NIP-17), sem mudança.
 - **Não lidas (`lidaAte`), apelidos:** não sincronizam nesta versão.
-- **Mais de 400 conversas:** as mais antigas sem atividade ficam de fora e a tela avisa.
+- **Mais de 200 conversas:** as mais antigas sem atividade ficam de fora (um evento com 400 passa de 65 KB e vários relays recusam).
 
 ## 5. Regras de negócio
 
@@ -95,7 +95,7 @@ Cenário: nenhum relay aceita
 | kind 30078 (NIP-78) | padrão para dados de aplicativo, substituível e por chave `d` | Claude |
 | Sem trecho de mensagem | a lista não pode vazar conteúdo, nem cifrada | Claude |
 | Os relays veem que há uma lista, seu tamanho e quando muda | inevitável; entra em "O que o Voz não esconde" | Claude |
-| Validar o kind 30078 nos relays padrão antes de codar | alguns relays recusam kinds que não conhecem | Claude |
+| Validar o kind 30078 nos relays padrão antes de codar | alguns relays recusam kinds que não conhecem. Testado ao vivo em 2026-10-19: `relay.primal.net`, `purplerelay.com`, `relay.snort.social` e `relay.damus.io` aceitam e substituem; `purplepag.es` bloqueia ("kind 30078 is not allowed") | Claude |
 
 ## 10. Definition of Ready
 

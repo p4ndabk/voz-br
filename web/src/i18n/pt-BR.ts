@@ -168,6 +168,20 @@ export const t = {
     falhou: 'Nenhum relay aceitou a lista. Nada mudou. Tente de novo.',
     naoSalvo: 'Há mudanças ainda não salvas.',
   },
+  sincronia: {
+    secao: 'Lista em vários aparelhos',
+    ajuda:
+      'O Voz guarda a sua lista de conversas nos relays, cifrada só para você, e a restaura ao entrar em outro aparelho. Nunca vai o texto das mensagens. Os relays veem que existe uma lista, o tamanho dela e quando muda.',
+    ligada: 'Sincronização ligada.',
+    desligada: 'Sincronização desligada: nada é lido nem publicado.',
+    ligar: 'Ligar sincronização',
+    desligar: 'Desligar sincronização',
+    agora: 'Sincronizar agora',
+    sincronizando: 'Sincronizando…',
+    ok: (quando: string) => `Sincronizada ${quando}.`,
+    aindaNao: 'Ainda não sincronizada neste aparelho.',
+    falhou: 'Não foi possível sincronizar. O Voz tenta de novo quando um relay responder.',
+  },
   notificacoes: {
     titulo: 'Voz',
     corpo: (nome: string) => `Nova mensagem de ${nome}`,

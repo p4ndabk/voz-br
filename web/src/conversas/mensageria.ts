@@ -25,6 +25,7 @@ import { notificarNovaMensagem } from './notificacoes'
 import { tocarPlin } from './som'
 import { useMeusRelays } from './meusRelays'
 import { meusRelaysDm, relaysDeDmDe, relaysDoAmigo } from './relaysDm'
+import { iniciarSincronia } from './useSincronia'
 import { useConversas } from './useConversas'
 import { useMensagens } from './useMensagens'
 
@@ -263,6 +264,8 @@ export function iniciarMensageria(assinante: Assinante): () => void {
     .catch(() => {})
   void processarFila().catch(() => {})
   const pararRecebimento = iniciarRecebimento(assinante)
+  // RN-WEB-SYNC-003 a 005: lista de conversas portatil (cifrada, nos relays).
+  const pararSincronia = iniciarSincronia(assinante)
   // RN-WEB-RELAYS-005: prova de identidade so quando o relay pede (NIP-42).
   relays.definirAutenticador((desafio, relay) =>
     assinante.assinar({
@@ -281,6 +284,7 @@ export function iniciarMensageria(assinante: Assinante): () => void {
   })
   return () => {
     pararRecebimento()
+    pararSincronia()
     pararFila()
     relays.definirAutenticador(null)
     useMeusRelays.getState().limpar()
