@@ -47,9 +47,17 @@ export function LayoutConversas() {
           </div>
           <nav className="flex flex-wrap gap-2">
             <Link to="/conversas/nova" className={`${botao} bg-vermelho text-sobre-vermelho`}>
-              <span aria-hidden="true" className="mr-1.5 text-lg leading-none">
-                +
-              </span>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 16 16"
+                className="mr-2 h-3.5 w-3.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="square"
+              >
+                <path d="M8 2v12M2 8h12" />
+              </svg>
               {t.conversas.nova}
             </Link>
           </nav>
