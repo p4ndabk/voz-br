@@ -74,7 +74,7 @@ describe('useConversas', () => {
     expect(useConversas.getState().conversas[0]?.novaPessoa).toBe(false)
   })
 
-  it('RN-WEB-CONVERSAS-008: remover tira da lista e do armazenamento, sem tocar em relay', async () => {
+  it('RN-WEB-CONVERSAS-008: remover tira da lista (fica so um marcador), sem tocar em relay', async () => {
     await useConversas.getState().abrirOuCriar(maria)
     await useConversas.getState().remover(maria)
     expect(lista()).toEqual([])

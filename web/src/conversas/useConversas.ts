@@ -1,9 +1,9 @@
 import { create } from 'zustand'
 import {
   desdeNesteNavegador,
+  estaVisivel,
   listarConversas,
   obterConversa,
-  removerConversaSalva,
   salvarConversa,
   type Conversa,
 } from './armazem'
@@ -40,10 +40,13 @@ interface EstadoConversas {
 export const useConversas = create<EstadoConversas>((definir, obter) => {
   const gravar = async (conversa: Conversa) => {
     await salvarConversa(conversa)
+    // Conversa removida (e sem novidade depois) continua guardada, mas fora da lista.
+    const resto = (estado: { conversas: Conversa[] }) =>
+      estado.conversas.filter((c) => c.pubkey !== conversa.pubkey)
     definir((estado) => ({
-      conversas: [...estado.conversas.filter((c) => c.pubkey !== conversa.pubkey), conversa].sort(
-        ordemRecente,
-      ),
+      conversas: estaVisivel(conversa)
+        ? [...resto(estado), conversa].sort(ordemRecente)
+        : resto(estado),
     }))
   }
 
@@ -59,8 +62,15 @@ export const useConversas = create<EstadoConversas>((definir, obter) => {
     async abrirOuCriar(pubkey, relaysDica = []) {
       const existente = await obterConversa(pubkey)
       if (existente) {
-        if (!obter().conversas.some((c) => c.pubkey === pubkey)) await gravar(existente)
-        return { conversa: existente, criada: false }
+        // Reabrir uma conversa removida: o marcador de remocao continua, mas a reabertura e mais nova.
+        const reaberta =
+          existente.removidaEm !== undefined && !estaVisivel(existente)
+            ? { ...existente, reabertaEm: Math.floor(Date.now() / 1000) }
+            : existente
+        if (reaberta !== existente || !obter().conversas.some((c) => c.pubkey === pubkey)) {
+          await gravar(reaberta)
+        }
+        return { conversa: reaberta, criada: false }
       }
       const conversa: Conversa = {
         pubkey,
@@ -125,7 +135,11 @@ export const useConversas = create<EstadoConversas>((definir, obter) => {
     },
 
     async remover(pubkey) {
-      await removerConversaSalva(pubkey)
+      // RN-WEB-SYNC-003: fica um marcador (escondido da lista) para a remocao tambem valer nos outros aparelhos.
+      const existente = await obterConversa(pubkey)
+      if (existente) {
+        await salvarConversa({ ...existente, removidaEm: Math.floor(Date.now() / 1000) })
+      }
       definir((estado) => ({ conversas: estado.conversas.filter((c) => c.pubkey !== pubkey) }))
     },
   }

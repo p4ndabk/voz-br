@@ -17,15 +17,31 @@ export interface Conversa {
   // ausente = tudo lido (conversas anteriores a este recurso).
   lidaAte?: number
   naoLidas?: number
+  // RN-WEB-SYNC-003: "remover da lista" guarda o instante em vez de apagar o registro, para a remocao
+  // viajar entre aparelhos. `reabertaEm` e quando a pessoa voltou a abrir a conversa removida.
+  removidaEm?: number
+  reabertaEm?: number
+}
+
+// A conversa aparece na lista se nunca foi removida ou se houve mensagem ou reabertura depois da remocao.
+export function estaVisivel(c: Conversa): boolean {
+  if (c.removidaEm === undefined) return true
+  // Reabrir e uma acao da pessoa: vale mesmo no mesmo segundo da remocao. Mensagem precisa ser mais nova.
+  return (c.ultimaMensagemEm ?? 0) > c.removidaEm || (c.reabertaEm ?? 0) >= c.removidaEm
 }
 
 const PREFIXO = 'voz:conversa:'
 
-export async function listarConversas(): Promise<Conversa[]> {
+// Todas, inclusive as removidas (a sincronia precisa dos marcadores).
+export async function listarTodasConversas(): Promise<Conversa[]> {
   const todas = await entries()
   return todas
     .filter(([chave]) => typeof chave === 'string' && chave.startsWith(PREFIXO))
     .map(([, valor]) => valor as Conversa)
+}
+
+export async function listarConversas(): Promise<Conversa[]> {
+  return (await listarTodasConversas()).filter(estaVisivel)
 }
 
 export function obterConversa(pubkey: string): Promise<Conversa | undefined> {
