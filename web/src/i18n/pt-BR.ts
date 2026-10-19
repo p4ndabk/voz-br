@@ -203,6 +203,25 @@ export const t = {
       'Qualquer pessoa que veja esta chave controla sua identidade. Ela ficará visível por 60 segundos.',
     mostrar: 'Mostrar minha chave secreta',
     sair: 'Sair',
+    senha: {
+      secao: 'Senha da chave',
+      protegida: 'A sua chave secreta está protegida com senha neste navegador.',
+      desprotegida:
+        'A sua chave secreta está guardada em claro neste navegador. Proteja com senha para que ninguém que use este aparelho abra a sua conta.',
+      extensao:
+        'A sua chave secreta não fica no Voz: ela continua na extensão ou no app assinante.',
+      proteger: 'Proteger com senha',
+      trocar: 'Trocar senha',
+      protegerTitulo: 'Proteger com senha',
+      trocarTitulo: 'Trocar senha',
+      atual: 'Senha atual',
+      nova: 'Nova senha',
+      salvar: 'Salvar senha',
+      salvando: 'Salvando…',
+      salva: 'Senha salva.',
+      pedirParaVer: 'Digite a sua senha para ver a chave secreta.',
+      campoVer: 'Sua senha',
+    },
     sairTitulo: 'Sair do Voz',
     sairAviso: {
       padrao: 'Vamos apagar tudo que o Voz guardou neste navegador.',

@@ -4,7 +4,10 @@ import { gerarChave, nsecDe, pubkeyDe } from './signer/chaves'
 import {
   abrirSessaoComChave,
   apagarTudoDoVoz,
+  conferirSenha,
   destravarSessao,
+  protegerSessaoComSenha,
+  trocarSenhaDaSessao,
   lerSessaoSalva,
   restaurarSessao,
   type SessaoSalva,
@@ -60,5 +63,45 @@ describe('sessao por nsec', () => {
     await apagarTudoDoVoz()
     expect(await lerSessaoSalva()).toBeUndefined()
     expect(await get('voz:outro')).toBeUndefined()
+  })
+})
+
+describe('proteger e trocar a senha depois', () => {
+  it('RN-WEB-AUTH-011: conta sem senha passa a pedir senha e a mesma identidade abre', async () => {
+    const chave = gerarChave()
+    await abrirSessaoComChave(chave, undefined)
+    await protegerSessaoComSenha('minhasenha1', LOGN_TESTE)
+    const salva = (await lerSessaoSalva()) as Extract<SessaoSalva, { metodo: 'nsec' }>
+    expect(salva.protegida).toBe(true)
+    expect(salva.segredo).toMatch(/^ncryptsec1/)
+    expect(salva.segredo).not.toContain(nsecDe(chave))
+    expect(await restaurarSessao()).toMatchObject({ tipo: 'precisa-senha' })
+    expect((await destravarSessao('minhasenha1')).pubkey).toBe(pubkeyDe(chave))
+  })
+
+  it('RN-WEB-AUTH-011: proteger uma conta que ja tem senha e recusado', async () => {
+    await abrirSessaoComChave(gerarChave(), 'senha forte', LOGN_TESTE)
+    await expect(protegerSessaoComSenha('outrasenha1', LOGN_TESTE)).rejects.toMatchObject({
+      motivo: 'falhou',
+    })
+  })
+
+  it('RN-WEB-AUTH-011: trocar exige a atual e a nova passa a valer', async () => {
+    const chave = gerarChave()
+    await abrirSessaoComChave(chave, 'senha antiga', LOGN_TESTE)
+    await expect(
+      trocarSenhaDaSessao('errada123', 'senha nova 1', LOGN_TESTE),
+    ).rejects.toMatchObject({
+      motivo: 'senha-errada',
+    })
+    await trocarSenhaDaSessao('senha antiga', 'senha nova 1', LOGN_TESTE)
+    await expect(destravarSessao('senha antiga')).rejects.toMatchObject({ motivo: 'senha-errada' })
+    expect((await destravarSessao('senha nova 1')).pubkey).toBe(pubkeyDe(chave))
+  })
+
+  it('RN-WEB-AUTH-012: conferirSenha aceita a certa e recusa a errada', async () => {
+    await abrirSessaoComChave(gerarChave(), 'senha forte', LOGN_TESTE)
+    await expect(conferirSenha('senha forte')).resolves.toBeUndefined()
+    await expect(conferirSenha('nao e')).rejects.toMatchObject({ motivo: 'senha-errada' })
   })
 })

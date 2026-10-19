@@ -87,3 +87,40 @@ export async function destravarSessao(senha: string): Promise<Assinante> {
   if (sessao?.metodo !== 'nsec' || !sessao.protegida) throw new ErroLogin('falhou')
   return criarAssinanteLocal(abrirNsecProtegida(sessao.segredo, senha))
 }
+
+// RN-WEB-AUTH-011: a sessao por nsec guardada neste navegador (undefined para extensao, app assinante
+// ou sem sessao). Usada pela tela de conta para saber se ha senha.
+export async function sessaoComNsec(): Promise<
+  Extract<SessaoSalva, { metodo: 'nsec' }> | undefined
+> {
+  const sessao = await lerSessaoSalva()
+  return sessao?.metodo === 'nsec' ? sessao : undefined
+}
+
+// Protege com senha uma conta que estava com a nsec em claro. A senha nunca e guardada.
+export async function protegerSessaoComSenha(senha: string, logn = LOGN_PADRAO): Promise<void> {
+  const sessao = await sessaoComNsec()
+  if (!sessao || sessao.protegida) throw new ErroLogin('falhou')
+  const lida = lerNsec(sessao.segredo)
+  if (!lida.ok) throw new ErroLogin('chave-invalida')
+  await salvarSessao({ ...sessao, segredo: protegerNsec(lida.chave, senha, logn), protegida: true })
+}
+
+// Confere a senha atual sem mudar nada (usado antes de mostrar a chave secreta).
+export async function conferirSenha(senha: string): Promise<void> {
+  const sessao = await sessaoComNsec()
+  if (!sessao?.protegida) throw new ErroLogin('falhou')
+  abrirNsecProtegida(sessao.segredo, senha)
+}
+
+// Troca a senha: abre com a atual (erra com 'senha-errada') e recifra com a nova.
+export async function trocarSenhaDaSessao(
+  atual: string,
+  nova: string,
+  logn = LOGN_PADRAO,
+): Promise<void> {
+  const sessao = await sessaoComNsec()
+  if (!sessao?.protegida) throw new ErroLogin('falhou')
+  const chave = abrirNsecProtegida(sessao.segredo, atual)
+  await salvarSessao({ ...sessao, segredo: protegerNsec(chave, nova, logn) })
+}
