@@ -175,7 +175,7 @@ export function Conversa() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <header className="flex flex-wrap items-center gap-3 border-b-2 border-borda bg-superficie px-4 py-3">
+      <header className="sticky top-0 z-20 flex flex-wrap items-center gap-3 border-b-2 border-borda bg-superficie px-4 py-3">
         {/* Em tela estreita a lista some enquanto a conversa esta aberta: precisa de um caminho de volta. */}
         <Link
           to="/conversas"

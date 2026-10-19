@@ -6,6 +6,7 @@ import { useConversas } from '@/conversas/useConversas'
 import { t } from '@/i18n/pt-BR'
 import { ListaConversas } from './ListaConversas'
 import { MenuConta } from './MenuConta'
+import { useAlturaVisivel } from './useAlturaVisivel'
 
 const botao =
   'inline-flex items-center rounded-cordel border-2 border-borda px-3 py-1.5 text-sm font-bold shadow-carimbo-pequeno active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
@@ -17,6 +18,7 @@ export function LayoutConversas() {
   const carregar = useConversas((s) => s.carregar)
   const naLista = useMatch({ path: '/conversas', end: true }) !== null
   const [busca, setBusca] = useState('')
+  const estiloVisivel = useAlturaVisivel()
 
   // RN-WEB-CONVERSAS-010: o titulo da aba mostra quantas mensagens ainda nao li.
   const naoLidas = useConversas((s) => s.conversas.reduce((soma, c) => soma + (c.naoLidas ?? 0), 0))
@@ -35,7 +37,10 @@ export function LayoutConversas() {
   }, [carregar])
 
   return (
-    <div className="mx-auto flex h-dvh max-w-[1400px] border-x-2 border-borda bg-fundo">
+    <div
+      style={estiloVisivel}
+      className="mx-auto flex h-dvh w-full max-w-[1400px] border-x-2 border-borda bg-fundo"
+    >
       <aside
         aria-label={t.conversas.titulo}
         data-testid="coluna-lista"

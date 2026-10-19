@@ -11,7 +11,7 @@ interface Props {
 // onde a lateral some enquanto a pagina esta aberta.
 export function CabecalhoPagina({ titulo, voltarPara }: Props) {
   return (
-    <header className="flex items-center gap-3">
+    <header className="sticky top-0 z-10 -mx-4 flex items-center gap-3 bg-fundo px-4 py-2">
       <Link
         to={voltarPara}
         aria-label={t.voltarPagina}

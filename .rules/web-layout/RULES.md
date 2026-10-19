@@ -53,3 +53,11 @@ Formato definido em [../README.md](../README.md). "Se violada" descreve o efeito
 **Se violada:** achar uma conversa antiga exige rolar a lista toda.
 **Onde vive:** `web/src/conversas/buscar.ts`, `web/src/pages/conversas/{LayoutConversas,ListaConversas}.tsx`
 **Teste:** `web/src/conversas/buscar.test.ts`, `web/src/pages/layout.test.tsx::RN-WEB-LAYOUT-006`
+
+### RN-WEB-LAYOUT-007 — O cabeçalho da conversa nunca sai da tela, nem com o teclado aberto
+
+**Regra:** o cabeçalho da conversa (nome, zap e menu "Mais") fica sempre visível: só a lista de mensagens rola, por dentro. No celular, quando o teclado abre, o layout acompanha a área visível (`visualViewport`: altura e deslocamento) em vez de a página inteira ser rolada, e o cabeçalho continua no topo dessa área. O `<meta viewport>` pede `interactive-widget=resizes-content` aos navegadores que o entendem. Os cabeçalhos das outras páginas (conta, relays, perfil, código) também são fixos no topo da rolagem. Com zoom de pinça, o ajuste fica desligado.
+**Quando:** conversa longa; teclado do celular aberto; qualquer rolagem.
+**Se violada:** em conversa longa a pessoa precisa rolar para achar o "Mais" (apagar histórico, remover da lista).
+**Onde vive:** `web/src/pages/conversas/{LayoutConversas.tsx,useAlturaVisivel.ts}`, `web/src/pages/Conversa.tsx`, `web/src/components/ui/CabecalhoPagina.tsx`, `web/index.html`
+**Teste:** `web/src/pages/conversas/useAlturaVisivel.test.tsx`
