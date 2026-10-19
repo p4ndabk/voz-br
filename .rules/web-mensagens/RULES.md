@@ -92,3 +92,10 @@ na segurança, não um status HTTP: as mensagens vão do navegador direto aos re
 **Se violada:** defeito de segurança (XSS e vazamento da página de origem).
 **Onde vive:** `web/src/components/ui/TextoComLinks.tsx`
 **Teste:** `web/src/components/ui/TextoComLinks.test.tsx::RN-WEB-MENSAGENS-010` e `web/src/pages/mensagens.test.tsx::RN-WEB-MENSAGENS-010`
+
+### RN-WEB-MENSAGENS-011 — O campo de mensagem pode ser redimensionado com o mouse
+**Regra:** o campo de texto tem uma alça no canto para a pessoa arrastar e deixá-lo maior ou menor (até metade da tela). Ele continua crescendo sozinho com o texto, mas a altura arrastada vira o mínimo dele, e fica guardada neste navegador.
+**Quando:** escrever uma mensagem.
+**Se violada:** textos longos ficam espremidos numa caixa que não dá para aumentar, ou o campo desfaz o tamanho escolhido a cada letra.
+**Onde vive:** `web/src/pages/conversa/{CampoMensagem,alturaCampo}.ts*`
+**Teste:** `web/src/pages/conversa/alturaCampo.test.ts`

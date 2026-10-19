@@ -1,7 +1,8 @@
-import { useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
 import { Botao } from '@/components/ui/Botao'
 import { LIMITE_MENSAGEM, validarTexto } from '@/conversas/mensageria'
 import { t } from '@/i18n/pt-BR'
+import { alturaDoCampo, guardarAltura, lerAlturaGuardada } from './alturaCampo'
 
 const LINHAS_MAXIMAS = 5
 const MOSTRAR_CONTADOR_A_PARTIR_DE = LIMITE_MENSAGEM - 500
@@ -15,14 +16,39 @@ export function CampoMensagem({ aoEnviar }: Props) {
   const area = useRef<HTMLTextAreaElement>(null)
   const validacao = validarTexto(texto)
 
-  // Cresce com o texto ate 5 linhas; depois rola por dentro.
+  // Altura que a pessoa arrastou com o mouse (0 = nunca mexeu) e a ultima que o campo se deu sozinho.
+  const manual = useRef(lerAlturaGuardada())
+  const automatica = useRef(0)
+
+  // Cresce com o texto ate 5 linhas, sem ficar menor que o tamanho escolhido na mao.
   const ajustarAltura = () => {
     const el = area.current
     if (!el) return
     el.style.height = 'auto'
     const linha = parseFloat(getComputedStyle(el).lineHeight) || 24
-    el.style.height = `${Math.min(el.scrollHeight, linha * LINHAS_MAXIMAS)}px`
+    const altura = alturaDoCampo(manual.current, el.scrollHeight, linha * LINHAS_MAXIMAS)
+    automatica.current = altura
+    el.style.height = `${altura}px`
   }
+
+  // Arrastar a alca muda a altura sem passar pelo ajuste automatico: o que difere do ultimo valor que o
+  // campo se deu e tamanho escolhido na mao. (O navegador nao avisa o mouse solto sobre a alca.)
+  useEffect(() => {
+    const el = area.current
+    if (!el || typeof ResizeObserver === 'undefined') return
+    const observador = new ResizeObserver(() => {
+      const atual = el.offsetHeight
+      if (atual > 0 && Math.abs(atual - automatica.current) > 2) {
+        manual.current = atual
+        automatica.current = atual
+        guardarAltura(atual)
+      }
+    })
+    observador.observe(el)
+    return () => observador.disconnect()
+  }, [])
+
+  useEffect(ajustarAltura, [])
 
   const enviar = () => {
     if (validacao !== 'ok') return
@@ -60,7 +86,7 @@ export function CampoMensagem({ aoEnviar }: Props) {
           onKeyDown={aoTeclar}
           aria-label={t.mensagens.campo}
           placeholder={t.mensagens.campo}
-          className="min-h-11 flex-1 resize-none rounded-cordel border-2 border-borda bg-superficie px-3 py-2.5 text-tinta placeholder:text-tinta-suave"
+          className="min-h-11 max-h-[50dvh] flex-1 resize-y rounded-cordel border-2 border-borda bg-superficie px-3 py-2.5 text-tinta placeholder:text-tinta-suave"
         />
         <Botao type="submit" disabled={validacao !== 'ok'}>
           {t.mensagens.enviar}
