@@ -55,11 +55,14 @@ describe('tela de configuracoes (RN-WEB-LAYOUT-008)', () => {
       'Minha conta',
       'Perfil',
       'Carteira',
+      'Segurança',
       'Relays',
       'Sons e avisos',
-      'Segurança',
       'Vários aparelhos',
     ])
+    // Agrupadas por assunto, com um rotulo discreto em cada grupo.
+    expect(within(menu()).getByText('Você')).toBeInTheDocument()
+    expect(within(menu()).getByText('Aplicativo')).toBeInTheDocument()
     expect(screen.queryByRole('list', { name: 'Suas conversas' })).not.toBeInTheDocument()
     expect(screen.queryByRole('searchbox')).not.toBeInTheDocument()
   })
@@ -67,8 +70,8 @@ describe('tela de configuracoes (RN-WEB-LAYOUT-008)', () => {
   it('RN-WEB-LAYOUT-008: no menu do celular ninguem fica destacado; so em tela larga', () => {
     abrir('/configuracoes')
     const conta = within(menu()).getByRole('link', { name: 'Minha conta' })
-    expect(conta.className).toContain('md:border-l-8')
-    expect(conta.className).not.toMatch(/(^|\s)border-l-8/)
+    expect(conta.className).toContain('md:border-borda')
+    expect(conta.className).not.toMatch(/(^|\s)border-borda/)
   })
 
   it('RN-WEB-LAYOUT-008: o indice mostra Minha conta e a marca como secao atual', () => {

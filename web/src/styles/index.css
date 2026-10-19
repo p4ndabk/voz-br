@@ -72,6 +72,23 @@ body {
   animation-delay: calc(var(--h, 0) * 1200ms + 250ms);
 }
 
+/* RN-WEB-LAYOUT-008: a secao das configuracoes entra com um deslize curto (a regra de movimento
+   reduzido, abaixo, o encurta ate sumir). */
+@keyframes secao-entra {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.secao-entra {
+  animation: secao-entra 220ms ease-out both;
+}
+
 /* RN-WEB-APAGAR-011: com movimento reduzido so esmaece. */
 @keyframes esmaecer {
   to {

@@ -185,6 +185,8 @@ export const t = {
   configuracoes: {
     titulo: 'Configurações',
     menu: 'Seções das configurações',
+    grupoConta: 'Você',
+    grupoApp: 'Aplicativo',
     voltarConversas: 'Voltar às conversas',
     conta: 'Minha conta',
     perfil: 'Perfil',
