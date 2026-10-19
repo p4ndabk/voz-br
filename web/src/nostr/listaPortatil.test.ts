@@ -14,6 +14,25 @@ const conversa: ConversaPortatil = {
 }
 
 describe('lista portatil (kind 30078)', () => {
+  it('RN-WEB-PRIVACIDADE-003: o tamanho do conteudo so depende da faixa, nao do numero de conversas', async () => {
+    const tamanho = async (n: number) =>
+      (
+        await montarListaPortatil(
+          eu,
+          Array.from({ length: n }, (_, i) => ({ ...conversa, criadaEm: i })),
+          2000,
+        )
+      ).content.length
+    expect(await tamanho(1)).toBe(await tamanho(10))
+    expect(await tamanho(10)).toBe(await tamanho(30))
+    expect(await tamanho(100)).toBeGreaterThan(await tamanho(1))
+  })
+
+  it('RN-WEB-PRIVACIDADE-003: o enchimento nao atrapalha a leitura', async () => {
+    const lida = await lerListaPortatil(eu, await montarListaPortatil(eu, [conversa], 2000))
+    expect(lida?.conversas).toHaveLength(1)
+  })
+
   it('RN-WEB-SYNC-001: ida e volta devolve a mesma lista', async () => {
     const evento = await montarListaPortatil(eu, [conversa], 2000)
     expect(evento.kind).toBe(30078)

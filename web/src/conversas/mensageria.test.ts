@@ -20,6 +20,12 @@ import { useMeusRelays } from './meusRelays'
 import { useConversas } from './useConversas'
 import { useMensagens } from './useMensagens'
 
+// A espera da copia propria (RN-WEB-PRIVACIDADE-002) so atrasa; nos testes ela passa na hora.
+vi.mock('./copiaPropria', async (original) => ({
+  ...(await original<typeof import('./copiaPropria')>()),
+  esperar: () => Promise.resolve(),
+}))
+
 // Relay falso em memoria: guarda o que e publicado e entrega eventos a quem se inscreveu.
 const rede = vi.hoisted(() => ({
   publicados: [] as { evento: EventoNostr; urls?: readonly string[] }[],
@@ -300,6 +306,9 @@ describe('recebimento', () => {
     iniciarRecebimento(ana)
     await vi.waitFor(() => expect(rede.ouvinte).not.toBeNull())
     await enviarMensagem(ana, bia.pubkey, 'oi')
+    await vi.waitFor(() =>
+      expect(rede.publicados.some((p) => p.evento.tags[0]?.[1] === ana.pubkey)).toBe(true),
+    )
     const minhaCopia = rede.publicados.find((p) => p.evento.tags[0]?.[1] === ana.pubkey)!.evento
     await entregar(minhaCopia)
     await new Promise((r) => setTimeout(r, 30))

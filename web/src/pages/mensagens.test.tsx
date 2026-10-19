@@ -207,7 +207,7 @@ describe('aviso de privacidade', () => {
     await abrir()
     expect(
       await screen.findByText(
-        /O conteúdo é criptografado: só você e Maria conseguem ler\. Os servidores \(relays\) só sabem que houve uma mensagem e quando/,
+        /O conteúdo é criptografado: só você e Maria conseguem ler\. Os servidores \(relays\) veem para quem a mensagem vai, quando e o seu endereço de internet \(IP\), mas nunca o que foi dito/,
       ),
     ).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Entendi' }))

@@ -5,7 +5,12 @@ import { gerarChave } from '@/nostr/signer/chaves'
 import { criarAssinanteLocal } from '@/nostr/signer/local'
 import { listarTodasConversas } from './armazem'
 import { useConversas } from './useConversas'
-import { ESPERA_PUBLICAR_MS, iniciarSincronia, useSincronia } from './useSincronia'
+import {
+  ACRESCIMO_MAXIMO_MS,
+  ESPERA_PUBLICAR_MS,
+  iniciarSincronia,
+  useSincronia,
+} from './useSincronia'
 
 const rede = vi.hoisted(() => ({
   remotos: [] as unknown[],
@@ -152,7 +157,7 @@ describe('publicacao com espera', () => {
     await useConversas.getState().abrirOuCriar(maria)
     await vi.advanceTimersByTimeAsync(ESPERA_PUBLICAR_MS - 1_000)
     expect(rede.publicados).toHaveLength(0)
-    await vi.advanceTimersByTimeAsync(2_000)
+    await vi.advanceTimersByTimeAsync(ACRESCIMO_MAXIMO_MS + 2_000)
     await vi.waitFor(() => expect(rede.publicados).toHaveLength(1))
     parar()
   })
@@ -165,7 +170,7 @@ describe('publicacao com espera', () => {
     await useConversas.getState().abrirOuCriar(maria)
     await vi.advanceTimersByTimeAsync(2_000)
     await useConversas.getState().abrirOuCriar(joao)
-    await vi.advanceTimersByTimeAsync(ESPERA_PUBLICAR_MS + 1_000)
+    await vi.advanceTimersByTimeAsync(ESPERA_PUBLICAR_MS + ACRESCIMO_MAXIMO_MS + 1_000)
     await vi.waitFor(() => expect(rede.publicados).toHaveLength(1))
     const lida = await lerListaPortatil(eu, rede.publicados[0])
     expect(lida?.conversas).toHaveLength(2)
@@ -180,7 +185,7 @@ describe('publicacao com espera', () => {
     await vi.waitFor(() => expect(rede.publicados).toHaveLength(1))
     rede.publicados = []
     await useConversas.getState().registrarRecebida(maria, agora() + 1, 'oi')
-    await vi.advanceTimersByTimeAsync(ESPERA_PUBLICAR_MS + 2_000)
+    await vi.advanceTimersByTimeAsync(ESPERA_PUBLICAR_MS + ACRESCIMO_MAXIMO_MS + 2_000)
     expect(rede.publicados).toHaveLength(0)
     parar()
   })

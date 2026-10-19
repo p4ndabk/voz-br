@@ -27,6 +27,7 @@ import { useMeusRelays } from './meusRelays'
 import { meusRelaysDm, relaysDeDmDe, relaysDoAmigo } from './relaysDm'
 import { iniciarSincronia } from './useSincronia'
 import { useConversas } from './useConversas'
+import { destinoDaCopia, esperar } from './copiaPropria'
 import { useMensagens } from './useMensagens'
 
 // RN-WEB-MENSAGENS-005
@@ -63,11 +64,14 @@ async function publicarEPassar(
     registrarRelaysDoEmbrulho(paraAmigo.evento.id, amigo.urls),
     registrarRelaysDoEmbrulho(paraMim.evento.id, meus),
   ])
-  const [aceitosAmigo] = await Promise.all([
-    publicarEm(paraAmigo, amigo.urls),
-    // A copia propria e melhor esforco: nao decide o estado da mensagem.
-    publicarEm(paraMim, meus).catch(() => 0),
-  ])
+  // RN-WEB-PRIVACIDADE-002: a copia propria e melhor esforco, sai depois (ou em outro relay) e nao
+  // decide o estado da mensagem.
+  const copia = destinoDaCopia(meus, amigo.urls)
+  const publicarCopia = esperar(copia.atrasoMs)
+    .then(() => publicarEm(paraMim, copia.urls))
+    .catch(() => 0)
+  const aceitosAmigo = await publicarEm(paraAmigo, amigo.urls)
+  if (copia.atrasoMs === 0) await publicarCopia
   await useMensagens.getState().atualizar(mensagem.id, {
     estado: aceitosAmigo > 0 ? 'enviada' : 'falhou',
     semRelaysDm: amigo.semRelaysDm,

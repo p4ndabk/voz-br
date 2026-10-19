@@ -13,8 +13,13 @@ import { listarTodasConversas, salvarConversa } from './armazem'
 import { mesclar, paraPortatil, resumoDaLista } from './sincronia'
 import { useConversas } from './useConversas'
 
-// RN-WEB-SYNC-005: espera depois da ultima mudanca antes de publicar.
-export const ESPERA_PUBLICAR_MS = 5_000
+// RN-WEB-SYNC-005 e RN-WEB-PRIVACIDADE-004: espera depois da ultima mudanca antes de publicar, com um
+// acrescimo sorteado, para o horario da lista nao denunciar quando uma conversa foi criada.
+export const ESPERA_PUBLICAR_MS = 20_000
+export const ACRESCIMO_MAXIMO_MS = 100_000
+const esperaDePublicar = () =>
+  ESPERA_PUBLICAR_MS +
+  Math.round((crypto.getRandomValues(new Uint32Array(1))[0]! / 2 ** 32) * ACRESCIMO_MAXIMO_MS)
 const CHAVE = 'voz:sincronia'
 
 export type EstadoDaSincronia = 'parada' | 'sincronizando' | 'ok' | 'falhou'
@@ -150,7 +155,7 @@ export function iniciarSincronia(assinante: Assinante): () => void {
     const novo = resumoDaTela()
     if (novo === resumo) return
     resumo = novo
-    agendar(ESPERA_PUBLICAR_MS)
+    agendar(esperaDePublicar())
   })
 
   // Ligar o interruptor sincroniza; falha anterior tenta de novo quando algum relay conecta.
@@ -159,7 +164,7 @@ export function iniciarSincronia(assinante: Assinante): () => void {
   })
   const deixarDeObservarRelays = relays.assinar(() => {
     if (useSincronia.getState().estado === 'falhou' && relays.conectados() > 0)
-      agendar(ESPERA_PUBLICAR_MS)
+      agendar(esperaDePublicar())
   })
 
   return () => {

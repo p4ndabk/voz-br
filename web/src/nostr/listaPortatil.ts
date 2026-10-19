@@ -9,6 +9,9 @@ export const ID_LISTA_PORTATIL = 'voz:conversas'
 // Um evento com 400 conversas passa de 65 KB e varios relays recusam; 200 cabem com folga.
 export const MAXIMO_CONVERSAS_PORTATEIS = 200
 const MAXIMO_DICAS = 5
+// RN-WEB-PRIVACIDADE-003: o texto cifrado tem tamanho de faixa, nao o tamanho real. Quem ve o evento
+// publico nao descobre quantos contatos a pessoa tem, so em qual faixa ela esta.
+export const FAIXAS_DA_LISTA = [8_192, 16_384, 32_768]
 
 // RN-WEB-SYNC-002: so pubkey, dicas de relay, datas e marcadores. Nunca texto de mensagem.
 export interface ConversaPortatil {
@@ -49,6 +52,14 @@ function lerItem(bruto: unknown): ConversaPortatil | null {
   }
 }
 
+// Acrescenta o campo `r` (lixo) ate o texto atingir a menor faixa em que cabe.
+export function preencherAteFaixa(dados: { v: number; conversas: unknown[] }): string {
+  const base = JSON.stringify(dados)
+  const faixa = FAIXAS_DA_LISTA.find((f) => base.length + 8 <= f) ?? base.length
+  const total = JSON.stringify({ ...dados, r: '' }).length
+  return JSON.stringify({ ...dados, r: 'x'.repeat(Math.max(0, faixa - total)) })
+}
+
 export async function montarListaPortatil(
   assinante: Assinante,
   conversas: ConversaPortatil[],
@@ -56,7 +67,7 @@ export async function montarListaPortatil(
 ): Promise<EventoNostr> {
   const conteudo = await assinante.nip44.cifrar(
     assinante.pubkey,
-    JSON.stringify({ v: 1, conversas: conversas.slice(0, MAXIMO_CONVERSAS_PORTATEIS) }),
+    preencherAteFaixa({ v: 1, conversas: conversas.slice(0, MAXIMO_CONVERSAS_PORTATEIS) }),
   )
   return assinante.assinar({
     kind: KIND_LISTA_PORTATIL,
