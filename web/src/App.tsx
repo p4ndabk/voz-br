@@ -13,6 +13,7 @@ import { Destravar } from '@/pages/Destravar'
 import { Entrar } from '@/pages/entrar/Entrar'
 import { Inicio } from '@/pages/Inicio'
 import { MeuCodigo } from '@/pages/MeuCodigo'
+import { Relays } from '@/pages/Relays'
 import { NaoEncontrada } from '@/pages/NaoEncontrada'
 import { NovaConversa } from '@/pages/NovaConversa'
 
@@ -86,6 +87,7 @@ export function App() {
             <Route path="/meu-codigo" element={<MeuCodigo />} />
             <Route path="/conta" element={<Conta />} />
             <Route path="/conta/perfil" element={<EditarPerfil />} />
+            <Route path="/conta/relays" element={<Relays />} />
           </Route>
           {Estilo && <Route path="/estilo" element={<Estilo />} />}
           <Route path="*" element={<NaoEncontrada />} />

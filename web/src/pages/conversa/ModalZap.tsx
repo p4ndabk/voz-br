@@ -9,6 +9,7 @@ import { t } from '@/i18n/pt-BR'
 import { relaysPadrao } from '@/nostr/config'
 import { relays } from '@/nostr/relays'
 import type { Assinante } from '@/nostr/signer/tipos'
+import { useMeusRelays } from '@/conversas/meusRelays'
 import { reciboConfirma } from '@/nostr/zap'
 import { consultarLnurl, type ParametrosLnurl } from '@/perfil/lightning'
 import {
@@ -55,6 +56,7 @@ export function ModalZap({
   procurandoPerfil = false,
   assinante,
 }: Props) {
+  const listaDaPessoa = useMeusRelays((s) => s.lista)
   const [tentativa, setTentativa] = useState(0)
   const [servico, setServico] = useState<Servico>({ fase: 'consultando' })
   const [sats, setSats] = useState('100')
@@ -122,7 +124,7 @@ export function ModalZap({
         modo: modoEfetivo,
         destinatario: pubkey,
         assinante,
-        relays: relaysPadrao,
+        relays: listaDaPessoa.length > 0 ? listaDaPessoa : relaysPadrao,
       })
       setSatsPedidos(valor)
       setFatura(nova)

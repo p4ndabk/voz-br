@@ -33,6 +33,12 @@ export function MenuConta() {
         >
           {t.conta.editarPerfil}
         </NavLink>
+        <NavLink
+          to="/conta/relays"
+          className={({ isActive }) => `${item} ${isActive ? ativo : ''}`}
+        >
+          {t.relaysConfig.link}
+        </NavLink>
         <NavLink to="/meu-codigo" className={({ isActive }) => `${item} ${isActive ? ativo : ''}`}>
           {t.conversas.meuCodigo}
         </NavLink>

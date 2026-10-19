@@ -25,7 +25,8 @@ O Voz funciona de outro jeito:
 3. **Comece uma conversa.** Em *Nova conversa*, cole o código do seu amigo ou leia o QR dele.
 4. **Converse.** O selo *Privado* fica sempre visível.
 5. **Mande bitcoin, se quiser.** O botão *Enviar zap* paga a pessoa pela rede Lightning. Ela precisa ter um endereço Lightning no perfil (algo como `nome@getalby.com`).
-6. **Apague quando quiser.** Em *Mais* → *Apagar histórico*, o Voz apaga a conversa aqui, pede aos relays que apaguem e avisa seu amigo. Ele não pode **garantir** que a cópia do outro lado suma, e o Voz diz isso com todas as letras.
+6. **Escolha seus relays, se quiser.** Em *Conta* → *Relays* você vê por onde suas mensagens passam, adiciona outros ou o seu próprio (`wss://…`) e remove os que não quer. Essa lista também diz aos amigos onde entregar as mensagens para você.
+7. **Apague quando quiser.** Em *Mais* → *Apagar histórico*, o Voz apaga a conversa aqui, pede aos relays que apaguem e avisa seu amigo. Ele não pode **garantir** que a cópia do outro lado suma, e o Voz diz isso com todas as letras.
 
 ## O que o Voz não esconde
 

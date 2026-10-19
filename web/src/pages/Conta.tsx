@@ -61,6 +61,12 @@ export function Conta() {
         >
           {t.conta.editarPerfil}
         </Link>
+        <Link
+          to="/conta/relays"
+          className="inline-flex items-center justify-center rounded-cordel border-2 border-borda bg-superficie px-5 py-2.5 font-bold shadow-carimbo active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+        >
+          {t.relaysConfig.link}
+        </Link>
         {assinante.exportarNsec && (
           <Botao variante="secundario" onClick={() => setModalChave(true)}>
             {t.conta.verChave}
