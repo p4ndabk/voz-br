@@ -340,6 +340,7 @@ export const t = {
       `Do seu aparelho, apagamos com certeza. Dos relays e do aparelho de ${nome}, enviamos um pedido. A maioria atende, mas não dá para garantir, e quem já leu ou copiou pode ter guardado.`,
     apagarTudo: 'Apagar',
     apagando: 'Apagando…',
+    queimando: 'Queimando o histórico da conversa…',
     apagadoAqui: 'Apagado deste aparelho.',
     relays: (atendidos: number, total: number) =>
       `Pedido enviado a ${atendidos} de ${total} relays.`,

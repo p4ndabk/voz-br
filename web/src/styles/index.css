@@ -42,6 +42,48 @@ body {
   outline-offset: 2px;
 }
 
+/* RN-WEB-APAGAR-010: a mensagem pega fogo quando a frente das chamas chega nela (--h: 0 embaixo, 1 em cima). */
+@keyframes queimar {
+  0% {
+    opacity: 1;
+    filter: none;
+    transform: none;
+  }
+  38% {
+    opacity: 1;
+    filter: sepia(1) saturate(4) hue-rotate(-18deg) brightness(0.8);
+    transform: none;
+  }
+  70% {
+    opacity: 0.75;
+    filter: sepia(1) saturate(3) hue-rotate(-30deg) brightness(0.35)
+      drop-shadow(0 0 10px rgb(255 120 20));
+    transform: translateY(-4px);
+  }
+  100% {
+    opacity: 0;
+    filter: brightness(0.1) blur(5px);
+    transform: translateY(-16px) scale(0.97);
+  }
+}
+
+.queimar {
+  animation: queimar 900ms ease-in forwards;
+  animation-delay: calc(var(--h, 0) * 1200ms + 250ms);
+}
+
+/* RN-WEB-APAGAR-011: com movimento reduzido so esmaece. */
+@keyframes esmaecer {
+  to {
+    opacity: 0;
+  }
+}
+
+.queimar-suave {
+  animation: esmaecer 500ms ease-out forwards !important;
+  animation-duration: 500ms !important;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

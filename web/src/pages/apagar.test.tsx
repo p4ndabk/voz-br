@@ -1,9 +1,10 @@
-import { render, screen, within } from '@testing-library/react'
+import { render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { clear } from 'idb-keyval'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type { ResultadoApagar } from '@/conversas/apagar'
+import { queimar } from '@/conversas/queima'
 import { useConversas } from '@/conversas/useConversas'
 import { useMensagens } from '@/conversas/useMensagens'
 import { gerarChave, pubkeyDe } from '@/nostr/signer/chaves'
@@ -173,5 +174,147 @@ describe('apagar historico (interface)', () => {
     expect(await screen.findByTestId('linha-apagado')).toHaveTextContent(
       /Maria apagou o histórico desta conversa em \d{2}\/\d{2}\/\d{4}\./,
     )
+  })
+
+  describe('fogo (RN-WEB-APAGAR-010 a 012)', () => {
+    const lapis = () => Math.floor(Date.now() / 1000)
+
+    async function semear() {
+      for (const [i, texto] of ['primeira', 'segunda', 'terceira'].entries()) {
+        await useMensagens.getState().inserir({
+          id: `m${i}`,
+          conversa: maria,
+          autor: i % 2 ? eu.pubkey : maria,
+          texto,
+          criadoEm: lapis() - 100 + i,
+          estado: i % 2 ? 'enviada' : 'recebida',
+        })
+      }
+    }
+
+    // O apagarHistorico de verdade chama `queimar` e so depois tira as mensagens da tela.
+    function apagarComFogo() {
+      apagarHistorico.mockImplementation(async () => {
+        const limite = lapis()
+        await useConversas.getState().registrarApagamento(maria, limite, 'eu')
+        await queimar(maria, limite)
+        useMensagens.getState().removerAte(maria, limite)
+        return resultado()
+      })
+    }
+
+    function simularCanvas() {
+      const contexto = new Proxy(
+        {
+          createLinearGradient: () => ({ addColorStop: () => {} }),
+          createRadialGradient: () => ({ addColorStop: () => {} }),
+        },
+        {
+          get: (alvo, nome) => (nome in alvo ? alvo[nome as keyof typeof alvo] : () => {}),
+          set: () => true,
+        },
+      )
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(
+        contexto as unknown as CanvasRenderingContext2D,
+      )
+      let t = 0
+      vi.stubGlobal('requestAnimationFrame', (cb: FrameRequestCallback) =>
+        setTimeout(() => cb((t += 300)), 0),
+      )
+      vi.stubGlobal('cancelAnimationFrame', (id: number) => clearTimeout(id))
+    }
+
+    const movimentoReduzido = (reduzido: boolean) =>
+      vi.stubGlobal('matchMedia', (consulta: string) => ({
+        matches: reduzido && consulta.includes('reduce'),
+        media: consulta,
+      }))
+
+    afterEach(() => {
+      vi.restoreAllMocks()
+      vi.unstubAllGlobals()
+    })
+
+    it('RN-WEB-APAGAR-010: ao apagar, o fogo aparece, as mensagens queimam e depois saem; o modal volta com o resultado', async () => {
+      await semear()
+      apagarComFogo()
+      simularCanvas()
+      movimentoReduzido(false)
+      abrir()
+      await screen.findByText('primeira')
+      const modal = within(await abrirModal())
+      await userEvent.click(modal.getByRole('button', { name: 'Apagar' }))
+
+      expect(await screen.findByTestId('fogo')).toBeInTheDocument()
+      expect(screen.getByText('primeira').closest('li')).toHaveClass('queimar')
+      expect(screen.getByText('Queimando o histórico da conversa…')).toBeInTheDocument()
+      // O aviso sai da frente enquanto queima.
+      expect(screen.queryByRole('dialog', { name: 'Apagar histórico' })).not.toBeInTheDocument()
+
+      await waitFor(() => expect(screen.queryByTestId('fogo')).not.toBeInTheDocument(), {
+        timeout: 5000,
+      })
+      expect(screen.queryByText('primeira')).not.toBeInTheDocument()
+      const volta = within(await screen.findByRole('dialog', { name: 'Apagar histórico' }))
+      expect(await volta.findByText('Apagado deste aparelho.')).toBeInTheDocument()
+    })
+
+    it('RN-WEB-APAGAR-011: com movimento reduzido nao ha fogo, so esmaece', async () => {
+      await semear()
+      apagarComFogo()
+      simularCanvas()
+      movimentoReduzido(true)
+      abrir()
+      await screen.findByText('primeira')
+      const modal = within(await abrirModal())
+      await userEvent.click(modal.getByRole('button', { name: 'Apagar' }))
+
+      await waitFor(() =>
+        expect(screen.getByText('primeira').closest('li')).toHaveClass('queimar-suave'),
+      )
+      expect(screen.queryByTestId('fogo')).not.toBeInTheDocument()
+      await waitFor(() => expect(screen.queryByText('primeira')).not.toBeInTheDocument(), {
+        timeout: 3000,
+      })
+    })
+
+    it('RN-WEB-APAGAR-010: se o canvas nao funciona, as mensagens saem do mesmo jeito', async () => {
+      await semear()
+      apagarComFogo()
+      vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null)
+      movimentoReduzido(false)
+      abrir()
+      await screen.findByText('primeira')
+      const modal = within(await abrirModal())
+      await userEvent.click(modal.getByRole('button', { name: 'Apagar' }))
+      await waitFor(() => expect(screen.queryByText('primeira')).not.toBeInTheDocument())
+      expect(apagarHistorico).toHaveBeenCalledOnce()
+    })
+
+    it('RN-WEB-APAGAR-010: mensagem que chega durante o fogo nao queima', async () => {
+      await semear()
+      apagarComFogo()
+      simularCanvas()
+      movimentoReduzido(false)
+      abrir()
+      await screen.findByText('primeira')
+      const modal = within(await abrirModal())
+      await userEvent.click(modal.getByRole('button', { name: 'Apagar' }))
+      await screen.findByTestId('fogo')
+      await useMensagens.getState().inserir({
+        id: 'nova',
+        conversa: maria,
+        autor: maria,
+        texto: 'chegou agora',
+        criadoEm: lapis() + 10,
+        estado: 'recebida',
+      })
+      expect(await screen.findByText('chegou agora')).toBeInTheDocument()
+      expect(screen.getByText('chegou agora').closest('li')).not.toHaveClass('queimar')
+      await waitFor(() => expect(screen.queryByTestId('fogo')).not.toBeInTheDocument(), {
+        timeout: 5000,
+      })
+      expect(screen.getByText('chegou agora')).toBeInTheDocument()
+    })
   })
 })

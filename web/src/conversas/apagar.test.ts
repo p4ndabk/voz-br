@@ -15,6 +15,7 @@ import {
   salvarMensagem,
 } from './armazemMensagens'
 import { apagarHistorico, processarFila } from './apagar'
+import { registrarQueima } from './queima'
 import { enviarMensagem, iniciarMensageria, iniciarRecebimento } from './mensageria'
 import { useConversas } from './useConversas'
 import { useMensagens } from './useMensagens'
@@ -451,5 +452,60 @@ describe('pedido de apagar recebido', () => {
       expect(await obterConversa(bia.pubkey)).toMatchObject({ apagadoPor: 'eu' }),
     )
     expect(emMemoria(bia.pubkey)).toHaveLength(0)
+  })
+})
+
+describe('fogo ao apagar (RN-WEB-APAGAR-010)', () => {
+  it('RN-WEB-APAGAR-010: com o fogo rodando, o apagamento de verdade ja aconteceu e a tela ainda mostra as mensagens', async () => {
+    await enviarTres()
+    let liberar: () => void = () => {}
+    let chamadoCom: number | undefined
+    const parar = registrarQueima(bia.pubkey, async (limite) => {
+      chamadoCom = limite
+      await new Promise<void>((r) => (liberar = r))
+    })
+    const limite = agora()
+    const apagando = apagarHistorico(ana, bia.pubkey, 'Ana', limite)
+    await vi.waitFor(() => expect(chamadoCom).toBe(limite))
+
+    // Durante o fogo: nada resta no armazenamento, a marca e os pedidos ja estao salvos...
+    expect(await listarMensagens(bia.pubkey)).toHaveLength(0)
+    expect(await embrulhosDaConversa(bia.pubkey)).toHaveLength(0)
+    expect(await obterConversa(bia.pubkey)).toMatchObject({ apagadoAte: limite, apagadoPor: 'eu' })
+    expect((await listarFila()).length).toBeGreaterThan(0)
+    // ...mas a tela segue mostrando as mensagens, para o fogo queimar.
+    expect(emMemoria(bia.pubkey)).toHaveLength(3)
+
+    liberar()
+    await apagando
+    expect(emMemoria(bia.pubkey)).toHaveLength(0)
+    parar()
+  })
+
+  it('RN-WEB-APAGAR-010: falha na animacao nao impede o apagamento', async () => {
+    await enviarTres()
+    const parar = registrarQueima(bia.pubkey, () => Promise.reject(new Error('sem canvas')))
+    const resultado = await apagarHistorico(ana, bia.pubkey, 'Ana', agora())
+    expect(resultado.apagadas).toBe(3)
+    expect(emMemoria(bia.pubkey)).toHaveLength(0)
+    parar()
+  })
+
+  it('RN-WEB-APAGAR-012: quando o amigo apaga, o fogo tambem roda e as mensagens saem depois', async () => {
+    await enviarTres()
+    let liberar: () => void = () => {}
+    let chamado = false
+    const parar = registrarQueima(bia.pubkey, async () => {
+      chamado = true
+      await new Promise<void>((r) => (liberar = r))
+    })
+    await iniciarRecebendo(ana)
+    entregar(await pedidoDe(bia, ana, agora()))
+    await vi.waitFor(() => expect(chamado).toBe(true))
+    expect(await listarMensagens(bia.pubkey)).toHaveLength(0)
+    expect(emMemoria(bia.pubkey)).toHaveLength(3)
+    liberar()
+    await vi.waitFor(() => expect(emMemoria(bia.pubkey)).toHaveLength(0))
+    parar()
   })
 })

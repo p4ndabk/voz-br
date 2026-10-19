@@ -7,7 +7,7 @@
 | **Work item (Azure DevOps)** | não criado |
 | **Tipo** | Melhoria de experiência |
 | **Épico / Feature pai** | Apagar histórico (spec 0007) |
-| **Módulo afetado** | `web/src/conversas/{apagar,queima}.ts`, `web/src/components/ui/{fogo.ts,Fogo.tsx}`, `web/src/pages/Conversa.tsx` |
+| **Módulo afetado** | `web/src/conversas/{apagar,queima}.ts`, `web/src/components/ui/{motorDoFogo.ts,Fogo.tsx}`, `web/src/pages/Conversa.tsx` |
 | **P.O.** | David |
 | **Tech Lead** | David |
 | **Data do refinamento** | 2026-10-19 |

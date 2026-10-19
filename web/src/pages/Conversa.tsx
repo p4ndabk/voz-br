@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from 'react'
 import { Link, Navigate, useNavigate, useParams } from 'react-router-dom'
 import { Botao } from '@/components/ui/Botao'
+import { Fogo } from '@/components/ui/Fogo'
 import { Identidade } from '@/components/ui/Identidade'
 import { Modal } from '@/components/ui/Modal'
 import { Selo } from '@/components/ui/Selo'
 import { apagarHistorico } from '@/conversas/apagar'
 import { dataDe } from '@/conversas/dias'
 import { enviarMensagem, reenviarMensagem } from '@/conversas/mensageria'
+import { registrarQueima } from '@/conversas/queima'
 import { useConversas } from '@/conversas/useConversas'
 import { useMensagens } from '@/conversas/useMensagens'
 import { t } from '@/i18n/pt-BR'
@@ -43,6 +45,12 @@ export function Conversa() {
   const [zapando, setZapando] = useState(false)
   const [atualizandoPerfil, setAtualizandoPerfil] = useState(false)
   const [novas, setNovas] = useState(false)
+  // RN-WEB-APAGAR-010 a 012: mensagens queimando agora (null = nenhuma) e como.
+  const [queima, setQueima] = useState<{
+    ids: ReadonlySet<string>
+    modo: 'fogo' | 'suave'
+  } | null>(null)
+  const terminarQueima = useRef<(() => void) | null>(null)
 
   // O perfil em cache pode ser antigo (a pessoa pode ter configurado o Lightning depois):
   // ao abrir o zap, busca de novo nos relays. Enquanto isso o dialogo diz que esta procurando.
@@ -74,6 +82,40 @@ export function Conversa() {
     document.addEventListener('visibilitychange', marcar)
     return () => document.removeEventListener('visibilitychange', marcar)
   }, [naoLidas, marcarVista, pubkey])
+
+  // Esta conversa esta aberta e visivel: e ela que mostra o fogo quando o historico e apagado
+  // (por mim ou a pedido do amigo). O apagamento de verdade ja aconteceu quando isto roda.
+  useEffect(
+    () =>
+      registrarQueima(pubkey, (limite) => {
+        const ids = new Set(
+          (useMensagens.getState().porConversa[pubkey] ?? [])
+            .filter((m) => m.criadoEm <= limite)
+            .map((m) => m.id),
+        )
+        if (ids.size === 0) return Promise.resolve()
+        const reduzido = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches ?? false
+        // --h: 0 = embaixo da area visivel, 1 = em cima; a mensagem pega fogo quando a frente chega.
+        const area = rolagem.current?.parentElement?.getBoundingClientRect()
+        for (const el of rolagem.current?.querySelectorAll<HTMLElement>('[data-mensagem]') ?? []) {
+          const caixa = el.getBoundingClientRect()
+          const h = area
+            ? 1 - (caixa.top + caixa.height / 2 - area.top) / Math.max(area.height, 1)
+            : 0
+          el.style.setProperty('--h', String(Math.min(Math.max(h, 0), 1)))
+        }
+        return new Promise<void>((resolver) => {
+          terminarQueima.current = () => {
+            terminarQueima.current = null
+            setQueima(null)
+            resolver()
+          }
+          setQueima({ ids, modo: reduzido ? 'suave' : 'fogo' })
+          if (reduzido) setTimeout(() => terminarQueima.current?.(), 500)
+        })
+      }),
+    [pubkey],
+  )
 
   // Trocar de conversa recomeca do fim, sem herdar a posicao da anterior.
   useEffect(() => {
@@ -193,10 +235,18 @@ export function Conversa() {
                 mensagens={mensagens}
                 minhaPubkey={assinante.pubkey}
                 aoTentarDeNovo={(id) => void reenviarMensagem(assinante, id)}
+                queimando={queima?.ids}
+                modoDaQueima={queima?.modo}
               />
             )}
           </div>
         </div>
+        {queima?.modo === 'fogo' && <Fogo aoTerminar={() => terminarQueima.current?.()} />}
+        {queima && (
+          <p role="status" className="sr-only">
+            {t.apagar.queimando}
+          </p>
+        )}
         {novas && (
           <button
             type="button"
@@ -219,6 +269,7 @@ export function Conversa() {
       {apagando && (
         <ModalApagarHistorico
           nome={nomeExibido(perfil, conversa.pubkey).texto}
+          oculto={queima !== null}
           aoFechar={() => setApagando(false)}
           aoApagar={() =>
             apagarHistorico(

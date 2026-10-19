@@ -10,9 +10,18 @@ interface Props {
   mensagens: Mensagem[]
   minhaPubkey: string
   aoTentarDeNovo: (id: string) => void
+  // Mensagens que estao queimando agora (RN-WEB-APAGAR-010) e como: fogo ou so esmaecer (RN-WEB-APAGAR-011).
+  queimando?: ReadonlySet<string>
+  modoDaQueima?: 'fogo' | 'suave'
 }
 
-export function ListaMensagens({ mensagens, minhaPubkey, aoTentarDeNovo }: Props) {
+export function ListaMensagens({
+  mensagens,
+  minhaPubkey,
+  aoTentarDeNovo,
+  queimando,
+  modoDaQueima = 'fogo',
+}: Props) {
   return (
     <ol aria-label={t.mensagens.lista} className="flex flex-col gap-3">
       {mensagens.map((m, i) => {
@@ -25,7 +34,12 @@ export function ListaMensagens({ mensagens, minhaPubkey, aoTentarDeNovo }: Props
                 {rotuloDoDia(m.criadoEm)}
               </li>
             )}
-            <li className="flex flex-col gap-1">
+            <li
+              data-mensagem={m.id}
+              className={`flex flex-col gap-1 ${
+                queimando?.has(m.id) ? (modoDaQueima === 'fogo' ? 'queimar' : 'queimar-suave') : ''
+              }`}
+            >
               <Balao autor={meu ? 'meu' : 'outro'} hora={horaDe(m.criadoEm)}>
                 <TextoComLinks texto={m.texto} />
               </Balao>
