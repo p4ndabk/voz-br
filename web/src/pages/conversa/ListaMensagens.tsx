@@ -13,6 +13,8 @@ interface Props {
   // Mensagens que estao queimando agora (RN-WEB-APAGAR-010) e como: fogo ou so esmaecer (RN-WEB-APAGAR-011).
   queimando?: ReadonlySet<string>
   modoDaQueima?: 'fogo' | 'suave'
+  // Em grupo, o nome de quem escreveu aparece em cima do balao dos outros.
+  nomeDe?: (pubkey: string) => string
 }
 
 export function ListaMensagens({
@@ -21,6 +23,7 @@ export function ListaMensagens({
   aoTentarDeNovo,
   queimando,
   modoDaQueima = 'fogo',
+  nomeDe,
 }: Props) {
   return (
     <ol aria-label={t.mensagens.lista} className="flex flex-col gap-3">
@@ -40,6 +43,9 @@ export function ListaMensagens({
                 queimando?.has(m.id) ? (modoDaQueima === 'fogo' ? 'queimar' : 'queimar-suave') : ''
               }`}
             >
+              {!meu && nomeDe && (
+                <p className="ml-1 text-xs font-bold text-tinta-suave">{nomeDe(m.autor)}</p>
+              )}
               <Balao autor={meu ? 'meu' : 'outro'} hora={horaDe(m.criadoEm)}>
                 <TextoComLinks texto={m.texto} />
               </Balao>

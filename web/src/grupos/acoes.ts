@@ -140,7 +140,10 @@ export async function limparParaTodos(
 ): Promise<boolean> {
   const grupo = await obterGrupo(id)
   if (!grupo || grupo.admin !== assinante.pubkey || grupo.estado !== 'ativo') return false
-  await pedirLimpezaGeral(assinante, grupo, meuNome, ate).catch(() => {})
-  await limparGrupoLocal(id, ate)
+  // O fogo comeca na hora; o pedido aos outros aparelhos sai em paralelo.
+  await Promise.all([
+    pedirLimpezaGeral(assinante, grupo, meuNome, ate).catch(() => {}),
+    limparGrupoLocal(id, ate),
+  ])
   return true
 }

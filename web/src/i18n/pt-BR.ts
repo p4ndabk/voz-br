@@ -386,6 +386,90 @@ export const t = {
     textoLimpar: (quem: string, grupo: string) =>
       `${quem} limpou o histórico do grupo "${grupo}" e pediu que você limpe também.`,
     textoEncerrar: (grupo: string) => `O grupo "${grupo}" foi encerrado.`,
+    // Telas
+    novo: 'Novo grupo',
+    titulo: 'Criar grupo',
+    nomeCampo: 'Nome do grupo',
+    nomeAjuda: 'Até 40 caracteres. Todos os membros veem este nome.',
+    convidarTitulo: 'Quem você quer convidar',
+    convidarAjuda:
+      'Só entra quem aceitar o convite. Quem entrar depois não vê o que já foi dito antes. Até 30 pessoas.',
+    contatos: 'Suas conversas',
+    semContatos: 'Você ainda não tem conversas. Cole abaixo a chave de quem você quer convidar.',
+    chaveCampo: 'Chave de quem convidar',
+    chaveAjuda: 'Cole a chave pública (npub…) e toque em Adicionar.',
+    adicionarChave: 'Adicionar',
+    escolhidas: (n: number) => (n === 1 ? '1 pessoa escolhida' : `${n} pessoas escolhidas`),
+    criar: 'Criar grupo',
+    criando: 'Criando…',
+    erros: {
+      'nome-invalido': 'Escreva um nome de até 40 caracteres.',
+      'sem-convidados': 'Escolha pelo menos uma pessoa para convidar.',
+      cheio: 'Um grupo tem no máximo 30 pessoas.',
+      'nao-e-admin': 'Só o admin pode fazer isso.',
+      'ja-na-lista': 'Essa pessoa já está no grupo ou já foi convidada.',
+      'nao-esta-na-lista': 'Essa pessoa não está no grupo.',
+      'e-o-admin': 'O admin não pode ser removido. Passe o cargo antes.',
+      inativo: 'Este grupo não está ativo.',
+      'sem-grupo': 'Grupo não encontrado.',
+    },
+    grupo: 'Grupo',
+    pessoas: (n: number) => (n === 1 ? '1 pessoa' : `${n} pessoas`),
+    voltar: 'Voltar',
+    privado:
+      'As mensagens do grupo são criptografadas e enviadas a cada pessoa. Os servidores (relays) veem quem recebe e quando, mas nunca o que foi dito. Quem sai do grupo ainda tem o que já recebeu.',
+    ninguemAindaTitulo: 'Ainda não há ninguém no grupo além de você.',
+    ninguemAindaTexto:
+      'Quando alguém aceitar o convite, vocês podem começar a conversar. Quem aceitar depois não vê o que foi dito antes.',
+    semMensagens: 'Nenhuma mensagem ainda. Escreva a primeira.',
+    voce: 'você',
+    admin: 'admin',
+    pendente: 'aguardando aceitar',
+    // Convites
+    convites: 'Convites',
+    convidou: (nome: string) => `${nome} convidou você`,
+    conviteAviso:
+      'Só depois de aceitar você recebe as mensagens do grupo. Você não verá o que foi dito antes de entrar.',
+    aceitar: 'Aceitar',
+    recusar: 'Recusar',
+    aguardando: 'Aceitei. Aguardando o admin confirmar a minha entrada…',
+    // Situacao do grupo
+    saiu: 'Você saiu deste grupo. O histórico fica aqui até você limpar.',
+    removido: 'Você foi removido deste grupo. O histórico fica aqui até você limpar.',
+    encerrado: 'Este grupo foi encerrado. O histórico fica aqui até você limpar.',
+    // Menu
+    membros: 'Membros',
+    limpar: 'Limpar histórico',
+    limparTodos: 'Limpar para todos',
+    sair: 'Sair do grupo',
+    encerrarGrupo: 'Encerrar grupo',
+    passarCargo: 'Passar o admin',
+    tirar: 'Tirar do grupo',
+    cancelarConvite: 'Cancelar convite',
+    // Janelas
+    membrosTitulo: 'Membros do grupo',
+    adicionarMais: 'Convidar mais gente',
+    sairTitulo: 'Sair do grupo?',
+    sairAviso:
+      'Você deixa de receber as mensagens. O que já recebeu continua aqui até você limpar, e os outros membros continuam com o que viram.',
+    sairConfirmar: 'Sair',
+    adminNaoSai: 'Você é o admin. Passe o cargo a outro membro antes de sair, ou encerre o grupo.',
+    limparTitulo: 'Limpar histórico',
+    limparAviso:
+      'Limpa o histórico deste grupo neste aparelho e pede aos relays que apaguem as suas cópias. Os outros membros continuam com o que já receberam.',
+    limparConfirmar: 'Limpar',
+    limparTodosTitulo: 'Limpar para todos',
+    limparTodosAviso:
+      'Limpa aqui e pede a todos os membros que limpem também. A maioria atende, mas não dá para garantir: quem já leu ou copiou pode ter guardado.',
+    encerrarTitulo: 'Encerrar o grupo?',
+    encerrarAviso:
+      'O grupo acaba para todos. Cada pessoa mantém o histórico no próprio aparelho até limpar.',
+    encerrarConfirmar: 'Encerrar',
+    passarTitulo: 'Passar o admin',
+    passarAjuda: 'Escolha quem passa a mandar no grupo. Depois você vira membro comum e pode sair.',
+    passarConfirmar: 'Passar o cargo',
+    tirarAviso: (nome: string) =>
+      `${nome} deixa de receber as mensagens novas, mas continua com o que já recebeu.`,
   },
   apagar: {
     botao: 'Apagar conversa',

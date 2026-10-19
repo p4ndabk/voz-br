@@ -39,6 +39,7 @@ o Voz entrega; o que é do protocolo (a tag `p` do embrulho, o IP) fica dito com
 **Teste:** `web/src/conversas/useSincronia.test.ts::RN-WEB-SYNC-005`
 
 ### RN-WEB-PRIVACIDADE-005 — Foto de perfil só de quem eu conheço
+
 **Regra:** a foto de uma pessoa só é baixada se eu abri a conversa por chave, já escrevi para ela ou pedi "Mostrar foto" no cartão dela. De quem me escreveu primeiro aparece só o desenho gerado. Conversas antigas, sem o marcador, valem por "não é nova pessoa". O marcador `conheco` viaja na lista portátil.
 **Quando:** ao desenhar o avatar na lista, no cabeçalho da conversa e no cartão.
 **Se violada:** qualquer pessoa que me escreva escolhe um endereço de foto e descobre o meu IP assim que a mensagem chega.
@@ -46,6 +47,7 @@ o Voz entrega; o que é do protocolo (a tag `p` do embrulho, o IP) fica dito com
 **Teste:** `web/src/conversas/useConversas.test.ts::RN-WEB-PRIVACIDADE-005`
 
 ### RN-WEB-PRIVACIDADE-006 — O Voz não abre dentro de outro site
+
 **Regra:** se a página roda dentro de uma moldura (iframe), o app não é iniciado e a tela só oferece abrir o Voz na própria aba.
 **Quando:** ao carregar a página.
 **Se violada:** outro site pode cobrir o Voz com elementos invisíveis (clickjacking) para fazer a pessoa tocar em "Apagar" ou "Enviar".
@@ -53,6 +55,7 @@ o Voz entrega; o que é do protocolo (a tag `p` do embrulho, o IP) fica dito com
 **Teste:** `web/src/emMoldura.test.ts`
 
 ### RN-WEB-PRIVACIDADE-007 — Com senha, o histórico guardado no navegador fica cifrado
+
 **Regra:** em conta protegida por senha, mensagens, lista de conversas, embrulhos e fila de pedidos são guardados cifrados (AES-GCM, chave derivada por HKDF da chave secreta, que só existe depois da senha). Ao proteger com senha uma conta que estava sem, o que já existia é cifrado. Sem senha, ou com extensão/app assinante, nada muda e o aviso diz que está em claro.
 **Quando:** ao gravar e ler esses dados; ao criar, destravar ou proteger com senha.
 **Se violada:** quem pega o aparelho, um backup ou uma extensão lê todas as conversas mesmo com a chave protegida.
@@ -60,8 +63,17 @@ o Voz entrega; o que é do protocolo (a tag `p` do embrulho, o IP) fica dito com
 **Teste:** `web/src/nostr/cofre.test.ts`
 
 ### RN-WEB-PRIVACIDADE-008 — Existe um atalho para um relay que exige autenticação
+
 **Regra:** em Relays, "Usar relay privado" troca o rascunho da lista pelo relay `relayPrivado`, que só entrega embrulhos a quem se autentica (NIP-42). Continua preciso salvar. O texto avisa que com um relay só, se ele cair, a pessoa deixa de receber.
 **Quando:** a pessoa toca no botão.
 **Se violada:** o botão não existe ou salva sem a pessoa confirmar, e os relays comuns continuam mostrando quem recebe mensagens.
 **Onde vive:** `web/src/pages/Relays.tsx`, `web/src/nostr/config.ts` (`relayPrivado`)
 **Teste:** `web/src/pages/relays.test.tsx::RN-WEB-PRIVACIDADE-008`
+
+### RN-WEB-PRIVACIDADE-009 — As cópias de um grupo saem escalonadas
+
+**Regra:** as cópias de uma mensagem de grupo (uma por membro) saem uma a uma, com esperas aleatórias de até 1,5 s entre elas, e cada cópia vai aos relays de DM do próprio destinatário; a minha cópia sai depois (`RN-WEB-PRIVACIDADE-002`).
+**Quando:** ao enviar mensagem ou controle de grupo.
+**Se violada:** o relay vê uma rajada de embrulhos no mesmo instante, do mesmo IP, e deduz quem está no grupo.
+**Onde vive:** `web/src/grupos/enviar.ts` (`esperasEscalonadas`, `entregar`)
+**Teste:** `web/src/grupos/fluxo.test.ts` (as cópias chegam a cada destinatário)

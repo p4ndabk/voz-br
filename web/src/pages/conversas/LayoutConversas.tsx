@@ -3,6 +3,7 @@ import { Logo } from '@/components/ui/Logo'
 import { Link, Outlet, useMatch } from 'react-router-dom'
 import { marcarIconeDaAba } from '@/conversas/iconeDaAba'
 import { useConversas } from '@/conversas/useConversas'
+import { useGrupos } from '@/grupos/useGrupos'
 import { t } from '@/i18n/pt-BR'
 import { ListaConversas } from './ListaConversas'
 import { MenuConta } from './MenuConta'
@@ -16,12 +17,17 @@ const botao =
 // (a lista em /conversas, o conteudo em /conversas/...).
 export function LayoutConversas() {
   const carregar = useConversas((s) => s.carregar)
+  const carregarGrupos = useGrupos((s) => s.carregar)
   const naLista = useMatch({ path: '/conversas', end: true }) !== null
   const [busca, setBusca] = useState('')
   const estiloVisivel = useAlturaVisivel()
 
   // RN-WEB-CONVERSAS-010: o titulo da aba mostra quantas mensagens ainda nao li.
-  const naoLidas = useConversas((s) => s.conversas.reduce((soma, c) => soma + (c.naoLidas ?? 0), 0))
+  const naoLidasConversas = useConversas((s) =>
+    s.conversas.reduce((soma, c) => soma + (c.naoLidas ?? 0), 0),
+  )
+  const naoLidasGrupos = useGrupos((s) => s.grupos.reduce((soma, g) => soma + (g.naoLidas ?? 0), 0))
+  const naoLidas = naoLidasConversas + naoLidasGrupos
   useEffect(() => {
     document.title = naoLidas > 0 ? `(${naoLidas}) ${t.marca}` : t.marca
     marcarIconeDaAba(naoLidas > 0)
@@ -34,7 +40,8 @@ export function LayoutConversas() {
   // RN-WEB-LAYOUT-003: a lista pertence ao layout e continua montada ao trocar de conversa.
   useEffect(() => {
     void carregar()
-  }, [carregar])
+    void carregarGrupos()
+  }, [carregar, carregarGrupos])
 
   return (
     <div
@@ -67,6 +74,20 @@ export function LayoutConversas() {
                 <path d="M8 2v12M2 8h12" />
               </svg>
               {t.conversas.nova}
+            </Link>
+            <Link to="/conversas/grupo/novo" className={`${botao} bg-superficie`}>
+              <svg
+                aria-hidden="true"
+                viewBox="0 0 16 16"
+                className="mr-2 h-3.5 w-3.5"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="3"
+                strokeLinecap="square"
+              >
+                <path d="M8 2v12M2 8h12" />
+              </svg>
+              {t.grupos.novo}
             </Link>
           </nav>
           <input

@@ -77,3 +77,19 @@ entra não vê o passado" vêm disso, não de uma chave compartilhada.
 **Se violada:** um membro apaga o histórico dos outros, ou um pedido apaga mensagens que ainda nem existem.
 **Onde vive:** `web/src/grupos/protocolo.ts`, `web/src/grupos/regras.ts`
 **Teste:** `web/src/grupos/grupos.test.ts::RN-WEB-GRUPOS-009`
+
+### RN-WEB-GRUPOS-010 — Quem entra depois não vê o passado
+
+**Regra:** cada mensagem do grupo é cifrada só para quem é membro naquele momento. Quem aceita depois, ou é incluído depois, não consegue abrir mensagens antigas, mesmo que o relay as entregue de novo; recebe só o que vier depois. Quem sai ou é removido deixa de receber o que vier depois.
+**Quando:** ao enviar e ao receber mensagem de grupo.
+**Se violada:** um membro novo lê conversas de antes de entrar, ou um ex-membro continua lendo.
+**Onde vive:** `web/src/grupos/enviar.ts` (`enviarMensagemDeGrupo`), `web/src/nostr/dm.ts` (`embrulharParaVarios`)
+**Teste:** `web/src/grupos/fluxo.test.ts::RN-WEB-GRUPOS-010`
+
+### RN-WEB-GRUPOS-011 — O grupo aparece na lista, o convite fica separado e o menu depende do papel
+
+**Regra:** grupos aparecem na lista de conversas, com o nome e a marca "Grupo"; convites ficam numa seção "Convites" no topo, sem entregar mensagens. O menu do membro tem Membros, Limpar histórico e Sair; o do admin tem também Limpar para todos, Passar o admin e Encerrar grupo, e não tem Sair. Quem saiu ou foi removido vê o histórico, sem campo de mensagem.
+**Quando:** ao desenhar a lista e a conversa do grupo.
+**Se violada:** um membro vê ações de admin, ou o admin sai sem passar o cargo.
+**Onde vive:** `web/src/pages/grupo/Grupo.tsx`, `web/src/pages/conversas/ListaConversas.tsx`
+**Teste:** `web/src/pages/grupo/grupos.test.tsx`

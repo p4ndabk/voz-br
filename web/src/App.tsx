@@ -20,6 +20,9 @@ import { Inicio } from '@/pages/Inicio'
 import { MeuCodigo } from '@/pages/MeuCodigo'
 import { Relays } from '@/pages/Relays'
 import { NaoEncontrada } from '@/pages/NaoEncontrada'
+import { useGrupos } from '@/grupos/useGrupos'
+import { Grupo } from './pages/grupo/Grupo'
+import { NovoGrupo } from './pages/grupo/NovoGrupo'
 import { NovaConversa } from '@/pages/NovaConversa'
 
 // /estilo so existe em desenvolvimento; no build de producao o ramo some.
@@ -57,6 +60,7 @@ export function App() {
     if (fase !== 'fora') return
     useConversas.setState({ conversas: [], carregada: false })
     useMensagens.setState({ porConversa: {} })
+    useGrupos.setState({ grupos: [], carregada: false })
   }, [fase])
 
   // Enquanto le o IndexedDB nao desenhamos nada: evita piscar a tela de entrar.
@@ -87,6 +91,8 @@ export function App() {
             <Route path="/conversas">
               <Route index element={<PainelVazio />} />
               <Route path="nova" element={<NovaConversa />} />
+              <Route path="grupo/novo" element={<NovoGrupo />} />
+              <Route path="grupo/:id" element={<Grupo />} />
               <Route path=":pubkey" element={<Conversa />} />
             </Route>
             <Route path="/meu-codigo" element={<MeuCodigo />} />

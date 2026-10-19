@@ -3,6 +3,8 @@ import { criarRumorLivre, embrulharParaVarios, type Embrulho } from '@/nostr/dm'
 import { relays } from '@/nostr/relays'
 import type { Assinante } from '@/nostr/signer/tipos'
 import {
+  embrulhosDaMensagem,
+  obterMensagem,
   registrarRelaysDoEmbrulho,
   salvarEmbrulho,
   type Mensagem,
@@ -133,6 +135,26 @@ export async function enviarMensagemDeGrupo(
     .getState()
     .atualizar(mensagem.id, { estado: aceitos > 0 ? 'enviada' : 'falhou' })
   return mensagem
+}
+
+// "Tentar de novo": reenvia os MESMOS embrulhos guardados, entao o balao nao duplica.
+export async function reenviarMensagemDeGrupo(assinante: Assinante, id: string): Promise<void> {
+  const mensagem = await obterMensagem(id)
+  if (!mensagem || mensagem.estado === 'enviada') return
+  const salvos = await embrulhosDaMensagem(id)
+  const comoEmbrulho = (e: (typeof salvos)[number]): Embrulho => ({
+    evento: e.evento,
+    chaveEfemera: e.chaveEfemera,
+    destinatario: e.evento.tags.find((t) => t[0] === 'p')?.[1] ?? '',
+  })
+  const paraOutros = salvos.filter((e) => !e.paraMim).map(comoEmbrulho)
+  const meu = salvos.find((e) => e.paraMim)
+  if (paraOutros.length === 0 || !meu) return
+  await useMensagens.getState().atualizar(id, { estado: 'enviando' })
+  const aceitos = await entregar(assinante.pubkey, paraOutros, comoEmbrulho(meu), (e, urls) =>
+    registrarRelaysDoEmbrulho(e.evento.id, urls),
+  ).catch(() => 0)
+  await useMensagens.getState().atualizar(id, { estado: aceitos > 0 ? 'enviada' : 'falhou' })
 }
 
 // Mensagem de controle: texto legivel + tags. Nao vira balao nem guarda embrulho (nao ha o que apagar depois).

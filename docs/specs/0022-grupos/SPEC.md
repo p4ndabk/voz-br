@@ -23,12 +23,13 @@
 
 ## 3. Escopo — o que entra
 
-- [ ] Protocolo e regras puras (`web/src/grupos/`): convite, aceite, lista de membros, sair, passar o admin, encerrar, limpar
-- [ ] Envio em cópia por membro e recebimento ligados à mensageria
-- [ ] Criar grupo (nome + contatos), convites com Aceitar/Recusar, lista de conversas
-- [ ] Conversa do grupo, membros, sair, passar o admin
-- [ ] Limpar histórico (para mim e, pelo admin, para todos), com o fogo
-- [ ] Sincronia entre aparelhos e não lidas
+- [x] Protocolo e regras puras (`web/src/grupos/`): convite, aceite, lista de membros, sair, passar o admin, encerrar, limpar
+- [x] Envio em cópia por membro e recebimento ligados à mensageria
+- [x] Criar grupo (nome + contatos), convites com Aceitar/Recusar, lista de conversas
+- [x] Conversa do grupo, membros, sair, passar o admin
+- [x] Limpar histórico (para mim e, pelo admin, para todos), com o fogo
+- [x] Não lidas por grupo (lista, título da aba e aviso do navegador)
+- [ ] Sincronia entre aparelhos (ver `TODO.md`, PT-01)
 
 ## 4. Fora de escopo
 
