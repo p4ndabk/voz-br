@@ -18,9 +18,6 @@ A pasta tem uma subpasta por área (`web-auth`, `web-zap`...). Cada área tem a 
 └── <modulo>/RULES.md      # um diretório por módulo novo
 ```
 
-| Pasta | Conteúdo |
-|---|---|
-
 **`RULES.md` é obrigatório** em todo módulo que tem regra de negócio própria.
 A pasta existe (em vez de um arquivo solto) para o módulo poder crescer sem
 inchar um documento único: se um dia precisar de um glossário do domínio, um
@@ -41,7 +38,7 @@ mkdir -p .rules/<modulo>
 
 ## Identificador
 
-Formato: `RN-<MODULO>-<NNN>` (ex: `RN-USERS-002`).
+Formato: `RN-<MODULO>-<NNN>` (ex: `RN-WEB-ZAP-003`).
 
 - A numeração é sequencial **dentro do arquivo** e começa em `001`.
 - **IDs nunca são reciclados nem renumerados.** Uma regra que deixa de valer é
@@ -57,11 +54,11 @@ Sempre estes cinco campos, nesta ordem — nem mais, nem menos:
 
 ```markdown
 ### RN-USERS-002 — E-mail é único no sistema
-**Regra:** não pode existir mais de um usuário com o mesmo e-mail (case-insensitive).
-**Quando:** criação e atualização de usuário.
-**Se violada:** `ConflictError` → HTTP 409, code `EMAIL_ALREADY_EXISTS`.
-**Onde vive:** `app/modules/users/service.py`
-**Teste:** `tests/test_users.py::test_email_duplicado_retorna_409`
+**Regra:** o valor do zap é um inteiro de sats dentro do mínimo e máximo do serviço.
+**Quando:** ao gerar a fatura.
+**Se violada:** o botão fica desabilitado e a tela mostra o limite.
+**Onde vive:** `web/src/zap/enviar.ts`
+**Teste:** `web/src/zap/enviar.test.ts`
 ```
 
 - **Regra** — uma frase, no presente, afirmativa. Sem "deveria", sem "talvez".
@@ -79,17 +76,16 @@ Sempre estes cinco campos, nesta ordem — nem mais, nem menos:
 
 Cite o ID como comentário na linha da validação e no docstring do teste:
 
-```python
-# app/modules/users/service.py
-# RN-USERS-002: e-mail e unico no sistema.
-if await self.repository.get_by_email(data.email) is not None:
-    raise ConflictError(...)
+```ts
+// web/src/zap/enviar.ts
+// RN-WEB-ZAP-003: valor inteiro dentro dos limites do servico.
+export function valorValido(sats: number, min: number, max: number): boolean {
 ```
 
-```python
-# tests/test_users.py
-async def test_email_duplicado_retorna_409(...):
-    """RN-USERS-002: e-mail e unico no sistema."""
+```ts
+// web/src/zap/enviar.test.ts
+// RN-WEB-ZAP-003
+describe('valorValido', () => {
 ```
 
 Assim, `grep -r "RN-USERS-002" .` mostra a regra, a implementação e o teste.
