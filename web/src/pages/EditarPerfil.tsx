@@ -1,5 +1,6 @@
 import { useEffect, useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
+import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina'
 import { Avatar } from '@/components/ui/Avatar'
 import { AreaDeTexto } from '@/components/ui/AreaDeTexto'
 import { Aviso } from '@/components/ui/Aviso'
@@ -107,7 +108,7 @@ export function EditarPerfil() {
 
   return (
     <main className="mx-auto flex h-full w-full max-w-xl flex-col gap-6 overflow-y-auto px-4 py-8">
-      <h1 className="font-display text-4xl">{t.editarPerfil.titulo}</h1>
+      <CabecalhoPagina titulo={t.editarPerfil.titulo} voltarPara="/conta" />
 
       {!atual ? (
         <p role="status" className="text-tinta-suave">

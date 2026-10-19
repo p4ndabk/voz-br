@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, NavLink } from 'react-router-dom'
 import { Avatar } from '@/components/ui/Avatar'
 import { ModalSair } from '@/components/ModalSair'
 import { t } from '@/i18n/pt-BR'
@@ -9,6 +9,8 @@ import { useSessao } from '@/nostr/useSessao'
 
 const item =
   'inline-flex items-center rounded-cordel border-2 border-borda bg-superficie px-3 py-1.5 text-sm font-bold shadow-carimbo-pequeno active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
+
+const ativo = 'bg-tinta text-fundo'
 
 // RN-WEB-LAYOUT-004: perfil, codigo e saida ficam sempre no pe da lateral das conversas.
 export function MenuConta() {
@@ -25,12 +27,15 @@ export function MenuConta() {
         <span className="min-w-0 flex-1 truncate font-bold">{nome}</span>
       </Link>
       <nav aria-label={t.minhaConta} className="flex flex-wrap gap-2">
-        <Link to="/conta/perfil" className={item}>
+        <NavLink
+          to="/conta/perfil"
+          className={({ isActive }) => `${item} ${isActive ? ativo : ''}`}
+        >
           {t.conta.editarPerfil}
-        </Link>
-        <Link to="/meu-codigo" className={item}>
+        </NavLink>
+        <NavLink to="/meu-codigo" className={({ isActive }) => `${item} ${isActive ? ativo : ''}`}>
           {t.conversas.meuCodigo}
-        </Link>
+        </NavLink>
         <button type="button" className={item} onClick={() => setModalSair(true)}>
           {t.conta.sair}
         </button>

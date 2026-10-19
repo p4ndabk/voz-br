@@ -17,6 +17,7 @@ import { usePerfis } from '@/nostr/perfisStore'
 import { AvisoPrivacidade } from './conversa/AvisoPrivacidade'
 import { CampoMensagem } from './conversa/CampoMensagem'
 import { ListaMensagens } from './conversa/ListaMensagens'
+import { MenuMais } from '@/components/ui/MenuMais'
 import { ModalApagarHistorico } from './conversa/ModalApagarHistorico'
 import { ModalZap } from './conversa/ModalZap'
 
@@ -138,16 +139,12 @@ export function Conversa() {
         <Botao className="px-3 py-1.5 text-sm" onClick={abrirZap}>
           {t.zap.botao}
         </Botao>
-        <Botao
-          variante="secundario"
-          className="px-3 py-1.5 text-sm"
-          onClick={() => setApagando(true)}
-        >
-          {t.apagar.botao}
-        </Botao>
-        <Botao variante="secundario" className="px-3 py-1.5 text-sm" onClick={() => setModal(true)}>
-          {t.conversas.remover}
-        </Botao>
+        <MenuMais
+          itens={[
+            { rotulo: t.apagar.botao, aoEscolher: () => setApagando(true) },
+            { rotulo: t.conversas.remover, aoEscolher: () => setModal(true) },
+          ]}
+        />
       </header>
 
       <div className="flex flex-col gap-2 px-4 pt-3">

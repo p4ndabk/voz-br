@@ -37,3 +37,11 @@ Formato definido em [../README.md](../README.md). "Se violada" descreve o efeito
 **Se violada:** para mudar o perfil ou sair é preciso deixar a conversa e voltar para a lista.
 **Onde vive:** `web/src/pages/conversas/MenuConta.tsx`, `web/src/components/ModalSair.tsx`, rotas em `web/src/App.tsx`
 **Teste:** `web/src/pages/layout.test.tsx::menu da conta`
+
+### RN-WEB-LAYOUT-005 — Navegação sempre com saída
+
+**Regra:** toda página do painel do meio (conta, editar perfil, meu código, nova conversa) tem um cabeçalho com ← para a tela anterior; as ações secundárias da conversa (apagar histórico, remover da lista) ficam no menu "Mais", e "Enviar zap" fica à vista; o item da lateral da página atual leva `aria-current="page"`.
+**Quando:** ao desenhar qualquer página dentro do layout das conversas.
+**Se violada:** em tela estreita a lateral some e a pessoa fica sem caminho de volta; ações destrutivas ao lado do zap são clicadas por engano.
+**Onde vive:** `web/src/components/ui/{CabecalhoPagina,MenuMais}.tsx`, `web/src/pages/conversas/MenuConta.tsx`
+**Teste:** `web/src/components/ui/navegacao.test.tsx`

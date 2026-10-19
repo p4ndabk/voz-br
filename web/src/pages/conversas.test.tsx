@@ -184,7 +184,8 @@ describe('tela da conversa', () => {
   it('RN-WEB-CONVERSAS-008: remover tira da lista, sem apagar mensagens nem falar com relay', async () => {
     await useConversas.getState().abrirOuCriar(amigo)
     abrir(`/conversas/${amigo}`)
-    await userEvent.click(await screen.findByRole('button', { name: 'Remover da lista' }))
+    await userEvent.click(await screen.findByRole('button', { name: 'Mais' }))
+    await userEvent.click(screen.getByRole('menuitem', { name: 'Remover da lista' }))
     expect(screen.getByText(/As mensagens não são apagadas/)).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Remover' }))
     expect(

@@ -25,17 +25,17 @@ pages/  ->  components/  ->  nostr/  (hooks e funcoes)  ->  nostr-tools / WebSoc
 
 ## Anti-padrões proibidos
 
-| NUNCA faça isto                                                | FAÇA isto                                                  |
-| -------------------------------------------------------------- | ---------------------------------------------------------- |
-| `import ... from 'nostr-tools'` fora de `src/nostr/`           | exponha uma função ou hook em `src/nostr/`                 |
-| `new WebSocket(...)` num componente                            | use `useRelays()` (RN-WEB-RELAYS-001)                      |
-| texto literal em JSX (`<p>Entrar</p>`)                         | adicione ao `pt-BR.ts` (RN-WEB-UI-001)                     |
-| cor em hexadecimal num componente                              | use os tokens (`bg-fundo`, `text-tinta`, `bg-vermelho`...) |
-| fonte, script ou imagem de CDN                                 | empacote no build (RN-WEB-UI-002)                          |
-| `dangerouslySetInnerHTML` com conteúdo de mensagem ou perfil   | renderize como texto                                       |
-| `console.log` de chave, assinatura ou conteúdo de mensagem     | não logue                                                  |
-| `import` de qualquer caminho fora de `web/`                    | mantenha tudo dentro de `web/`                             |
-| inventar um padrão novo sem precedente                         | copie de um componente existente ou pergunte               |
+| NUNCA faça isto                                              | FAÇA isto                                                  |
+| ------------------------------------------------------------ | ---------------------------------------------------------- |
+| `import ... from 'nostr-tools'` fora de `src/nostr/`         | exponha uma função ou hook em `src/nostr/`                 |
+| `new WebSocket(...)` num componente                          | use `useRelays()` (RN-WEB-RELAYS-001)                      |
+| texto literal em JSX (`<p>Entrar</p>`)                       | adicione ao `pt-BR.ts` (RN-WEB-UI-001)                     |
+| cor em hexadecimal num componente                            | use os tokens (`bg-fundo`, `text-tinta`, `bg-vermelho`...) |
+| fonte, script ou imagem de CDN                               | empacote no build (RN-WEB-UI-002)                          |
+| `dangerouslySetInnerHTML` com conteúdo de mensagem ou perfil | renderize como texto                                       |
+| `console.log` de chave, assinatura ou conteúdo de mensagem   | não logue                                                  |
+| `import` de qualquer caminho fora de `web/`                  | mantenha tudo dentro de `web/`                             |
+| inventar um padrão novo sem precedente                       | copie de um componente existente ou pergunte               |
 
 ## Comandos
 

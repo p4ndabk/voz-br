@@ -1,6 +1,8 @@
 // RN-WEB-UI-001: todo texto visivel vem deste arquivo.
 export const t = {
   marca: 'Voz',
+  mais: 'Mais',
+  voltarPagina: 'Voltar',
   lema: 'Conversa livre, sem dono.',
   descricao:
     'Um espaço para conversar sobre política e filosofia, em português, sem depender de uma plataforma central.',

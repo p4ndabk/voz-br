@@ -56,7 +56,8 @@ function abrir() {
 }
 
 const abrirModal = async () => {
-  await userEvent.click(await screen.findByRole('button', { name: 'Apagar histórico' }))
+  await userEvent.click(await screen.findByRole('button', { name: 'Mais' }))
+  await userEvent.click(screen.getByRole('menuitem', { name: 'Apagar histórico' }))
   return screen.getByRole('dialog', { name: 'Apagar histórico' })
 }
 

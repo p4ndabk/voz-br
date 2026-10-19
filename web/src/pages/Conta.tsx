@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { Aviso } from '@/components/ui/Aviso'
+import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina'
 import { Botao } from '@/components/ui/Botao'
 import { Identidade } from '@/components/ui/Identidade'
 import { BotaoCopiar } from '@/components/ui/BotaoCopiar'
@@ -38,7 +39,7 @@ export function Conta() {
 
   return (
     <main className="mx-auto flex h-full w-full max-w-xl flex-col gap-6 overflow-y-auto px-4 py-8">
-      <h1 className="font-display text-4xl">{t.conta.titulo}</h1>
+      <CabecalhoPagina titulo={t.conta.titulo} voltarPara="/conversas" />
       <Identidade pubkey={assinante.pubkey} tamanho={56} />
       <p className="text-tinta-suave">{t.conta.metodo[assinante.metodo]}</p>
 

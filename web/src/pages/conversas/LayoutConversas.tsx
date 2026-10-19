@@ -1,4 +1,5 @@
 import { useEffect } from 'react'
+import { Logo } from '@/components/ui/Logo'
 import { Link, Outlet, useMatch } from 'react-router-dom'
 import { useConversas } from '@/conversas/useConversas'
 import { t } from '@/i18n/pt-BR'
@@ -28,7 +29,12 @@ export function LayoutConversas() {
         className={`${naLista ? 'flex' : 'hidden'} w-full min-w-0 flex-col border-borda bg-superficie md:flex md:w-96 md:shrink-0 md:border-r-2`}
       >
         <header className="flex flex-col gap-3 border-b-2 border-borda p-4">
-          <h1 className="font-display text-3xl">{t.conversas.titulo}</h1>
+          <div className="flex items-center justify-between gap-3">
+            <Link to="/" aria-label={t.marca}>
+              <Logo tamanho={36} comPalavra palavra={t.marca} />
+            </Link>
+            <h1 className="font-display text-2xl">{t.conversas.titulo}</h1>
+          </div>
           <nav className="flex flex-wrap gap-2">
             <Link to="/conversas/nova" className={`${botao} bg-vermelho text-sobre-vermelho`}>
               {t.conversas.nova}

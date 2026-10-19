@@ -1,6 +1,7 @@
 import { useCallback, useState, type ReactNode } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Aviso } from '@/components/ui/Aviso'
+import { Logo } from '@/components/ui/Logo'
 import { Botao } from '@/components/ui/Botao'
 import { t } from '@/i18n/pt-BR'
 import { extensaoDisponivel } from '@/nostr/signer/nip07'
@@ -70,6 +71,9 @@ export function Entrar() {
 
   return (
     <main className="mx-auto flex min-h-screen max-w-xl flex-col gap-6 px-4 py-8">
+      <Link to="/" aria-label={t.marca} className="self-start">
+        <Logo tamanho={32} comPalavra palavra={t.marca} />
+      </Link>
       <h1 className="font-display text-4xl">
         {vista === 'menu' ? t.entrarPagina.titulo : titulos[vista]}
       </h1>
