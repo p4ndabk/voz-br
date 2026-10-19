@@ -10,13 +10,14 @@ import { enviarMensagem, reenviarMensagem } from '@/conversas/mensageria'
 import { useConversas } from '@/conversas/useConversas'
 import { useMensagens } from '@/conversas/useMensagens'
 import { t } from '@/i18n/pt-BR'
-import { nomeExibido } from '@/nostr/perfis'
+import { enderecoLightningValido, nomeExibido } from '@/nostr/perfis'
 import { useSessao } from '@/nostr/useSessao'
 import { usePerfil } from '@/nostr/usePerfil'
 import { AvisoPrivacidade } from './conversa/AvisoPrivacidade'
 import { CampoMensagem } from './conversa/CampoMensagem'
 import { ListaMensagens } from './conversa/ListaMensagens'
 import { ModalApagarHistorico } from './conversa/ModalApagarHistorico'
+import { ModalZap } from './conversa/ModalZap'
 
 const MARGEM_DO_FIM_PX = 80
 const SEM_MENSAGENS: never[] = []
@@ -37,6 +38,7 @@ export function Conversa() {
   const meuPerfil = usePerfil(assinante?.pubkey ?? pubkey)
   const [modal, setModal] = useState(false)
   const [apagando, setApagando] = useState(false)
+  const [zapando, setZapando] = useState(false)
   const [novas, setNovas] = useState(false)
   const rolagem = useRef<HTMLDivElement>(null)
   const pertoDoFim = useRef(true)
@@ -114,11 +116,17 @@ export function Conversa() {
         >
           ←
         </Link>
-        <div className="min-w-0 flex-1">
+        <div className="min-w-[12rem] flex-1">
           <Identidade pubkey={conversa.pubkey} tamanho={44} />
         </div>
         {/* RN-WEB-CONVERSAS-007 e RN-WEB-MENSAGENS-008: o selo Privado esta sempre a vista. */}
         <Selo tipo="privado" />
+        {/* RN-WEB-ZAP-001: so oferece pagar a quem configurou um endereco Lightning valido. */}
+        {perfil?.lightning && enderecoLightningValido(perfil.lightning) && (
+          <Botao className="px-3 py-1.5 text-sm" onClick={() => setZapando(true)}>
+            {t.zap.botao}
+          </Botao>
+        )}
         <Botao
           variante="secundario"
           className="px-3 py-1.5 text-sm"
@@ -199,6 +207,17 @@ export function Conversa() {
               nomeExibido(meuPerfil, assinante.pubkey).texto,
             )
           }
+        />
+      )}
+
+      {perfil?.lightning && (
+        <ModalZap
+          aberto={zapando}
+          aoFechar={() => setZapando(false)}
+          nome={nomeExibido(perfil, conversa.pubkey).texto}
+          pubkey={conversa.pubkey}
+          endereco={perfil.lightning}
+          assinante={assinante}
         />
       )}
 

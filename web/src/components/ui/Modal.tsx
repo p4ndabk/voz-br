@@ -38,7 +38,7 @@ export function Modal({ aberto, titulo, aoFechar, acoes, children }: Props) {
         aria-modal="true"
         aria-labelledby={idTitulo}
         tabIndex={-1}
-        className="w-full max-w-md rounded-cordel border-2 border-borda bg-superficie p-6 shadow-carimbo"
+        className="max-h-[calc(100dvh-2rem)] w-full max-w-md overflow-y-auto rounded-cordel border-2 border-borda bg-superficie p-4 shadow-carimbo sm:p-6"
       >
         <h2 id={idTitulo} className="mb-3 font-display text-2xl">
           {titulo}
