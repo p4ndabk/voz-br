@@ -254,6 +254,19 @@ describe('enviar zap', () => {
     expect(screen.getByRole('button', { name: 'Copiar endereço Lightning' })).toBeInTheDocument()
   })
 
+  it('RN-WEB-ZAP-009: servico bloqueado tambem oferece abrir na carteira (lightning:)', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => {
+        throw new TypeError('Failed to fetch')
+      }),
+    )
+    abrir(maria)
+    await userEvent.click(await screen.findByRole('button', { name: 'Enviar zap' }))
+    const link = await screen.findByRole('link', { name: 'Abrir na minha carteira' })
+    expect(link.getAttribute('href')).toMatch(/^lightning:[^@\s]+@[^@\s]+$/)
+  })
+
   // RN-WEB-PERFIL-015
   it('procurando o perfil: o dialogo nao diz que falta o endereco', async () => {
     abrir(ana)

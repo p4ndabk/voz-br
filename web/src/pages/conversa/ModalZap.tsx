@@ -163,7 +163,16 @@ export function ModalZap({
       <div className="flex flex-col items-start gap-3">
         <Aviso tom="erro">{t.zap.semServico}</Aviso>
         <p className="text-sm text-tinta-suave">{t.zap.semServicoAjuda}</p>
-        <BotaoCopiar texto={endereco} rotulo={t.zap.copiarEndereco} />
+        <div className="flex flex-wrap gap-3">
+          <BotaoCopiar texto={endereco} rotulo={t.zap.copiarEndereco} />
+          {/* RN-WEB-ZAP-009: o esquema lightning: entrega o endereco a carteira instalada no aparelho. */}
+          <a
+            href={`lightning:${endereco}`}
+            className="inline-flex items-center justify-center rounded-cordel border-2 border-borda bg-superficie px-5 py-2.5 font-bold shadow-carimbo active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+          >
+            {t.zap.abrirCarteira}
+          </a>
+        </div>
         <Botao
           variante="secundario"
           onClick={() => {

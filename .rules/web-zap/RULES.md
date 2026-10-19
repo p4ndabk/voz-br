@@ -73,3 +73,10 @@ Formato definido em [../README.md](../README.md).
 **Se violada:** perda de dinheiro.
 **Onde vive:** `web/src/pages/conversa/ModalZap.tsx`, `web/src/zap/webln.ts`
 **Teste:** `web/src/pages/zap.test.tsx`
+
+### RN-WEB-ZAP-009 — Serviço bloqueado: copiar ou abrir na carteira
+**Regra:** quando o serviço Lightning não responde ao navegador (CORS, rede), o diálogo explica o motivo e oferece **copiar o endereço** e **abrir na minha carteira** (link `lightning:usuario@dominio`, que entrega o endereço à carteira instalada no aparelho). O Voz não paga nem escolhe a carteira.
+**Quando:** `fase === 'falhou'` do serviço.
+**Se violada:** a pessoa fica sem caminho para pagar quem tem endereço sem CORS.
+**Onde vive:** `web/src/pages/conversa/ModalZap.tsx`
+**Teste:** `web/src/pages/zap.test.tsx::RN-WEB-ZAP-009`
