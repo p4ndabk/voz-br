@@ -55,3 +55,39 @@ Formato definido em [../README.md](../README.md).
 **Se violada:** um relay morto faz toda busca esperar o tempo limite inteiro (6 s).
 **Onde vive:** `web/src/nostr/relays.ts` (`consultar`)
 **Teste:** `web/src/nostr/relays.test.ts::consultar antecipada`
+
+---
+
+### RN-WEB-RELAYS-007 — A lista de relays da pessoa é o kind 10050 dela
+**Regra:** os relays em que a pessoa recebe e publica são a sua lista de relays de DM (kind 10050): de 1 a 5 endereços `wss://`, sem duplicados. Sem lista publicada, vale a lista padrão do Voz.
+**Quando:** adicionar, remover, restaurar, salvar e entrar na conta.
+**Se violada:** a tela recusa o endereço e explica o motivo; a lista não muda.
+**Onde vive:** `web/src/conversas/meusRelays.ts`
+**Teste:** `web/src/conversas/meusRelays.test.ts`
+
+---
+
+### RN-WEB-RELAYS-008 — Salvar a lista só conta com ao menos um relay aceitando
+**Regra:** o kind 10050 é publicado na união da lista antiga, da nova e dos relays de perfil (para os amigos acharem); só se algum relay responder OK a lista nova passa a valer.
+**Quando:** a pessoa clica em Salvar.
+**Se violada:** mensagem de erro e a lista anterior continua em uso.
+**Onde vive:** `web/src/conversas/meusRelays.ts` (`salvar`)
+**Teste:** `web/src/conversas/meusRelays.test.ts`
+
+---
+
+### RN-WEB-RELAYS-009 — Adicionar testa a conexão e avisa, sem bloquear
+**Regra:** ao adicionar um relay, o Voz tenta abrir uma conexão por até 5 s; se não abrir, avisa e oferece "Adicionar mesmo assim".
+**Quando:** a pessoa adiciona um relay.
+**Se violada:** relay digitado errado entra na lista sem aviso, ou um relay só momentaneamente fora do ar fica impossível de cadastrar.
+**Onde vive:** `web/src/nostr/relays.ts` (`testarRelay`), `web/src/pages/Relays.tsx`
+**Teste:** `web/src/nostr/relays.test.ts::testarRelay`, `web/src/pages/relays.test.tsx`
+
+---
+
+### RN-WEB-RELAYS-010 — Mudar a lista refaz conexões e escuta sem recarregar
+**Regra:** ao salvar, os relays novos conectam, os removidos fecham, o indicador "N de M" reflete a lista, e a escuta de mensagens recomeça nos relays novos.
+**Quando:** a lista salva muda.
+**Se violada:** a pessoa deixa de receber mensagens até recarregar a página.
+**Onde vive:** `web/src/nostr/relays.ts` (`definirRelays`), `web/src/conversas/mensageria.ts`
+**Teste:** `web/src/nostr/relays.test.ts::definirRelays`, `web/src/conversas/mensageria.test.ts`
