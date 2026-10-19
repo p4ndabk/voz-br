@@ -116,7 +116,9 @@ const grupoDe = async (pessoa: Assinante, id: string) => {
 }
 const textos = async (id: string) => {
   await useMensagens.getState().carregar(chaveDaConversa(id))
-  return (useMensagens.getState().porConversa[chaveDaConversa(id)] ?? []).map((m) => m.texto)
+  return (useMensagens.getState().porConversa[chaveDaConversa(id)] ?? [])
+    .filter((m) => !m.sistema)
+    .map((m) => m.texto)
 }
 
 beforeEach(async () => {
@@ -188,6 +190,32 @@ describe('fluxo do grupo (RN-WEB-GRUPOS-002 a 009)', () => {
     await assentar(ana, bia, caio)
     await receber(caio)
     expect(await textos(id)).toEqual(['depois do caio'])
+  })
+
+  it('RN-WEB-GRUPOS-012: quando alguem aceita, o grupo mostra "entrou"; so quem ja estava ve', async () => {
+    const id = await grupoComAnaBiaCaio()
+    const entrou = async (pessoa: Assinante) => {
+      await como(pessoa)
+      await useMensagens.getState().carregar(chaveDaConversa(id))
+      return (useMensagens.getState().porConversa[chaveDaConversa(id)] ?? [])
+        .filter((m) => m.sistema === 'entrou')
+        .map((m) => m.texto)
+    }
+    await receber(bia)
+    await aceitarConvite(bia, id, nome(bia))
+    await assentar(ana, bia)
+    expect(await entrou(ana)).toEqual([bia.pubkey])
+    // Bia acabou de entrar: nao ve aviso de quem ja estava
+    expect(await entrou(bia)).toEqual([])
+    await receber(caio)
+    await aceitarConvite(caio, id, nome(caio))
+    await assentar(ana, bia, caio)
+    expect(await entrou(ana)).toEqual([bia.pubkey, caio.pubkey])
+    expect(await entrou(bia)).toEqual([caio.pubkey]) // quem ja estava ve a chegada do Caio
+    expect(await entrou(caio)).toEqual([])
+    // o relay reentrega tudo: o aviso nao se repete
+    await receber(ana, true)
+    expect(await entrou(ana)).toEqual([bia.pubkey, caio.pubkey])
   })
 
   it('RN-WEB-GRUPOS-008: quem nao e membro nao consegue escrever no grupo', async () => {

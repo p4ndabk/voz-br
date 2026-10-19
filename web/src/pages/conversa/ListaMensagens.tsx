@@ -29,6 +29,18 @@ export function ListaMensagens({
     <ol aria-label={t.mensagens.lista} className="flex flex-col gap-3">
       {mensagens.map((m, i) => {
         const meu = m.autor === minhaPubkey
+        // RN-WEB-GRUPOS-012: aviso de quem entrou, no meio da conversa.
+        if (m.sistema === 'entrou' && nomeDe) {
+          return (
+            <li
+              key={m.id}
+              data-mensagem={m.id}
+              className="self-center rounded-cordel border-2 border-dashed border-borda px-3 py-1 text-center text-sm text-tinta-suave"
+            >
+              {t.grupos.entrou(nomeDe(m.texto))}
+            </li>
+          )
+        }
         const novoDia = i === 0 || chaveDoDia(mensagens[i - 1]!.criadoEm) !== chaveDoDia(m.criadoEm)
         return (
           <Fragment key={m.id}>

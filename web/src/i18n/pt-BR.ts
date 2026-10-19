@@ -423,6 +423,7 @@ export const t = {
       'Quando alguém aceitar o convite, vocês podem começar a conversar. Quem aceitar depois não vê o que foi dito antes.',
     semMensagens: 'Nenhuma mensagem ainda. Escreva a primeira.',
     voce: 'você',
+    entrou: (nome: string) => `${nome} entrou no grupo`,
     admin: 'admin',
     pendente: 'aguardando aceitar',
     // Convites

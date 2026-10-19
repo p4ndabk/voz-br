@@ -36,6 +36,14 @@ export async function receberDeGrupo(assinante: Assinante, rumor: Rumor): Promis
   if (!r.ok) return
 
   let grupo: Grupo = r.grupo
+  // RN-WEB-GRUPOS-012: quem acabou de entrar vira um aviso na conversa. Quem acabou de entrar nao ve avisos
+  // de quem ja estava (nao ve o passado).
+  const entraram =
+    acao.tipo === 'aceito'
+      ? [rumor.pubkey]
+      : acao.tipo === 'membros' && local?.estado === 'ativo'
+        ? r.grupo.membros.filter((pk) => !local.membros.includes(pk) && pk !== eu)
+        : []
   if (r.mensagem) grupo = await registrarMensagem(eu, grupo, rumor)
   else if (r.grupo !== local) {
     if (!local) {
@@ -45,12 +53,27 @@ export async function receberDeGrupo(assinante: Assinante, rumor: Rumor): Promis
     await useGrupos.getState().gravar(grupo)
   }
 
+  for (const pk of entraram) await avisarEntrada(grupo, pk, rumor.created_at)
   if (r.limparAte !== undefined) await limparGrupoLocal(grupo.id, r.limparAte)
   if (r.publicarMembros) {
     // Quem acabou de sair tambem recebe a lista nova, para saber que saiu em todos os aparelhos.
     const tambem = acao.tipo === 'sair' ? [rumor.pubkey] : []
     await publicarMembros(assinante, grupo, tambem).catch(() => {})
   }
+}
+
+// Id fixo por pessoa e versao da lista: o relay reentrega o mesmo evento e o aviso nao se repete.
+async function avisarEntrada(grupo: Grupo, pubkey: string, quando: number): Promise<void> {
+  if (grupo.apagadoAte !== undefined && quando <= grupo.apagadoAte) return
+  await useMensagens.getState().inserir({
+    id: `sistema:${grupo.id}:entrou:${pubkey}:${quando}`,
+    conversa: chaveDaConversa(grupo.id),
+    autor: '',
+    texto: pubkey,
+    criadoEm: quando,
+    estado: 'recebida',
+    sistema: 'entrou',
+  })
 }
 
 async function registrarMensagem(eu: string, grupo: Grupo, rumor: Rumor): Promise<Grupo> {

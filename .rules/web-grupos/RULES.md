@@ -93,3 +93,11 @@ entra não vê o passado" vêm disso, não de uma chave compartilhada.
 **Se violada:** um membro vê ações de admin, ou o admin sai sem passar o cargo.
 **Onde vive:** `web/src/pages/grupo/Grupo.tsx`, `web/src/pages/conversas/ListaConversas.tsx`
 **Teste:** `web/src/pages/grupo/grupos.test.tsx`
+
+### RN-WEB-GRUPOS-012 — Quando alguém aceita, o grupo mostra "fulano entrou no grupo"
+
+**Regra:** assim que a pessoa aceita (o admin a inclui e publica a lista), quem já está no grupo vê um aviso no meio da conversa com o nome dela. O aviso não é balão, não conta como não lida e não se repete quando o relay reentrega o evento. Quem acabou de entrar não vê avisos de quem já estava (não vê o passado), e o aviso some com "limpar histórico".
+**Quando:** ao receber o aceite (admin) ou a lista nova (demais membros).
+**Se violada:** ninguém sabe que alguém novo está lendo o grupo.
+**Onde vive:** `web/src/grupos/receber.ts` (`avisarEntrada`), `web/src/pages/conversa/ListaMensagens.tsx`
+**Teste:** `web/src/grupos/fluxo.test.ts::RN-WEB-GRUPOS-012`, `web/src/pages/grupo/grupos.test.tsx::RN-WEB-GRUPOS-012`

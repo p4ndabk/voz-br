@@ -15,6 +15,8 @@ export interface Mensagem {
   estado: EstadoMensagem
   // O amigo nao tem lista de relays de DM: enviamos pelas dicas e pelos relays padrao.
   semRelaysDm?: boolean
+  // Aviso do proprio Voz no meio da conversa (nao e balao de ninguem). `texto` guarda a pubkey de quem entrou.
+  sistema?: 'entrou'
 }
 
 // Embrulho que EU criei. Guarda a chave efemera (para o pedido de apagar da spec 0007) e o

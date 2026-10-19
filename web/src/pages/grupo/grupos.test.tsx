@@ -124,4 +124,20 @@ describe('grupos na tela', () => {
     abrir(`/conversas/grupo/${ID}`)
     expect(await screen.findByRole('textbox', { name: 'Escreva uma mensagem' })).toBeInTheDocument()
   })
+
+  it('RN-WEB-GRUPOS-012: o aviso de quem entrou aparece no meio da conversa', async () => {
+    await useGrupos.getState().gravar(grupo())
+    const { salvarMensagem } = await import('@/conversas/armazemMensagens')
+    await salvarMensagem({
+      id: 'sistema:1',
+      conversa: `grupo:${ID}`,
+      autor: '',
+      texto: terceiro.pubkey,
+      criadoEm: 2000,
+      estado: 'recebida',
+      sistema: 'entrou',
+    })
+    abrir(`/conversas/grupo/${ID}`)
+    expect(await screen.findByText(/entrou no grupo/)).toBeInTheDocument()
+  })
 })
