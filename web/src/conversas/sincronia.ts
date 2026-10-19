@@ -15,6 +15,7 @@ export function paraPortatil(c: Conversa): ConversaPortatil {
     apagadoPor: c.apagadoPor,
     removidaEm: c.removidaEm,
     reabertaEm: c.reabertaEm,
+    conheco: c.conheco,
   }
 }
 
@@ -35,6 +36,7 @@ export function resumoDaLista(lista: ConversaPortatil[]): string {
       c.apagadoPor ?? null,
       c.removidaEm ?? null,
       c.reabertaEm ?? null,
+      c.conheco ?? null,
     ]),
   )
 }
@@ -72,6 +74,7 @@ export function mesclar(locais: Conversa[], remotas: ConversaPortatil[]): Result
         apagadoPor: remota.apagadoPor,
         removidaEm: remota.removidaEm,
         reabertaEm: remota.reabertaEm,
+        conheco: remota.conheco,
       }
       alteradas.push(nova)
       resultado.push(nova)
@@ -88,6 +91,7 @@ export function mesclar(locais: Conversa[], remotas: ConversaPortatil[]): Result
       apagadoPor: apagadoPeloRemoto ? remota.apagadoPor : local.apagadoPor,
       removidaEm: maior(local.removidaEm, remota.removidaEm),
       reabertaEm: maior(local.reabertaEm, remota.reabertaEm),
+      conheco: local.conheco || remota.conheco ? true : (local.conheco ?? remota.conheco),
     }
     // O trecho de uma conversa com historico apagado pelo outro aparelho nao deve continuar na lista.
     if (apagadoPeloRemoto) unida.trecho = undefined

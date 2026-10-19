@@ -12,7 +12,7 @@ import { dataDe } from '@/conversas/dias'
 import { enviarMensagem, reenviarMensagem } from '@/conversas/mensageria'
 import { registrarQueima } from '@/conversas/queima'
 import { tocarFogo } from '@/conversas/som'
-import { useConversas } from '@/conversas/useConversas'
+import { useConversas, useFotoLiberada } from '@/conversas/useConversas'
 import { useMensagens } from '@/conversas/useMensagens'
 import { t } from '@/i18n/pt-BR'
 import { enderecoLightningValido, nomeExibido } from '@/nostr/perfis'
@@ -35,6 +35,8 @@ export function Conversa() {
   const navigate = useNavigate()
   const assinante = useSessao((s) => s.assinante)
   const conversa = useConversas((s) => s.conversas.find((c) => c.pubkey === pubkey))
+  const fotoLiberada = useFotoLiberada(pubkey)
+  const liberarFoto = useConversas((s) => s.liberarFoto)
   const carregada = useConversas((s) => s.carregada)
   const carregar = useConversas((s) => s.carregar)
   const marcarVista = useConversas((s) => s.marcarVista)
@@ -190,7 +192,12 @@ export function Conversa() {
           ←
         </Link>
         <div className="min-w-[12rem] flex-1">
-          <Identidade pubkey={conversa.pubkey} tamanho={44} />
+          <Identidade
+            pubkey={conversa.pubkey}
+            tamanho={44}
+            mostrarFoto={fotoLiberada}
+            aoLiberarFoto={() => void liberarFoto(conversa.pubkey)}
+          />
         </div>
         {/* RN-WEB-CONVERSAS-007 e RN-WEB-MENSAGENS-008: o selo Privado esta sempre a vista. */}
         <Selo tipo="privado" />

@@ -7,6 +7,10 @@ export const t = {
   descricao:
     'Um espaço aberto para filosofar e falar de cultura, em português, sem depender de uma plataforma central.',
   entrar: 'Entrar',
+  moldura: {
+    texto: 'Por segurança, o Voz não abre dentro de outro site. Abra direto na sua própria aba.',
+    abrir: 'Abrir o Voz',
+  },
   relays: {
     rotulo: 'Rede Nostr',
     resumo: (conectados: number, total: number) =>
@@ -114,7 +118,7 @@ export const t = {
       continuarSem: 'Continuar sem senha',
       semSenhaTitulo: 'Continuar sem senha?',
       semSenhaAviso:
-        'Sem senha, a sua chave secreta fica guardada em claro neste navegador: quem usar este aparelho ou qualquer página do mesmo endereço consegue abrir a sua conta. Você pode proteger com senha depois, em Conta.',
+        'Sem senha, a sua chave secreta e as suas mensagens ficam guardadas em claro neste navegador: quem usar este aparelho consegue abrir a sua conta e ler tudo. Você pode proteger com senha depois, em Configurações.',
       semSenhaConfirmar: 'Continuar sem senha',
     },
   },
@@ -244,9 +248,10 @@ export const t = {
     sair: 'Sair',
     senha: {
       secao: 'Senha da chave',
-      protegida: 'A sua chave secreta está protegida com senha neste navegador.',
+      protegida:
+        'A sua chave secreta e as suas mensagens guardadas neste navegador estão protegidas com senha.',
       desprotegida:
-        'A sua chave secreta está guardada em claro neste navegador. Proteja com senha para que ninguém que use este aparelho abra a sua conta.',
+        'A sua chave secreta e as suas mensagens estão guardadas em claro neste navegador. Proteja com senha para que ninguém que use este aparelho abra a sua conta nem leia as conversas.',
       extensao:
         'A sua chave secreta não fica no Voz: ela continua na extensão ou no app assinante.',
       proteger: 'Proteger com senha',
@@ -286,6 +291,9 @@ export const t = {
     semNome: 'sem nome',
     verChave: (nome: string) => `Ver a chave de ${nome}`,
     cartaoTitulo: 'Quem é',
+    mostrarFoto: 'Mostrar foto',
+    mostrarFotoAviso:
+      'A foto fica num endereço escolhido por essa pessoa. Ao mostrar, o servidor dela fica sabendo o seu IP.',
     chavePublica: 'Chave pública (npub)',
     lightning: 'Endereço Lightning',
     alerta: 'Nomes não são únicos: confira a chave antes de confiar.',

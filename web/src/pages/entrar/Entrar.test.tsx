@@ -192,7 +192,7 @@ describe('criar identidade', () => {
     await userEvent.click(screen.getByLabelText('Guardei minha chave'))
     await userEvent.click(screen.getByRole('button', { name: 'Continuar sem senha' }))
     const aviso = await screen.findByRole('dialog')
-    expect(within(aviso).getByText(/guardada em claro/)).toBeInTheDocument()
+    expect(within(aviso).getByText(/guardadas em claro/)).toBeInTheDocument()
     await userEvent.click(within(aviso).getByRole('button', { name: 'Fechar' }))
     expect(await lerSessaoSalva()).toBeUndefined()
   })

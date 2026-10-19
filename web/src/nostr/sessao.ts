@@ -1,5 +1,6 @@
 import { clear, get, set } from 'idb-keyval'
 import { decrypt, encrypt } from 'nostr-tools/nip49'
+import { abrirCofre, cifrarTudoQueFaltar, fecharCofre } from './cofre'
 import { lerNsec, nsecDe } from './signer/chaves'
 import { criarAssinanteLocal } from './signer/local'
 import { reconectarExtensao } from './signer/nip07'
@@ -28,6 +29,7 @@ export async function salvarSessao(sessao: SessaoSalva): Promise<void> {
 
 // RN-WEB-AUTH-008: sair apaga tudo que o Voz guardou neste navegador.
 export async function apagarTudoDoVoz(): Promise<void> {
+  fecharCofre()
   await clear()
 }
 
@@ -51,6 +53,7 @@ export async function abrirSessaoComChave(
 ): Promise<Assinante> {
   const assinante = criarAssinanteLocal(chave)
   const protegida = Boolean(senha)
+  if (protegida) await abrirCofre(chave)
   await salvarSessao({
     metodo: 'nsec',
     pubkey: assinante.pubkey,
@@ -85,7 +88,10 @@ export async function restaurarSessao(): Promise<Restauracao> {
 export async function destravarSessao(senha: string): Promise<Assinante> {
   const sessao = await lerSessaoSalva()
   if (sessao?.metodo !== 'nsec' || !sessao.protegida) throw new ErroLogin('falhou')
-  return criarAssinanteLocal(abrirNsecProtegida(sessao.segredo, senha))
+  const chave = abrirNsecProtegida(sessao.segredo, senha)
+  await abrirCofre(chave)
+  await cifrarTudoQueFaltar()
+  return criarAssinanteLocal(chave)
 }
 
 // RN-WEB-AUTH-011: a sessao por nsec guardada neste navegador (undefined para extensao, app assinante
@@ -104,6 +110,9 @@ export async function protegerSessaoComSenha(senha: string, logn = LOGN_PADRAO):
   const lida = lerNsec(sessao.segredo)
   if (!lida.ok) throw new ErroLogin('chave-invalida')
   await salvarSessao({ ...sessao, segredo: protegerNsec(lida.chave, senha, logn), protegida: true })
+  // RN-WEB-PRIVACIDADE-007: dali em diante o historico guardado tambem fica cifrado.
+  await abrirCofre(lida.chave)
+  await cifrarTudoQueFaltar()
 }
 
 // Confere a senha atual sem mudar nada (usado antes de mostrar a chave secreta).

@@ -1,4 +1,5 @@
-import { del, entries, get, set } from 'idb-keyval'
+import { del, get, set } from 'idb-keyval'
+import { gravarCofre, lerCofre, listarCofre } from '@/nostr/cofre'
 
 // RN-WEB-CONVERSAS-006: a lista de conversas vive so no IndexedDB deste navegador.
 // Uma sala = eu + uma pubkey (RN-WEB-CONVERSAS-001); a chave do registro e a pubkey do amigo.
@@ -9,6 +10,9 @@ export interface Conversa {
   ultimaMensagemEm?: number
   trecho?: string
   novaPessoa: boolean
+  // RN-WEB-PRIVACIDADE-005: a foto do perfil so e baixada de quem eu conheco (escrevi, abri por chave ou
+  // liberei a foto). Ausente em conversas antigas: vale `!novaPessoa`.
+  conheco?: boolean
   // Historico apagado: mensagens com created_at ate este instante (em segundos) nao voltam, mesmo
   // que um relay as entregue de novo (RN-WEB-APAGAR-009). `apagadoPor` diz quem pediu.
   apagadoAte?: number
@@ -23,6 +27,12 @@ export interface Conversa {
   reabertaEm?: number
 }
 
+// A foto de perfil dessa pessoa pode ser baixada? Foto e um endereco escolhido por ela: baixar de
+// desconhecido entrega o meu IP.
+export function fotoLiberada(c: Conversa | undefined): boolean {
+  return c ? (c.conheco ?? !c.novaPessoa) : false
+}
+
 // A conversa aparece na lista se nunca foi removida ou se houve mensagem ou reabertura depois da remocao.
 export function estaVisivel(c: Conversa): boolean {
   if (c.removidaEm === undefined) return true
@@ -34,10 +44,7 @@ const PREFIXO = 'voz:conversa:'
 
 // Todas, inclusive as removidas (a sincronia precisa dos marcadores).
 export async function listarTodasConversas(): Promise<Conversa[]> {
-  const todas = await entries()
-  return todas
-    .filter(([chave]) => typeof chave === 'string' && chave.startsWith(PREFIXO))
-    .map(([, valor]) => valor as Conversa)
+  return listarCofre<Conversa>(PREFIXO)
 }
 
 export async function listarConversas(): Promise<Conversa[]> {
@@ -45,11 +52,11 @@ export async function listarConversas(): Promise<Conversa[]> {
 }
 
 export function obterConversa(pubkey: string): Promise<Conversa | undefined> {
-  return get<Conversa>(PREFIXO + pubkey)
+  return lerCofre<Conversa>(PREFIXO + pubkey)
 }
 
 export function salvarConversa(conversa: Conversa): Promise<void> {
-  return set(PREFIXO + conversa.pubkey, conversa)
+  return gravarCofre(PREFIXO + conversa.pubkey, conversa)
 }
 
 export function removerConversaSalva(pubkey: string): Promise<void> {

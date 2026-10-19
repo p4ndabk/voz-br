@@ -24,6 +24,7 @@ export interface ConversaPortatil {
   apagadoPor?: 'eu' | 'outro'
   removidaEm?: number
   reabertaEm?: number
+  conheco?: boolean
 }
 
 const HEX_64 = /^[0-9a-f]{64}$/
@@ -49,6 +50,7 @@ function lerItem(bruto: unknown): ConversaPortatil | null {
     apagadoPor: c.apagadoPor === 'eu' || c.apagadoPor === 'outro' ? c.apagadoPor : undefined,
     removidaEm: c.removidaEm as number | undefined,
     reabertaEm: c.reabertaEm as number | undefined,
+    conheco: typeof c.conheco === 'boolean' ? c.conheco : undefined,
   }
 }
 

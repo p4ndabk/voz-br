@@ -1,6 +1,6 @@
 import { Link, useMatch, useNavigate } from 'react-router-dom'
 import { Avatar } from '@/components/ui/Avatar'
-import type { Conversa } from '@/conversas/armazem'
+import { fotoLiberada, type Conversa } from '@/conversas/armazem'
 import { filtrarConversas } from '@/conversas/buscar'
 import { horarioNaLista } from '@/conversas/dias'
 import { useConversas } from '@/conversas/useConversas'
@@ -26,7 +26,11 @@ function Item({ conversa, ativa }: { conversa: Conversa; ativa: boolean }) {
           ativa ? 'border-l-8 border-l-vermelho bg-fundo pl-2' : ''
         }`}
       >
-        <Avatar semente={conversa.pubkey} foto={perfil?.foto} tamanho={48} />
+        <Avatar
+          semente={conversa.pubkey}
+          foto={fotoLiberada(conversa) ? perfil?.foto : undefined}
+          tamanho={48}
+        />
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="flex items-baseline justify-between gap-2">
             <span className="truncate font-bold">{nome}</span>

@@ -37,3 +37,24 @@ o Voz entrega; o que é do protocolo (a tag `p` do embrulho, o IP) fica dito com
 **Se violada:** o horário da lista denuncia o horário em que uma conversa começou.
 **Onde vive:** `web/src/conversas/useSincronia.ts`
 **Teste:** `web/src/conversas/useSincronia.test.ts::RN-WEB-SYNC-005`
+
+### RN-WEB-PRIVACIDADE-005 — Foto de perfil só de quem eu conheço
+**Regra:** a foto de uma pessoa só é baixada se eu abri a conversa por chave, já escrevi para ela ou pedi "Mostrar foto" no cartão dela. De quem me escreveu primeiro aparece só o desenho gerado. Conversas antigas, sem o marcador, valem por "não é nova pessoa". O marcador `conheco` viaja na lista portátil.
+**Quando:** ao desenhar o avatar na lista, no cabeçalho da conversa e no cartão.
+**Se violada:** qualquer pessoa que me escreva escolhe um endereço de foto e descobre o meu IP assim que a mensagem chega.
+**Onde vive:** `web/src/conversas/armazem.ts` (`fotoLiberada`), `web/src/conversas/useConversas.ts`, `web/src/components/ui/Identidade.tsx`
+**Teste:** `web/src/conversas/useConversas.test.ts::RN-WEB-PRIVACIDADE-005`
+
+### RN-WEB-PRIVACIDADE-006 — O Voz não abre dentro de outro site
+**Regra:** se a página roda dentro de uma moldura (iframe), o app não é iniciado e a tela só oferece abrir o Voz na própria aba.
+**Quando:** ao carregar a página.
+**Se violada:** outro site pode cobrir o Voz com elementos invisíveis (clickjacking) para fazer a pessoa tocar em "Apagar" ou "Enviar".
+**Onde vive:** `web/src/emMoldura.ts`, `web/src/main.tsx`
+**Teste:** `web/src/emMoldura.test.ts`
+
+### RN-WEB-PRIVACIDADE-007 — Com senha, o histórico guardado no navegador fica cifrado
+**Regra:** em conta protegida por senha, mensagens, lista de conversas, embrulhos e fila de pedidos são guardados cifrados (AES-GCM, chave derivada por HKDF da chave secreta, que só existe depois da senha). Ao proteger com senha uma conta que estava sem, o que já existia é cifrado. Sem senha, ou com extensão/app assinante, nada muda e o aviso diz que está em claro.
+**Quando:** ao gravar e ler esses dados; ao criar, destravar ou proteger com senha.
+**Se violada:** quem pega o aparelho, um backup ou uma extensão lê todas as conversas mesmo com a chave protegida.
+**Onde vive:** `web/src/nostr/cofre.ts`, `web/src/nostr/sessao.ts`, `web/src/conversas/armazem.ts`, `web/src/conversas/armazemMensagens.ts`
+**Teste:** `web/src/nostr/cofre.test.ts`

@@ -1,5 +1,6 @@
 import { clear } from 'idb-keyval'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { fotoLiberada, obterConversa } from './armazem'
 import { useConversas } from './useConversas'
 
 // RN-WEB-CONVERSAS-006: nada aqui fala com relay. Se falasse, estes mocks pegariam.
@@ -91,5 +92,32 @@ describe('useConversas', () => {
     await useConversas.getState().remover(maria)
     expect(publicar).not.toHaveBeenCalled()
     expect(consultar).not.toHaveBeenCalled()
+  })
+
+  it('RN-WEB-PRIVACIDADE-005: foto so de quem eu conheco; desconhecido precisa ser liberado', async () => {
+    // conversa que eu abri: conhecida
+    await useConversas.getState().abrirOuCriar(maria)
+    expect(fotoLiberada(await obterConversa(maria))).toBe(true)
+    // desconhecido me escreveu: sem foto, mesmo depois de eu abrir a conversa
+    await useConversas.getState().registrarRecebida(joao, 1000, 'oi')
+    expect(fotoLiberada(await obterConversa(joao))).toBe(false)
+    await useConversas.getState().marcarVista(joao)
+    expect(fotoLiberada(await obterConversa(joao))).toBe(false)
+    // liberar a pedido
+    await useConversas.getState().liberarFoto(joao)
+    expect(fotoLiberada(await obterConversa(joao))).toBe(true)
+  })
+
+  it('RN-WEB-PRIVACIDADE-005: responder a um desconhecido libera a foto dele', async () => {
+    await useConversas.getState().registrarRecebida(joao, 1000, 'oi')
+    await useConversas.getState().registrarRecebida(joao, 2000, 'e ai', [], true)
+    expect(fotoLiberada(await obterConversa(joao))).toBe(true)
+  })
+
+  it('RN-WEB-PRIVACIDADE-005: conversa antiga (sem o campo) vale pelo "nova pessoa"', () => {
+    const base = { pubkey: maria, relaysDica: [], criadaEm: 1 }
+    expect(fotoLiberada({ ...base, novaPessoa: false })).toBe(true)
+    expect(fotoLiberada({ ...base, novaPessoa: true })).toBe(false)
+    expect(fotoLiberada(undefined)).toBe(false)
   })
 })

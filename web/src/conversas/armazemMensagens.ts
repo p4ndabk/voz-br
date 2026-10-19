@@ -1,4 +1,5 @@
-import { del, entries, get, set } from 'idb-keyval'
+import { del } from 'idb-keyval'
+import { gravarCofre, lerCofre, listarCofre } from '@/nostr/cofre'
 import type { EventoNostr } from '@/nostr/dm'
 
 export type EstadoMensagem = 'enviando' | 'enviada' | 'falhou' | 'recebida'
@@ -32,19 +33,14 @@ const PREFIXO_MENSAGEM = 'voz:msg:'
 const PREFIXO_EMBRULHO = 'voz:embrulho:'
 
 export function obterMensagem(id: string): Promise<Mensagem | undefined> {
-  return get<Mensagem>(PREFIXO_MENSAGEM + id)
+  return lerCofre<Mensagem>(PREFIXO_MENSAGEM + id)
 }
 
 export function salvarMensagem(mensagem: Mensagem): Promise<void> {
-  return set(PREFIXO_MENSAGEM + mensagem.id, mensagem)
+  return gravarCofre(PREFIXO_MENSAGEM + mensagem.id, mensagem)
 }
 
-async function todos<T>(prefixo: string): Promise<T[]> {
-  const itens = await entries()
-  return itens
-    .filter(([chave]) => typeof chave === 'string' && chave.startsWith(prefixo))
-    .map(([, valor]) => valor as T)
-}
+const todos = <T>(prefixo: string) => listarCofre<T>(prefixo)
 
 export const listarMensagens = (conversa: string) =>
   todos<Mensagem>(PREFIXO_MENSAGEM).then((lista) => lista.filter((m) => m.conversa === conversa))
@@ -52,7 +48,7 @@ export const listarMensagens = (conversa: string) =>
 export const listarTodasMensagens = () => todos<Mensagem>(PREFIXO_MENSAGEM)
 
 export function salvarEmbrulho(embrulho: EmbrulhoSalvo): Promise<void> {
-  return set(PREFIXO_EMBRULHO + embrulho.id, embrulho)
+  return gravarCofre(PREFIXO_EMBRULHO + embrulho.id, embrulho)
 }
 
 export const embrulhosDaMensagem = (rumorId: string) =>
@@ -72,8 +68,8 @@ export const embrulhosDaConversa = (conversa: string) =>
   )
 
 export async function registrarRelaysDoEmbrulho(id: string, relays: string[]): Promise<void> {
-  const atual = await get<EmbrulhoSalvo>(PREFIXO_EMBRULHO + id)
-  if (atual) await set(PREFIXO_EMBRULHO + id, { ...atual, relays })
+  const atual = await lerCofre<EmbrulhoSalvo>(PREFIXO_EMBRULHO + id)
+  if (atual) await gravarCofre(PREFIXO_EMBRULHO + id, { ...atual, relays })
 }
 
 // Fila de eventos que ainda precisam sair (pedidos de apagar e aviso ao amigo). Sobrevive a
@@ -89,7 +85,7 @@ export interface ItemDaFila {
 const PREFIXO_FILA = 'voz:fila:'
 
 export function salvarNaFila(item: ItemDaFila): Promise<void> {
-  return set(PREFIXO_FILA + item.id, item)
+  return gravarCofre(PREFIXO_FILA + item.id, item)
 }
 
 export const listarFila = () => todos<ItemDaFila>(PREFIXO_FILA)

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import {
   desdeNesteNavegador,
+  fotoLiberada,
   estaVisivel,
   listarConversas,
   obterConversa,
@@ -35,7 +36,13 @@ interface EstadoConversas {
   registrarApagamento(pubkey: string, limite: number, por: 'eu' | 'outro'): Promise<void>
   // RN-WEB-CONVERSAS-008: tira da lista; nao apaga mensagens nem avisa o amigo.
   remover(pubkey: string): Promise<void>
+  // RN-WEB-PRIVACIDADE-005: a pessoa pede para ver a foto de alguem desconhecido.
+  liberarFoto(pubkey: string): Promise<void>
 }
+
+// Hook: a foto desta pessoa pode ser baixada?
+export const useFotoLiberada = (pubkey: string) =>
+  useConversas((estado) => fotoLiberada(estado.conversas.find((c) => c.pubkey === pubkey)))
 
 export const useConversas = create<EstadoConversas>((definir, obter) => {
   const gravar = async (conversa: Conversa) => {
@@ -77,6 +84,7 @@ export const useConversas = create<EstadoConversas>((definir, obter) => {
         relaysDica,
         criadaEm: Math.floor(Date.now() / 1000),
         novaPessoa: false,
+        conheco: true,
       }
       await gravar(conversa)
       return { conversa, criada: true }
@@ -89,6 +97,7 @@ export const useConversas = create<EstadoConversas>((definir, obter) => {
         relaysDica,
         criadaEm: quando,
         novaPessoa: !propria,
+        conheco: propria,
         lidaAte: await desdeNesteNavegador(Math.floor(Date.now() / 1000)),
       }
       // RN-WEB-CONVERSAS-010 e 011: so conta o que e do outro e mais novo que o ja visto.
@@ -96,6 +105,7 @@ export const useConversas = create<EstadoConversas>((definir, obter) => {
       const naoLida = !propria && quando > vistoAte
       const atualizada: Conversa = {
         ...base,
+        conheco: base.conheco || propria ? true : base.conheco,
         naoLidas: (base.naoLidas ?? 0) + (naoLida ? 1 : 0),
         ultimaMensagemEm: Math.max(base.ultimaMensagemEm ?? 0, quando),
         trecho: quando >= (base.ultimaMensagemEm ?? 0) ? trecho : base.trecho,
@@ -124,6 +134,7 @@ export const useConversas = create<EstadoConversas>((definir, obter) => {
         relaysDica: [],
         criadaEm: limite,
         novaPessoa: por === 'outro',
+        conheco: por === 'eu',
       }
       await gravar({
         ...base,
@@ -132,6 +143,11 @@ export const useConversas = create<EstadoConversas>((definir, obter) => {
         ultimaMensagemEm: limite,
         trecho: undefined,
       })
+    },
+
+    async liberarFoto(pubkey) {
+      const existente = await obterConversa(pubkey)
+      if (existente && !fotoLiberada(existente)) await gravar({ ...existente, conheco: true })
     },
 
     async remover(pubkey) {
