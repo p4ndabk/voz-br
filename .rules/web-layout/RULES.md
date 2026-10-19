@@ -48,7 +48,7 @@ Formato definido em [../README.md](../README.md). "Se violada" descreve o efeito
 
 ### RN-WEB-LAYOUT-006 — Busca filtra sem sair da lista
 
-**Regra:** o campo de busca acima da lista filtra as conversas por nome, trecho da última mensagem e `npub` (sem diferenciar acento nem caixa); o botão **+** fixo no canto da lista leva a *Nova conversa*.
+**Regra:** o campo de busca acima da lista filtra as conversas por nome, trecho da última mensagem e `npub` (sem diferenciar acento nem caixa); o botão **+ Nova conversa** no alto da lista leva à tela de nova conversa.
 **Quando:** lista de conversas aberta.
 **Se violada:** achar uma conversa antiga exige rolar a lista toda.
 **Onde vive:** `web/src/conversas/buscar.ts`, `web/src/pages/conversas/{LayoutConversas,ListaConversas}.tsx`

@@ -6,6 +6,9 @@ import { t } from '@/i18n/pt-BR'
 import { ListaConversas } from './ListaConversas'
 import { MenuConta } from './MenuConta'
 
+const botao =
+  'inline-flex items-center rounded-cordel border-2 border-borda px-3 py-1.5 text-sm font-bold shadow-carimbo-pequeno active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
+
 // Duas colunas como no WhatsApp Web: lista na lateral, conversa no meio.
 // RN-WEB-LAYOUT-001: em tela larga as duas aparecem juntas; em tela estreita, uma por vez
 // (a lista em /conversas, o conteudo em /conversas/...).
@@ -33,7 +36,7 @@ export function LayoutConversas() {
       <aside
         aria-label={t.conversas.titulo}
         data-testid="coluna-lista"
-        className={`${naLista ? 'flex' : 'hidden'} relative w-full min-w-0 flex-col border-borda bg-superficie md:flex md:w-96 md:shrink-0 md:border-r-2`}
+        className={`${naLista ? 'flex' : 'hidden'} w-full min-w-0 flex-col border-borda bg-superficie md:flex md:w-96 md:shrink-0 md:border-r-2`}
       >
         <header className="flex flex-col gap-3 border-b-2 border-borda p-4">
           <div className="flex items-center justify-between gap-3">
@@ -42,6 +45,14 @@ export function LayoutConversas() {
             </Link>
             <h1 className="font-display text-2xl">{t.conversas.titulo}</h1>
           </div>
+          <nav className="flex flex-wrap gap-2">
+            <Link to="/conversas/nova" className={`${botao} bg-vermelho text-sobre-vermelho`}>
+              <span aria-hidden="true" className="mr-1.5 text-lg leading-none">
+                +
+              </span>
+              {t.conversas.nova}
+            </Link>
+          </nav>
           <input
             type="search"
             aria-label={t.conversas.buscar}
@@ -56,15 +67,6 @@ export function LayoutConversas() {
         <div className="flex-1 overflow-y-auto">
           <ListaConversas busca={busca} aoAbrir={() => setBusca('')} />
         </div>
-        {/* Botao + fixo no canto da lista: ao alcance do polegar no celular. */}
-        <Link
-          to="/conversas/nova"
-          aria-label={t.conversas.nova}
-          title={t.conversas.nova}
-          className="absolute bottom-24 right-4 flex h-14 w-14 items-center justify-center rounded-full border-2 border-borda bg-vermelho text-3xl font-bold leading-none text-sobre-vermelho shadow-carimbo active:translate-x-[2px] active:translate-y-[2px] active:shadow-none"
-        >
-          <span aria-hidden="true">+</span>
-        </Link>
         <MenuConta />
       </aside>
 
