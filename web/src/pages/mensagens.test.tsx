@@ -74,6 +74,19 @@ beforeEach(async () => {
 })
 
 describe('mensagens na tela', () => {
+  it('RN-WEB-MENSAGENS-012: clicar fora da grade fecha o seletor de emojis; clicar dentro nao', async () => {
+    const u = userEvent.setup()
+    await abrir([])
+    await u.click(screen.getByRole('button', { name: 'Emojis' }))
+    await u.click(screen.getByRole('button', { name: 'Inserir 👍' }))
+    expect(screen.getByRole('group', { name: 'Emojis' })).toBeInTheDocument() // continua aberta
+    await u.click(campo())
+    expect(screen.queryByRole('group', { name: 'Emojis' })).not.toBeInTheDocument()
+    await u.click(screen.getByRole('button', { name: 'Emojis' }))
+    await u.keyboard('{Escape}')
+    expect(screen.queryByRole('group', { name: 'Emojis' })).not.toBeInTheDocument()
+  })
+
   it('RN-WEB-MENSAGENS-012: emoji entra no cursor e vai junto com o texto', async () => {
     const u = userEvent.setup()
     await abrir([])

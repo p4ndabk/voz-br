@@ -22,6 +22,8 @@ interface Props {
 export function CampoMensagem({ aoEnviar }: Props) {
   const [texto, setTexto] = useState('')
   const [emojisAbertos, setEmojisAbertos] = useState(false)
+  const grade = useRef<HTMLDivElement>(null)
+  const botaoEmoji = useRef<HTMLButtonElement>(null)
   const area = useRef<HTMLTextAreaElement>(null)
   const validacao = validarTexto(texto)
 
@@ -73,6 +75,25 @@ export function CampoMensagem({ aoEnviar }: Props) {
   }
 
   useEffect(ajustarAltura, [])
+
+  // RN-WEB-MENSAGENS-012: clicar fora da grade (ou apertar Esc) fecha o seletor de emojis.
+  useEffect(() => {
+    if (!emojisAbertos) return
+    const fora = (e: globalThis.PointerEvent) => {
+      const alvo = e.target as Node
+      if (grade.current?.contains(alvo) || botaoEmoji.current?.contains(alvo)) return
+      setEmojisAbertos(false)
+    }
+    const tecla = (e: globalThis.KeyboardEvent) => {
+      if (e.key === 'Escape') setEmojisAbertos(false)
+    }
+    document.addEventListener('pointerdown', fora)
+    document.addEventListener('keydown', tecla)
+    return () => {
+      document.removeEventListener('pointerdown', fora)
+      document.removeEventListener('keydown', tecla)
+    }
+  }, [emojisAbertos])
 
   const enviar = () => {
     if (validacao !== 'ok') return
@@ -131,6 +152,7 @@ export function CampoMensagem({ aoEnviar }: Props) {
       </div>
       {emojisAbertos && (
         <div
+          ref={grade}
           role="group"
           aria-label={t.mensagens.emojis}
           className="absolute bottom-full left-0 z-10 mb-2 grid grid-cols-8 gap-0.5 rounded-cordel border-2 border-borda bg-superficie p-1.5 shadow-carimbo-pequeno"
@@ -150,6 +172,7 @@ export function CampoMensagem({ aoEnviar }: Props) {
       )}
       <div className="flex items-end gap-2">
         <button
+          ref={botaoEmoji}
           type="button"
           aria-label={t.mensagens.emojis}
           aria-expanded={emojisAbertos}
