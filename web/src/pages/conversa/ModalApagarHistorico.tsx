@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { Aviso } from '@/components/ui/Aviso'
 import { Botao } from '@/components/ui/Botao'
-import { Campo } from '@/components/ui/Campo'
 import { Modal } from '@/components/ui/Modal'
 import type { ResultadoApagar } from '@/conversas/apagar'
 import { t } from '@/i18n/pt-BR'
@@ -10,16 +9,17 @@ interface Props {
   nome: string
   aoFechar: () => void
   aoApagar: () => Promise<ResultadoApagar>
+  // Enquanto o fogo queima as mensagens o aviso sai da frente e volta com o resultado.
+  oculto?: boolean
 }
 
-type Passo = 'aviso' | 'confirmar' | 'apagando' | 'resultado'
+type Passo = 'aviso' | 'apagando' | 'resultado'
 
-// RN-WEB-APAGAR-001: duas etapas (ler o que vai acontecer, depois digitar APAGAR).
-// RN-WEB-APAGAR-004: antes de confirmar, diz o que e certo e o que e so um pedido.
+// RN-WEB-APAGAR-001: o aviso e uma etapa so; clicar em "Apagar" ja apaga (e queima).
+// RN-WEB-APAGAR-004: antes de apagar, diz o que e certo e o que e so um pedido.
 // Montado so enquanto aberto: cada abertura recomeca do primeiro passo.
-export function ModalApagarHistorico({ nome, aoFechar, aoApagar }: Props) {
+export function ModalApagarHistorico({ nome, aoFechar, aoApagar, oculto = false }: Props) {
   const [passo, setPasso] = useState<Passo>('aviso')
-  const [texto, setTexto] = useState('')
   const [resultado, setResultado] = useState<ResultadoApagar>()
   const [falhou, setFalhou] = useState(false)
 
@@ -33,32 +33,11 @@ export function ModalApagarHistorico({ nome, aoFechar, aoApagar }: Props) {
     setPasso('resultado')
   }
 
-  const acoes =
-    passo === 'aviso' ? (
-      <Botao onClick={() => setPasso('confirmar')}>{t.apagar.continuar}</Botao>
-    ) : passo === 'confirmar' ? (
-      <Botao onClick={apagar} disabled={texto !== t.apagar.palavra}>
-        {t.apagar.apagarTudo}
-      </Botao>
-    ) : null
+  const acoes = passo === 'aviso' ? <Botao onClick={apagar}>{t.apagar.apagarTudo}</Botao> : null
 
   return (
-    <Modal aberto titulo={t.apagar.titulo} aoFechar={aoFechar} acoes={acoes}>
+    <Modal aberto={!oculto} titulo={t.apagar.titulo} aoFechar={aoFechar} acoes={acoes}>
       {passo === 'aviso' && <p>{t.apagar.aviso(nome)}</p>}
-
-      {passo === 'confirmar' && (
-        <div className="flex flex-col gap-3">
-          <p>{t.apagar.aviso(nome)}</p>
-          <Campo
-            rotulo={t.apagar.campo}
-            ajuda={t.apagar.instrucao}
-            autoComplete="off"
-            autoFocus
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-          />
-        </div>
-      )}
 
       {passo === 'apagando' && <p role="status">{t.apagar.apagando}</p>}
 

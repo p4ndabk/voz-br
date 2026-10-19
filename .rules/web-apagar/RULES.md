@@ -6,10 +6,10 @@ existe é o pedido (NIP-09), e estas regras existem para o Voz nunca prometer ma
 
 ---
 
-### RN-WEB-APAGAR-001 — Apagar exige duas etapas de confirmação
-**Regra:** o botão "Apagar histórico" abre um aviso; só depois de "Continuar" e de digitar exatamente `APAGAR` (maiúsculas) o botão "Apagar tudo" é habilitado. Cancelar em qualquer etapa não apaga nem publica nada.
+### RN-WEB-APAGAR-001 — Apagar tem um aviso e um clique
+**Regra:** "Apagar histórico" abre um aviso que diz o que é certo e o que é só um pedido (RN-WEB-APAGAR-004); o botão **Apagar** dentro dele apaga e dispara o fogo, sem campo de confirmação. Fechar o aviso não apaga nem publica nada. (Decisão do David em 2026-10-19: antes eram duas etapas, com `APAGAR` digitado.)
 **Quando:** ao apagar.
-**Se violada:** a conversa seria apagada por um toque acidental.
+**Se violada:** o aviso apagaria só de abrir, ou fechar não cancelaria.
 **Onde vive:** `web/src/pages/conversa/ModalApagarHistorico.tsx`
 **Teste:** `web/src/pages/apagar.test.tsx::RN-WEB-APAGAR-001`
 

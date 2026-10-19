@@ -13,6 +13,7 @@ import {
   salvarNaFila,
   type ItemDaFila,
 } from './armazemMensagens'
+import { queimar } from './queima'
 import { meusRelaysDm, relaysDoAmigo } from './relaysDm'
 import { useConversas } from './useConversas'
 import { useMensagens } from './useMensagens'
@@ -118,8 +119,10 @@ async function apagarLocal(
   await Promise.all(fila.map(salvarNaFila))
   await removerEmbrulhos(alvo.map((e) => e.id))
   await removerMensagens([...idsAteLimite])
-  useMensagens.getState().removerAte(parceiro, limite)
   await useConversas.getState().registrarApagamento(parceiro, limite, por)
+  // RN-WEB-APAGAR-010: o que importa ja foi gravado; o fogo so segura as mensagens na tela por um instante.
+  await queimar(parceiro, limite)
+  useMensagens.getState().removerAte(parceiro, limite)
   return { apagadas: ateLimite.length, semChave, fila }
 }
 

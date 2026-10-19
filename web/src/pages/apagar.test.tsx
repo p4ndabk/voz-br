@@ -86,55 +86,27 @@ describe('apagar historico (interface)', () => {
     expect(apagarHistorico).not.toHaveBeenCalled()
   })
 
-  it('RN-WEB-APAGAR-001: so apaga depois das duas etapas, digitando APAGAR', async () => {
+  it('RN-WEB-APAGAR-001: abrir o aviso nao apaga nada; um clique em Apagar apaga', async () => {
     abrir()
     const modal = within(await abrirModal())
-    await userEvent.click(modal.getByRole('button', { name: 'Continuar' }))
-    const apagar = modal.getByRole('button', { name: 'Apagar tudo' })
-    expect(apagar).toBeDisabled()
-
-    await userEvent.type(modal.getByLabelText('Confirmação'), 'apaga')
-    expect(apagar).toBeDisabled()
-    await userEvent.clear(modal.getByLabelText('Confirmação'))
-    await userEvent.type(modal.getByLabelText('Confirmação'), 'apagar')
-    expect(apagar).toBeDisabled() // minuscula nao vale
-    await userEvent.clear(modal.getByLabelText('Confirmação'))
-    await userEvent.type(modal.getByLabelText('Confirmação'), 'APAGAR')
-    expect(apagar).toBeEnabled()
+    expect(modal.queryByLabelText('Confirmação')).not.toBeInTheDocument()
     expect(apagarHistorico).not.toHaveBeenCalled()
+    await userEvent.click(modal.getByRole('button', { name: 'Apagar' }))
+    expect(apagarHistorico).toHaveBeenCalledOnce()
   })
 
-  it('RN-WEB-APAGAR-001: cancelar em qualquer etapa nao apaga nada', async () => {
+  it('RN-WEB-APAGAR-001: fechar o aviso nao apaga nada', async () => {
     abrir()
-    let modal = within(await abrirModal())
+    const modal = within(await abrirModal())
     await userEvent.click(modal.getByRole('button', { name: 'Fechar' }))
     expect(screen.queryByRole('dialog', { name: 'Apagar histórico' })).not.toBeInTheDocument()
-
-    modal = within(await abrirModal())
-    await userEvent.click(modal.getByRole('button', { name: 'Continuar' }))
-    await userEvent.type(modal.getByLabelText('Confirmação'), 'APAGAR')
-    await userEvent.click(modal.getByRole('button', { name: 'Fechar' }))
     expect(apagarHistorico).not.toHaveBeenCalled()
-  })
-
-  it('reabrir o modal recomeca do primeiro passo, sem a palavra digitada antes', async () => {
-    abrir()
-    let modal = within(await abrirModal())
-    await userEvent.click(modal.getByRole('button', { name: 'Continuar' }))
-    await userEvent.type(modal.getByLabelText('Confirmação'), 'APAGAR')
-    await userEvent.click(modal.getByRole('button', { name: 'Fechar' }))
-
-    modal = within(await abrirModal())
-    expect(modal.getByRole('button', { name: 'Continuar' })).toBeInTheDocument()
-    expect(modal.queryByLabelText('Confirmação')).not.toBeInTheDocument()
   })
 
   async function apagarTudo() {
     abrir()
     const modal = within(await abrirModal())
-    await userEvent.click(modal.getByRole('button', { name: 'Continuar' }))
-    await userEvent.type(modal.getByLabelText('Confirmação'), 'APAGAR')
-    await userEvent.click(modal.getByRole('button', { name: 'Apagar tudo' }))
+    await userEvent.click(modal.getByRole('button', { name: 'Apagar' }))
     return modal
   }
 

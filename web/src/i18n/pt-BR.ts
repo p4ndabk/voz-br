@@ -338,12 +338,7 @@ export const t = {
     titulo: 'Apagar histórico',
     aviso: (nome: string) =>
       `Do seu aparelho, apagamos com certeza. Dos relays e do aparelho de ${nome}, enviamos um pedido. A maioria atende, mas não dá para garantir, e quem já leu ou copiou pode ter guardado.`,
-    continuar: 'Continuar',
-    cancelar: 'Cancelar',
-    palavra: 'APAGAR',
-    instrucao: 'Para confirmar, digite APAGAR.',
-    campo: 'Confirmação',
-    apagarTudo: 'Apagar tudo',
+    apagarTudo: 'Apagar',
     apagando: 'Apagando…',
     apagadoAqui: 'Apagado deste aparelho.',
     relays: (atendidos: number, total: number) =>
