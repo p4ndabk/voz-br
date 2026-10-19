@@ -1,7 +1,7 @@
 # Regras do cliente web — arquitetura (`web/`)
 
 Formato definido em [../README.md](../README.md). Aqui "Se violada" descreve o efeito
-no build ou na revisão, não um status HTTP: o `web/` não expõe API.
+no build ou na revisão, não um status HTTP: não há API.
 
 ---
 
@@ -15,7 +15,7 @@ no build ou na revisão, não um status HTTP: o `web/` não expõe API.
 ---
 
 ### RN-WEB-ARQ-002 — `web/` não importa nada de fora de `web/`
-**Regra:** nenhum import relativo de `web/src/` ou `web/scripts/` resolve para fora da pasta `web/`. A única ponte com a API é HTTP.
+**Regra:** nenhum import relativo de `web/src/` ou `web/scripts/` resolve para fora da pasta `web/`. Não há backend.
 **Quando:** `pnpm lint` e `pnpm build`.
 **Se violada:** o build falha com a lista dos imports que escapam.
 **Onde vive:** `web/scripts/checar-arquitetura.mjs`

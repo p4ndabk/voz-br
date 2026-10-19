@@ -1,14 +1,12 @@
 # AGENTS.md — cliente web (`web/`)
 
-Regras para escrever o front. O `AGENTS.md` da raiz vale para a API Python e **não**
-se aplica aqui; este arquivo é o par dele para o `web/`. As regras de negócio do
-front ficam em [`../.rules/web-*/`](../.rules/README.md), com IDs `RN-WEB-*`.
+Regras para escrever o front (todo o código do projeto mora em `web/`; não há backend). As regras de negócio
+ficam em [`../.rules/web-*/`](../.rules/README.md), com IDs `RN-WEB-*`.
 
 ## Princípios
 
-- O `web/` é **independente** da API: não importa nada de fora de `web/` (RN-WEB-ARQ-002).
-  A única ponte é HTTP, usando `VITE_API_URL`. Se um dia o front sair do repositório, nada muda.
-- A mensagem Nostr **não passa pela API**. Assinatura, criptografia e relays acontecem no navegador.
+- O `web/` não importa nada de fora de `web/` (RN-WEB-ARQ-002).
+- Não há backend. Assinatura, criptografia e relays acontecem no navegador; o único tráfego externo é com relays e serviços Lightning (LNURL).
 - A chave privada do usuário nunca vai para rede, log, `console` ou URL (regra 4 da spec 0000).
 
 ## Camadas
@@ -36,7 +34,7 @@ pages/  ->  components/  ->  nostr/  (hooks e funcoes)  ->  nostr-tools / WebSoc
 | fonte, script ou imagem de CDN                                 | empacote no build (RN-WEB-UI-002)                          |
 | `dangerouslySetInnerHTML` com conteúdo de mensagem ou perfil   | renderize como texto                                       |
 | `console.log` de chave, assinatura ou conteúdo de mensagem     | não logue                                                  |
-| `import` de `../../app/...` ou qualquer caminho fora de `web/` | fale com a API por HTTP                                    |
+| `import` de qualquer caminho fora de `web/`                    | mantenha tudo dentro de `web/`                             |
 | inventar um padrão novo sem precedente                         | copie de um componente existente ou pergunte               |
 
 ## Comandos

@@ -1,5 +1,7 @@
 # Pendências técnicas — 0012 Ponte LNURL na API
 
+> **Revertida:** a ponte foi removida junto com o backend (ver nota no fim do SPEC.md).
+
 ## Abertas
 
 ### PT-01 — Limite de uso por IP

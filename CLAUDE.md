@@ -1,46 +1,18 @@
 # CLAUDE.md
 
-## Regra número 1
+Voz é um cliente web sobre Nostr, sem backend. Todo o código está em `web/`.
 
-@AGENTS.md
+@web/AGENTS.md
 
-Contém as regras de arquitetura, os anti-padrões proibidos, onde ficam os
-templates de cada camada e o que fazer quando o template que você precisa
-não existir.
-
-Não improvise um padrão que não esteja lá — se não houver precedente,
-pergunte.
-
-## Atalhos
-
-| Se você vai... | Leia / invoque |
+| Se você vai... | Leia |
 |---|---|
-| escrever **qualquer** código | [`AGENTS.md`](AGENTS.md) |
-| implementar uma **tarefa com spec** | `docs/specs/<ID>-<slug>/SPEC.md` + o `TODO.md` da mesma pasta |
-| **escrever** uma spec de tarefa | [`.claude/task_spec.md`](.claude/task_spec.md) |
-| criar ou alterar uma **rota** | [`.claude/base_spec.md`](.claude/base_spec.md) |
+| escrever **qualquer** código | [`web/AGENTS.md`](web/AGENTS.md) |
+| implementar uma **tarefa com spec** | `docs/specs/<ID>-<slug>/SPEC.md` + `TODO.md` |
+| **escrever** uma spec | [`.claude/task_spec.md`](.claude/task_spec.md) |
 | implementar uma **regra de negócio** | [`.rules/`](.rules/README.md) |
-| criar um **módulo novo** | skill `base-new-module` |
-| escrever **uma camada** | skill `base-model`, `base-schema`, `base-repository`, `base-service`, `base-controller`, `base-router`, `base-tests` ou `base-migration` |
-
-## O essencial
-
-Stack: Python 3.11 · FastAPI · SQLAlchemy 2.0 async · PostgreSQL · Alembic · uv · pytest
-
-```
-router.py -> controller.py -> service.py -> repository.py -> models.py
-```
-
-Cada camada só chama a camada imediatamente abaixo. A tabela completa de
-responsabilidades está no `AGENTS.md`.
 
 ```bash
-uv run uvicorn app.main:app --reload    # http://localhost:8000/docs
-uv run pytest                           # testes
-uv run ruff check . && uv run pytest    # antes de abrir PR
+cd web && pnpm lint && pnpm test && pnpm build   # antes de abrir PR
 ```
 
-Todo comando roda por `uv`. Não há Makefile — a lista completa está na seção 7
-do `AGENTS.md`.
-
-Referência viva de como um módulo deve ficar: `app/modules/users/`.
+Não improvise um padrão que não exista: copie de um componente existente ou pergunte.

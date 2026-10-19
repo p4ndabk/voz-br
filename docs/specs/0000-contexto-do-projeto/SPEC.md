@@ -144,6 +144,7 @@ Cenário: enviar mensagem direta
 | Revoada como nome dos eventos | gostado, mas a conotação de festa combina mais com encontros do que com o produto | David |
 | A API não fica no caminho da mensagem | a mensagem vai assinada e criptografada do navegador aos relays; um servidor no meio saberia quem conversa com quem | David |
 | Front em `web/`, API na raiz, ponte só por HTTP | dá para separar o repositório movendo `web/` (spec 0002) | David |
+| **Sem backend (2026-10-18)**: API Python, Postgres e ponte LNURL removidos | o chat nunca usou a API; abrir mão da Bipa (sem CORS) evita manter um servidor | David |
 | Stack JS: pnpm, React Router, Zustand, `nostr-tools`, Tailwind, Vitest | mesmo papel de `uv`, `pytest` e `ruff`; `nostr-tools` é explícita sobre as chaves | David |
 | Primeira entrega: chat 1:1 privado (specs 0002–0007) | "duas pessoas se comunicarem" vem antes das salas públicas | David |
 | Entrar também por QR code (NIP-46) | atende quem guarda a chave num app de celular | David |

@@ -1,44 +1,5 @@
 services:
-  db:
-    image: postgres:16-alpine
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: app
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d app"]
-      interval: 5s
-      timeout: 3s
-      retries: 10
-
-  api:
-    build: .
-    depends_on:
-      db:
-        condition: service_healthy
-    environment:
-      DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/app
-      ENVIRONMENT: development
-      JWT_SECRET: dev-secret-nao-use-em-producao
-      CORS_ORIGINS: http://localhost:3000,http://localhost:5173
-    ports:
-      - "8000:8000"
-    volumes:
-      - ./app:/app/app          # hot-reload em desenvolvimento
-      - ./alembic:/app/alembic
-    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-    healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8000/health/live')\""]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 20s
-
-  # Cliente web: independente da api e do db (sobe mesmo com eles parados)
+  # Cliente web: o Voz inteiro. Nao ha backend; as mensagens vao do navegador aos relays.
   web:
     build:
       context: ./web
@@ -48,8 +9,3 @@ services:
     volumes:
       - ./web/src:/app/web/src          # hot-reload em desenvolvimento
       - ./web/public:/app/web/public
-    environment:
-      VITE_API_URL: http://localhost:8000
-
-volumes:
-  postgres_data:

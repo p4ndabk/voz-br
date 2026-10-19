@@ -1,7 +1,7 @@
 # `.rules/` — Regras de negócio
 
 Esta pasta responde **"o que o sistema deve fazer"**.
-Para **"como escrever o código"**, veja [`AGENTS.md`](../AGENTS.md) na raiz.
+Para **"como escrever o código"**, veja [`web/AGENTS.md`](../web/AGENTS.md).
 
 Toda regra de negócio do sistema mora aqui, com um identificador estável, e é
 citada no código e no teste que a implementam. Se a regra não está escrita aqui,
@@ -9,26 +9,17 @@ ela **não existe** — não invente regra direto no código.
 
 ## Estrutura: uma pasta por módulo
 
-A pasta espelha `app/modules/`. Cada módulo tem a sua, e dentro dela o
+A pasta tem uma subpasta por área (`web-auth`, `web-zap`...). Cada área tem a sua, e dentro dela o
 `RULES.md` com as regras daquele módulo.
 
 ```
 .rules/
 ├── README.md              # este arquivo: formato e convenções
-├── _global/RULES.md       # regras que valem para TODOS os módulos
-├── users/RULES.md         # RN-USERS-001, 002, ...
-├── auth/RULES.md          # RN-AUTH-001, ...
 └── <modulo>/RULES.md      # um diretório por módulo novo
 ```
 
 | Pasta | Conteúdo |
 |---|---|
-| `_global/` | Regras transversais — valem para todo módulo, sem precisar repetir |
-| `users/` | Regras do módulo `users` |
-| `auth/` | Regras do módulo `auth` |
-| `roles/` | Regras do módulo `roles` |
-| `permissions/` | Regras do módulo `permissions` |
-| `lnurl/` | Regras do módulo `lnurl` (ponte para serviços Lightning) |
 
 **`RULES.md` é obrigatório** em todo módulo que tem regra de negócio própria.
 A pasta existe (em vez de um arquivo solto) para o módulo poder crescer sem

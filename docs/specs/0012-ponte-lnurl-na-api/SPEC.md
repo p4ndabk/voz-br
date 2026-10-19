@@ -123,3 +123,9 @@ Cenário: pedido de zap em serviço sem zap
 - [ ] Regras de negócio aprovadas pelo P.O.
 - [x] Impacto em dados existentes: nenhum
 - [x] `TODO.md` da pasta revisado
+
+---
+
+> **REVERTIDA em 2026-10-18.** O projeto passou a ser só cliente web; a API Python e esta ponte foram
+> removidas (branch `chore/sem-backend`). Serviços Lightning sem CORS (como `bipa.app`) deixam de
+> funcionar no navegador; o diálogo de zap explica e oferece copiar o endereço. Esta spec fica como histórico.
