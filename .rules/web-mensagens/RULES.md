@@ -94,8 +94,8 @@ na segurança, não um status HTTP: as mensagens vão do navegador direto aos re
 **Teste:** `web/src/components/ui/TextoComLinks.test.tsx::RN-WEB-MENSAGENS-010` e `web/src/pages/mensagens.test.tsx::RN-WEB-MENSAGENS-010`
 
 ### RN-WEB-MENSAGENS-011 — O campo de mensagem pode ser redimensionado com o mouse
-**Regra:** o campo de texto tem uma alça no canto para a pessoa arrastar e deixá-lo maior ou menor (até metade da tela). Ele continua crescendo sozinho com o texto, mas a altura arrastada vira o mínimo dele, e fica guardada neste navegador.
+**Regra:** uma alça no **topo** do campo de texto permite arrastar (para cima aumenta, para baixo diminui; também com as setas do teclado) até metade da tela, no mínimo uma linha. Ele continua crescendo sozinho com o texto, mas a altura arrastada vira o mínimo dele, e fica guardada neste navegador.
 **Quando:** escrever uma mensagem.
 **Se violada:** textos longos ficam espremidos numa caixa que não dá para aumentar, ou o campo desfaz o tamanho escolhido a cada letra.
-**Onde vive:** `web/src/pages/conversa/{CampoMensagem,alturaCampo}.ts*`
+**Onde vive:** `web/src/pages/conversa/{CampoMensagem.tsx,alturaCampo.ts}`
 **Teste:** `web/src/pages/conversa/alturaCampo.test.ts`

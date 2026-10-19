@@ -1,8 +1,14 @@
-import { useEffect, useRef, useState, type KeyboardEvent } from 'react'
+import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { Botao } from '@/components/ui/Botao'
 import { LIMITE_MENSAGEM, validarTexto } from '@/conversas/mensageria'
 import { t } from '@/i18n/pt-BR'
-import { alturaDoCampo, guardarAltura, lerAlturaGuardada } from './alturaCampo'
+import {
+  ALTURA_MINIMA,
+  alturaDoCampo,
+  guardarAltura,
+  lerAlturaGuardada,
+  limitarAltura,
+} from './alturaCampo'
 
 const LINHAS_MAXIMAS = 5
 const MOSTRAR_CONTADOR_A_PARTIR_DE = LIMITE_MENSAGEM - 500
@@ -31,22 +37,37 @@ export function CampoMensagem({ aoEnviar }: Props) {
     el.style.height = `${altura}px`
   }
 
-  // Arrastar a alca muda a altura sem passar pelo ajuste automatico: o que difere do ultimo valor que o
-  // campo se deu e tamanho escolhido na mao. (O navegador nao avisa o mouse solto sobre a alca.)
-  useEffect(() => {
+  // RN-WEB-MENSAGENS-011: a alca no topo do campo. Arrastar para cima aumenta, para baixo diminui;
+  // as setas do teclado fazem o mesmo.
+  const arrasto = useRef<{ y: number; altura: number } | null>(null)
+
+  const definirAltura = (pedida: number) => {
     const el = area.current
-    if (!el || typeof ResizeObserver === 'undefined') return
-    const observador = new ResizeObserver(() => {
-      const atual = el.offsetHeight
-      if (atual > 0 && Math.abs(atual - automatica.current) > 2) {
-        manual.current = atual
-        automatica.current = atual
-        guardarAltura(atual)
-      }
-    })
-    observador.observe(el)
-    return () => observador.disconnect()
-  }, [])
+    if (!el) return
+    const nova = limitarAltura(pedida, window.innerHeight)
+    manual.current = nova
+    automatica.current = nova
+    el.style.height = `${nova}px`
+  }
+
+  const aoComecarArrasto = (e: PointerEvent<HTMLDivElement>) => {
+    e.currentTarget.setPointerCapture(e.pointerId)
+    arrasto.current = { y: e.clientY, altura: area.current?.offsetHeight ?? ALTURA_MINIMA }
+  }
+  const aoArrastar = (e: PointerEvent<HTMLDivElement>) => {
+    if (arrasto.current) definirAltura(arrasto.current.altura + (arrasto.current.y - e.clientY))
+  }
+  const aoTerminarArrasto = () => {
+    if (!arrasto.current) return
+    arrasto.current = null
+    guardarAltura(manual.current)
+  }
+  const aoTeclarAlca = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return
+    e.preventDefault()
+    definirAltura((area.current?.offsetHeight ?? ALTURA_MINIMA) + (e.key === 'ArrowUp' ? 24 : -24))
+    guardarAltura(manual.current)
+  }
 
   useEffect(ajustarAltura, [])
 
@@ -72,8 +93,23 @@ export function CampoMensagem({ aoEnviar }: Props) {
         e.preventDefault()
         enviar()
       }}
-      className="flex flex-col gap-2 border-t-2 border-borda pt-3"
+      className="flex flex-col gap-2 border-t-2 border-borda"
     >
+      {/* Alca de redimensionar no topo do campo. */}
+      <div
+        role="separator"
+        aria-orientation="horizontal"
+        aria-label={t.mensagens.redimensionar}
+        tabIndex={0}
+        onPointerDown={aoComecarArrasto}
+        onPointerMove={aoArrastar}
+        onPointerUp={aoTerminarArrasto}
+        onPointerCancel={aoTerminarArrasto}
+        onKeyDown={aoTeclarAlca}
+        className="group flex h-4 cursor-ns-resize touch-none items-center justify-center"
+      >
+        <span className="h-1 w-12 rounded-full bg-borda opacity-50 group-hover:opacity-100 group-focus-visible:opacity-100" />
+      </div>
       <div className="flex items-end gap-3">
         <textarea
           ref={area}
@@ -86,7 +122,7 @@ export function CampoMensagem({ aoEnviar }: Props) {
           onKeyDown={aoTeclar}
           aria-label={t.mensagens.campo}
           placeholder={t.mensagens.campo}
-          className="min-h-11 max-h-[50dvh] flex-1 resize-y rounded-cordel border-2 border-borda bg-superficie px-3 py-2.5 text-tinta placeholder:text-tinta-suave"
+          className="min-h-11 max-h-[50dvh] flex-1 resize-none rounded-cordel border-2 border-borda bg-superficie px-3 py-2.5 text-tinta placeholder:text-tinta-suave"
         />
         <Botao type="submit" disabled={validacao !== 'ok'}>
           {t.mensagens.enviar}

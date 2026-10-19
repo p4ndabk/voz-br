@@ -272,6 +272,7 @@ export const t = {
   },
   mensagens: {
     campo: 'Escreva uma mensagem',
+    redimensionar: 'Arraste para mudar o tamanho do campo (ou use as setas para cima e para baixo)',
     enviar: 'Enviar',
     enviando: 'enviando…',
     falhou: 'Não foi possível enviar',
