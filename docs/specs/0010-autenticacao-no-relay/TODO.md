@@ -18,18 +18,10 @@
 **Esforço estimado:** baixo.
 **Work item:** não criado.
 
-### PT-03 — Perfis só nos relays padrão
-**O quê:** os perfis (kind 0) de muita gente estão no damus e no nos.lol, que saíram da lista padrão; avaliar relays extras só de leitura de perfil.
-**Por que ficou de fora:** a lista foi trocada para garantir a entrega de DMs.
-**Onde:** `web/src/nostr/config.ts`.
-**Impacto se continuar assim:** o nome de quem só publicou perfil nesses relays não aparece (cai para a chave abreviada).
-**Esforço estimado:** baixo.
-**Work item:** não criado.
-
 ---
 
 ## Resolvidas
 
 | ID | Título | Resolvida em | Onde |
 |---|---|---|---|
-| | | | |
+| PT-03 | Perfis só nos relays padrão | 2026-10-18 | `web/src/nostr/config.ts` (`relaysDePerfil`), `web/src/nostr/perfisStore.ts`, regra RN-WEB-PERFIL-015 |
