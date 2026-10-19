@@ -6,7 +6,7 @@ import { Campo } from '@/components/ui/Campo'
 import { t } from '@/i18n/pt-BR'
 import { gerarIdentidade, TAMANHO_MAXIMO_NOME } from '@/nostr/identidade'
 import { useSessao } from '@/nostr/useSessao'
-import { CampoSenha } from './CampoSenha'
+import { AvisoSemSenha, CampoSenha, LinkSemSenha, useEscolhaDeSenha } from './CampoSenha'
 import { mensagemDoErro } from './erros'
 
 type Identidade = ReturnType<typeof gerarIdentidade>
@@ -14,7 +14,7 @@ type Identidade = ReturnType<typeof gerarIdentidade>
 export function VistaCriar({ aoEntrar }: { aoEntrar: () => void }) {
   const confirmarIdentidade = useSessao((s) => s.confirmarIdentidade)
   const [nome, setNome] = useState('')
-  const [senha, setSenha] = useState('')
+  const escolha = useEscolhaDeSenha()
   const [identidade, setIdentidade] = useState<Identidade>()
   const [guardei, setGuardei] = useState(false)
   const [erro, setErro] = useState<string>()
@@ -26,18 +26,23 @@ export function VistaCriar({ aoEntrar }: { aoEntrar: () => void }) {
   }
 
   // RN-WEB-AUTH-005: so entra depois de marcar "Guardei minha chave".
-  const continuar = async (e: FormEvent) => {
-    e.preventDefault()
-    if (!identidade || !guardei) return
+  const entrar = async (senha: string | undefined) => {
+    if (!identidade) return
     setErro(undefined)
     setOcupado(true)
     try {
-      await confirmarIdentidade(identidade.chave, nome, senha || undefined)
+      await confirmarIdentidade(identidade.chave, nome, senha)
       aoEntrar()
     } catch (falha) {
       setErro(mensagemDoErro(falha))
       setOcupado(false)
     }
+  }
+
+  const continuar = (e: FormEvent) => {
+    e.preventDefault()
+    if (!identidade || !guardei) return
+    escolha.decidir((senha) => void entrar(senha))
   }
 
   if (!identidade) {
@@ -69,7 +74,8 @@ export function VistaCriar({ aoEntrar }: { aoEntrar: () => void }) {
       <div>
         <BotaoCopiar texto={identidade.nsec} />
       </div>
-      <CampoSenha valor={senha} aoMudar={setSenha} />
+      <CampoSenha escolha={escolha} />
+      <LinkSemSenha escolha={escolha} aoDecidir={(senha) => void entrar(senha)} />
       <label className="flex items-center gap-3 font-bold">
         <input
           type="checkbox"
@@ -83,6 +89,7 @@ export function VistaCriar({ aoEntrar }: { aoEntrar: () => void }) {
       <Botao type="submit" disabled={!guardei || ocupado}>
         {t.entrarPagina.criar.continuar}
       </Botao>
+      <AvisoSemSenha escolha={escolha} />
     </form>
   )
 }

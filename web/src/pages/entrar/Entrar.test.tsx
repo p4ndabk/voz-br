@@ -1,4 +1,4 @@
-import { act, render, screen, waitFor } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -71,6 +71,12 @@ describe('tela de entrar', () => {
   })
 })
 
+// RN-WEB-AUTH-010: sem senha digitada, o Voz abre o aviso e so segue depois de confirmar.
+async function confirmarSemSenha() {
+  const aviso = await screen.findByRole('dialog')
+  await userEvent.click(within(aviso).getByRole('button', { name: 'Continuar sem senha' }))
+}
+
 describe('colar a nsec', () => {
   async function irParaNsec() {
     abrir()
@@ -82,6 +88,7 @@ describe('colar a nsec', () => {
     await irParaNsec()
     await userEvent.type(screen.getByLabelText(/Chave secreta \(nsec\)/), nsecDe(chave))
     await userEvent.click(screen.getByRole('button', { name: 'Entrar' }))
+    await confirmarSemSenha()
     expect(await screen.findByText('lista de conversas')).toBeInTheDocument()
     expect(useSessao.getState().assinante?.pubkey).toBe(pubkeyDe(chave))
   })
@@ -127,6 +134,7 @@ describe('criar identidade', () => {
     await criar('Maria')
     await userEvent.click(screen.getByLabelText('Guardei minha chave'))
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
+    await confirmarSemSenha()
     expect(await screen.findByText('lista de conversas')).toBeInTheDocument()
     await waitFor(() => expect(publicar).toHaveBeenCalledOnce())
     const evento = (publicar.mock.calls[0] as unknown as [{ kind: number; content: string }])[0]
@@ -138,8 +146,53 @@ describe('criar identidade', () => {
     await criar('')
     await userEvent.click(screen.getByLabelText('Guardei minha chave'))
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
+    await confirmarSemSenha()
     await screen.findByText('lista de conversas')
     expect(publicar).not.toHaveBeenCalled()
+  })
+
+  it('RN-WEB-AUTH-010: senha curta e recusada e nada e guardado', async () => {
+    await criar('')
+    await userEvent.type(screen.getByLabelText('Senha para proteger a chave'), '1234567')
+    await userEvent.type(screen.getByLabelText('Repita a senha'), '1234567')
+    await userEvent.click(screen.getByLabelText('Guardei minha chave'))
+    await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
+    expect(
+      await screen.findByText('A senha precisa ter pelo menos 8 caracteres.'),
+    ).toBeInTheDocument()
+    expect(await lerSessaoSalva()).toBeUndefined()
+  })
+
+  it('RN-WEB-AUTH-010: confirmacao diferente e recusada', async () => {
+    await criar('')
+    await userEvent.type(screen.getByLabelText('Senha para proteger a chave'), 'minhasenha1')
+    await userEvent.type(screen.getByLabelText('Repita a senha'), 'minhasenha2')
+    await userEvent.click(screen.getByLabelText('Guardei minha chave'))
+    await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
+    expect(await screen.findByText('As senhas não são iguais.')).toBeInTheDocument()
+    expect(await lerSessaoSalva()).toBeUndefined()
+  })
+
+  it('RN-WEB-AUTH-010: com senha valida a chave e guardada cifrada', async () => {
+    await criar('')
+    await userEvent.type(screen.getByLabelText('Senha para proteger a chave'), 'minhasenha1')
+    await userEvent.type(screen.getByLabelText('Repita a senha'), 'minhasenha1')
+    await userEvent.click(screen.getByLabelText('Guardei minha chave'))
+    await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
+    expect(
+      await screen.findByText('lista de conversas', {}, { timeout: 10_000 }),
+    ).toBeInTheDocument()
+    expect(await lerSessaoSalva()).toMatchObject({ metodo: 'nsec', protegida: true })
+  }, 15_000)
+
+  it('RN-WEB-AUTH-010: "Continuar sem senha" abre o aviso e cancelar nao entra', async () => {
+    await criar('')
+    await userEvent.click(screen.getByLabelText('Guardei minha chave'))
+    await userEvent.click(screen.getByRole('button', { name: 'Continuar sem senha' }))
+    const aviso = await screen.findByRole('dialog')
+    expect(within(aviso).getByText(/guardada em claro/)).toBeInTheDocument()
+    await userEvent.click(within(aviso).getByRole('button', { name: 'Fechar' }))
+    expect(await lerSessaoSalva()).toBeUndefined()
   })
 
   it('a nsec mostrada e a mesma que fica guardada', async () => {
@@ -148,6 +201,7 @@ describe('criar identidade', () => {
     expect(nsec).toMatch(/^nsec1/)
     await userEvent.click(screen.getByLabelText('Guardei minha chave'))
     await userEvent.click(screen.getByRole('button', { name: 'Continuar' }))
+    await confirmarSemSenha()
     await screen.findByText('lista de conversas')
     expect(await lerSessaoSalva()).toMatchObject({ metodo: 'nsec', segredo: nsec })
   })

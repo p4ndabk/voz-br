@@ -100,9 +100,22 @@ export const t = {
       continuar: 'Continuar',
     },
     senha: {
-      campo: 'Senha para proteger a chave (recomendado)',
+      campo: 'Senha para proteger a chave',
       ajuda:
-        'Será pedida ao abrir o Voz. Sem senha, quem usar este navegador consegue abrir sua conta.',
+        'Mínimo de 8 caracteres. Será pedida ao abrir o Voz. Não há como recuperá-la: se esquecer, você entra de novo com a sua chave secreta.',
+      repetir: 'Repita a senha',
+      forcaFraca: 'Senha fraca: misture letras, números e símbolos.',
+      forcaMedia: 'Senha razoável. Mais caracteres deixam mais segura.',
+      forcaForte: 'Senha forte.',
+      erros: {
+        curta: 'A senha precisa ter pelo menos 8 caracteres.',
+        diferente: 'As senhas não são iguais.',
+      },
+      continuarSem: 'Continuar sem senha',
+      semSenhaTitulo: 'Continuar sem senha?',
+      semSenhaAviso:
+        'Sem senha, a sua chave secreta fica guardada em claro neste navegador: quem usar este aparelho ou qualquer página do mesmo endereço consegue abrir a sua conta. Você pode proteger com senha depois, em Conta.',
+      semSenhaConfirmar: 'Continuar sem senha',
     },
   },
   destravar: {
