@@ -14,6 +14,11 @@ import { Conversa } from './Conversa'
 import { LayoutConversas } from './conversas/LayoutConversas'
 import { PainelVazio } from './conversas/PainelVazio'
 
+const tocarFogo = vi.hoisted(() => vi.fn())
+vi.mock('@/conversas/som', async (original) => ({
+  ...(await original<typeof import('@/conversas/som')>()),
+  tocarFogo,
+}))
 const apagarHistorico = vi.hoisted(() => vi.fn())
 vi.mock('@/conversas/apagar', async (original) => ({
   ...(await original<typeof import('@/conversas/apagar')>()),
@@ -68,6 +73,7 @@ beforeEach(async () => {
   useMensagens.setState({ porConversa: {} })
   useSessao.setState({ fase: 'dentro', assinante: eu })
   apagarHistorico.mockReset()
+  tocarFogo.mockClear()
   apagarHistorico.mockImplementation(async () => {
     await useConversas.getState().registrarApagamento(maria, Math.floor(Date.now() / 1000), 'eu')
     return resultado()
@@ -215,6 +221,8 @@ describe('apagar historico (interface)', () => {
       await userEvent.click(modal.getByRole('button', { name: 'Apagar' }))
 
       expect(await screen.findByTestId('fogo')).toBeInTheDocument()
+      // RN-WEB-APAGAR-014: o som toca junto com o fogo.
+      expect(tocarFogo).toHaveBeenCalledOnce()
       expect(screen.getByText('primeira').closest('li')).toHaveClass('queimar')
       expect(screen.getByText('Queimando o histórico da conversa…')).toBeInTheDocument()
       // O aviso fecha no clique: so o fogo fica na tela.
@@ -242,6 +250,8 @@ describe('apagar historico (interface)', () => {
         expect(screen.getByText('primeira').closest('li')).toHaveClass('queimar-suave'),
       )
       expect(screen.queryByTestId('fogo')).not.toBeInTheDocument()
+      // RN-WEB-APAGAR-014: sem fogo, sem som.
+      expect(tocarFogo).not.toHaveBeenCalled()
       await waitFor(() => expect(screen.queryByText('primeira')).not.toBeInTheDocument(), {
         timeout: 3000,
       })

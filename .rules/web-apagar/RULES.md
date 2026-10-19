@@ -112,3 +112,10 @@ existe é o pedido (NIP-09), e estas regras existem para o Voz nunca prometer ma
 **Se violada:** uma tela de texto aparece por cima do fogo.
 **Onde vive:** `web/src/pages/conversa/ModalApagarHistorico.tsx`
 **Teste:** `web/src/pages/apagar.test.tsx::RN-WEB-APAGAR-013`
+
+### RN-WEB-APAGAR-014 — O fogo tem som, que se silencia
+**Regra:** junto com o fogo toca um som gerado no navegador (um chiado que sobe com as chamas, um rumor grave e estalos de brasa), com a mesma duração da animação. Segue o interruptor de som de *Conta* ("Sons do Voz"): silenciado, não toca. Com movimento reduzido não há fogo e, portanto, não há som. Também toca no aparelho de quem recebe o pedido de apagar, se a conversa está aberta e a aba visível (RN-WEB-APAGAR-012). Em *Conta* há o botão "Ouvir o fogo" para testar.
+**Quando:** o fogo roda.
+**Se violada:** som que não dá para desligar, ou tocando sem fogo.
+**Onde vive:** `web/src/conversas/som.ts` (`tocarFogo`), `web/src/pages/Conversa.tsx`, `web/src/pages/Conta.tsx`
+**Teste:** `web/src/conversas/som.test.ts::RN-WEB-APAGAR-014`

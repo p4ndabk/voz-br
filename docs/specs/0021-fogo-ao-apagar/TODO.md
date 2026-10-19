@@ -2,10 +2,10 @@
 
 ## Abertas
 
-### PT-01 — Som e vibração
-**O quê:** crepitar de fogo gerado no navegador e vibração curta no celular.
-**Por que ficou de fora:** o David escolheu só visual.
-**Onde:** `web/src/conversas/som.ts` (padrão do "plin").
+### PT-01 — Vibração
+**O quê:** vibração curta no celular durante o fogo (o som já existe).
+**Por que ficou de fora:** o David não quis.
+**Onde:** `web/src/pages/Conversa.tsx` (`navigator.vibrate`).
 **Impacto se continuar assim:** nenhum.
 **Esforço estimado:** baixo.
 **Work item:** não criado.

@@ -29,7 +29,7 @@
 
 ## 4. Fora de escopo
 
-- **Som e vibração:** decidido que não.
+- **Vibração:** decidido que não. (O **som** entrou depois, a pedido do David: `RN-WEB-APAGAR-014`.)
 - **Fogo em Sair ou Remover da lista.**
 
 ## 5. Regras de negócio
@@ -76,7 +76,7 @@ Cenário: aba em segundo plano
 | Decisão | Por quê | Quem decidiu |
 |---|---|---|
 | Visual realista, depois trocado por **cartoon** (cores chapadas, sem brilho nem degradê) | o David achou a textura realista errada; a implementação (movimento, duração) ficou | David |
-| Só visual | evita som inesperado e vibração | David |
+| Só visual, depois com **som** (chiado, rumor e estalos gerados no navegador, que se silencia em Conta) | o David pediu o som do fogo; segue o interruptor "Sons do Voz" | David |
 | Roda também quando o outro apaga | dá o mesmo peso ao gesto | David |
 | Versão aprovada guardada na etiqueta git `fogo-cartoon-v1` (chamas chapadas vermelho, laranja e amarelo); o estilo de xilogravura de cordel (contorno preto, paleta do Voz) foi testado e descartado; o cartoon voltou (commit `fce2ed1` guarda o experimento) | David |
 | Canvas próprio, sem biblioteca | a política de segurança só aceita scripts do próprio site | Claude |

@@ -15,7 +15,7 @@ import {
   type EstadoNotificacoes,
 } from '@/conversas/notificacoes'
 import { useSincronia } from '@/conversas/useSincronia'
-import { definirSom, somLigado, tocarPlin } from '@/conversas/som'
+import { definirSom, somLigado, tocarFogo, tocarPlin } from '@/conversas/som'
 import { t } from '@/i18n/pt-BR'
 import { conferirSenha, sessaoComNsec } from '@/nostr/sessao'
 import { npubDe } from '@/nostr/signer/chaves'
@@ -164,6 +164,9 @@ export function Conta() {
           </Botao>
           <Botao variante="secundario" className="ml-3" onClick={() => tocarPlin(true)}>
             {t.notificacoes.somOuvir}
+          </Botao>
+          <Botao variante="secundario" className="ml-3" onClick={() => tocarFogo(2400, true)}>
+            {t.notificacoes.somOuvirFogo}
           </Botao>
         </div>
       </section>

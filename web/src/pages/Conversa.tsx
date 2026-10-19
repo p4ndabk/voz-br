@@ -9,6 +9,7 @@ import { apagarHistorico } from '@/conversas/apagar'
 import { dataDe } from '@/conversas/dias'
 import { enviarMensagem, reenviarMensagem } from '@/conversas/mensageria'
 import { registrarQueima } from '@/conversas/queima'
+import { tocarFogo } from '@/conversas/som'
 import { useConversas } from '@/conversas/useConversas'
 import { useMensagens } from '@/conversas/useMensagens'
 import { t } from '@/i18n/pt-BR'
@@ -111,6 +112,8 @@ export function Conversa() {
             resolver()
           }
           setQueima({ ids, modo: reduzido ? 'suave' : 'fogo' })
+          // RN-WEB-APAGAR-014: o som acompanha o fogo (e nao toca com movimento reduzido).
+          if (!reduzido) tocarFogo()
           if (reduzido) setTimeout(() => terminarQueima.current?.(), 500)
         })
       }),
