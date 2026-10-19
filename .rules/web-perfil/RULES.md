@@ -128,3 +128,12 @@ na segurança, não um status HTTP: perfis vêm direto dos relays.
 **Se violada:** o botão Salvar fica desabilitado e a tela mostra "Use no máximo N caracteres."
 **Onde vive:** `web/src/perfil/campos.ts` (`validarCampos`)
 **Teste:** `web/src/perfil/campos.test.ts::RN-WEB-PERFIL-014` e `web/src/pages/editarPerfil.test.tsx::RN-WEB-PERFIL-014`
+
+---
+
+### RN-WEB-PERFIL-015 — O perfil é procurado e publicado também nos relays de perfil
+**Regra:** o perfil (kind 0) é buscado nos relays padrão e nos relays de perfil (`relaysDePerfil`); a busca termina logo depois do primeiro resultado, esperando só uma pequena graça (700 ms) por versões mais novas. Ao enviar um zap, o Voz busca o perfil do amigo de novo, ignorando a validade do cache, e enquanto procura o diálogo diz "Procurando o perfil…", nunca "não configurou". Ao salvar, o perfil é publicado também nesses relays.
+**Quando:** carregar qualquer perfil, abrir o zap, salvar o próprio perfil.
+**Se violada:** quem publicou o perfil em outros relays aparece "sem endereço Lightning" ou sem nome, e toda busca espera um relay morto por 6 segundos.
+**Onde vive:** `web/src/nostr/perfisStore.ts` (`buscarPerfilNosRelays`, `recarregar`), `web/src/perfil/editar.ts`, `web/src/pages/Conversa.tsx` (`abrirZap`), `web/src/nostr/config.ts` (`relaysDePerfil`)
+**Teste:** `web/src/nostr/perfisStore.test.ts::RN-WEB-PERFIL-015`, `web/src/pages/zap.test.tsx::procurando o perfil`

@@ -291,19 +291,38 @@ export class GerenteDeRelays {
 
   // Consulta (REQ) a todos os relays e devolve os eventos recebidos, sem remover duplicados.
   // Cada relay termina no EOSE ou no tempo limite; relay fora do ar contribui com lista vazia.
+  // Com `suficiente`, a consulta nao espera os relays lentos ou mortos: quando o que ja chegou
+  // basta, espera `gracaMs` pelos demais e encerra todos (RN-WEB-RELAYS-006).
   async consultar(
     filtro: object,
     tempoMs = TEMPO_CONSULTA_MS,
     urls?: readonly string[],
+    antecipar?: { suficiente: (eventos: unknown[]) => boolean; gracaMs: number },
   ): Promise<unknown[]> {
     this.iniciar()
     const idAssinatura = `voz-${Math.random().toString(36).slice(2, 10)}`
-    const lotes = await Promise.all(
-      this.garantirEntradas(urls).map((entrada) =>
-        this.consultarRelay(entrada, idAssinatura, filtro, tempoMs),
+    const todos: unknown[] = []
+    let encerrar: () => void = () => {}
+    const cedo = new Promise<void>((resolve) => {
+      encerrar = resolve
+    })
+    let agendado = false
+    const aoEvento = (evento: unknown) => {
+      todos.push(evento)
+      if (antecipar && !agendado && antecipar.suficiente(todos)) {
+        agendado = true
+        setTimeout(encerrar, antecipar.gracaMs)
+      }
+    }
+    await Promise.race([
+      Promise.all(
+        this.garantirEntradas(urls).map((entrada) =>
+          this.consultarRelay(entrada, idAssinatura, filtro, tempoMs, aoEvento, cedo),
+        ),
       ),
-    )
-    return lotes.flat()
+      cedo,
+    ])
+    return todos
   }
 
   private consultarRelay(
@@ -311,9 +330,10 @@ export class GerenteDeRelays {
     idAssinatura: string,
     filtro: object,
     tempoMs: number,
-  ): Promise<unknown[]> {
+    aoEvento: (evento: unknown) => void,
+    encerrada: Promise<void>,
+  ): Promise<void> {
     return new Promise((resolve) => {
-      const eventos: unknown[] = []
       let socketUsado: WebSocket | null = null
       let cancelarEspera: (() => void) | null = null
 
@@ -321,7 +341,7 @@ export class GerenteDeRelays {
         try {
           const dados: unknown = JSON.parse(String(msg.data))
           if (!Array.isArray(dados) || dados[1] !== idAssinatura) return
-          if (dados[0] === 'EVENT') eventos.push(dados[2])
+          if (dados[0] === 'EVENT') aoEvento(dados[2])
           else if (dados[0] === 'EOSE') terminar()
         } catch {
           // mensagem que nao e JSON: ignora
@@ -339,8 +359,9 @@ export class GerenteDeRelays {
             // socket ja fechou: nada a encerrar
           }
         }
-        resolve(eventos)
+        resolve()
       }
+      void encerrada.then(terminar)
       const enviar = () => {
         const socket = entrada.socket
         if (!socket) return terminar()

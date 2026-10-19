@@ -20,6 +20,46 @@ beforeEach(async () => {
 })
 
 describe('perfisStore', () => {
+  // RN-WEB-PERFIL-015
+  it('RN-WEB-PERFIL-015: busca nos relays de perfil e termina cedo', async () => {
+    consultar.mockResolvedValue([evento('maria', 1000)])
+    await usePerfis.getState().carregar(pubkey)
+    const [, , urls, antecipar] = consultar.mock.calls[0] ?? []
+    expect(urls).toEqual(expect.arrayContaining(['wss://purplepag.es', 'wss://relay.damus.io']))
+    expect(antecipar.suficiente([])).toBe(false)
+    expect(antecipar.suficiente([evento('maria', 1000)])).toBe(true)
+    expect(antecipar.gracaMs).toBe(700)
+  })
+
+  it('RN-WEB-PERFIL-015: recarregar ignora o cache fresco e traz o Lightning novo', async () => {
+    const antigo = finalizeEvent(
+      { kind: 0, created_at: 1000, tags: [], content: JSON.stringify({ name: 'maria' }) },
+      chave,
+    )
+    await set(`voz:perfil:${pubkey}`, {
+      evento: antigo,
+      buscadoEm: Date.now(),
+    } satisfies PerfilSalvo)
+    const novo = finalizeEvent(
+      {
+        kind: 0,
+        created_at: 2000,
+        tags: [],
+        content: JSON.stringify({ name: 'maria', lud16: 'maria@exemplo.com' }),
+      },
+      chave,
+    )
+    consultar.mockResolvedValue([novo])
+
+    await usePerfis.getState().carregar(pubkey) // cache fresco: nao consulta
+    expect(consultar).not.toHaveBeenCalled()
+    expect(usePerfis.getState().perfis[pubkey]?.lightning).toBeUndefined()
+
+    await usePerfis.getState().recarregar(pubkey)
+    expect(consultar).toHaveBeenCalledTimes(1)
+    expect(usePerfis.getState().perfis[pubkey]?.lightning).toBe('maria@exemplo.com')
+  })
+
   it('busca nos relays, guarda no estado e grava o cache', async () => {
     consultar.mockResolvedValue([evento('maria', 1000)])
     await usePerfis.getState().carregar(pubkey)

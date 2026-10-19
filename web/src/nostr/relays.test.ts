@@ -232,6 +232,52 @@ describe('GerenteDeRelays', () => {
     })
   })
 
+  // RN-WEB-RELAYS-006
+  describe('consultar antecipada', () => {
+    const suficiente = { suficiente: (e: unknown[]) => e.length > 0, gracaMs: 500 }
+
+    it('termina na graca, sem esperar relay morto, e fecha a busca em todos', async () => {
+      const gerente = criar(['wss://a', 'wss://b'])
+      gerente.iniciar()
+      ultimoSocket('wss://a').abrir() // wss://b nunca abre
+      const resultado = gerente.consultar({ kinds: [0] }, 6_000, undefined, suficiente)
+      const id = JSON.parse(ultimoSocket('wss://a').enviados[0] ?? '[]')[1]
+      ultimoSocket('wss://a').receber(['EVENT', id, { id: 'e1' }])
+
+      await vi.advanceTimersByTimeAsync(500) // bem antes dos 6 s
+      expect(await resultado).toEqual([{ id: 'e1' }])
+      expect(ultimoSocket('wss://a').enviados).toContain(JSON.stringify(['CLOSE', id]))
+    })
+
+    it('a graca ainda recebe o evento de um segundo relay', async () => {
+      const gerente = criar(['wss://a', 'wss://b'])
+      gerente.iniciar()
+      ultimoSocket('wss://a').abrir()
+      ultimoSocket('wss://b').abrir()
+      const resultado = gerente.consultar({ kinds: [0] }, 6_000, undefined, suficiente)
+      const id = JSON.parse(ultimoSocket('wss://a').enviados[0] ?? '[]')[1]
+      ultimoSocket('wss://a').receber(['EVENT', id, { id: 'velho' }])
+      await vi.advanceTimersByTimeAsync(300)
+      ultimoSocket('wss://b').receber(['EVENT', id, { id: 'novo' }])
+      await vi.advanceTimersByTimeAsync(200)
+      expect(await resultado).toEqual([{ id: 'velho' }, { id: 'novo' }])
+    })
+
+    it('sem resultado suficiente continua esperando o EOSE ou o tempo limite', async () => {
+      const gerente = criar(['wss://a'])
+      gerente.iniciar()
+      ultimoSocket('wss://a').abrir()
+      let pronto = false
+      const resultado = gerente
+        .consultar({ kinds: [0] }, 3_000, undefined, suficiente)
+        .then((r) => ((pronto = true), r))
+      await vi.advanceTimersByTimeAsync(2_900)
+      expect(pronto).toBe(false)
+      await vi.advanceTimersByTimeAsync(100)
+      expect(await resultado).toEqual([])
+    })
+  })
+
   describe('relays extras', () => {
     it('publicar em urls especificas abre conexao extra que nao aparece no indicador', async () => {
       const gerente = criar(['wss://a'])

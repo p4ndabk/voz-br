@@ -29,6 +29,8 @@ interface Props {
   pubkey: string
   // Sem endereco Lightning valido no perfil do amigo, o dialogo so explica o que fazer.
   endereco?: string
+  // O perfil do amigo ainda esta sendo procurado nos relays: nao diga que falta o endereco.
+  procurandoPerfil?: boolean
   assinante: Assinante
 }
 
@@ -44,7 +46,15 @@ function mensagemDoErro(erro: unknown): string {
 }
 
 // Formulario e fatura num dialogo so. RN-WEB-ZAP-008: a fatura vive so aqui, na memoria.
-export function ModalZap({ aberto, aoFechar, nome, pubkey, endereco, assinante }: Props) {
+export function ModalZap({
+  aberto,
+  aoFechar,
+  nome,
+  pubkey,
+  endereco,
+  procurandoPerfil = false,
+  assinante,
+}: Props) {
   const [tentativa, setTentativa] = useState(0)
   const [servico, setServico] = useState<Servico>({ fase: 'consultando' })
   const [sats, setSats] = useState('100')
@@ -140,7 +150,9 @@ export function ModalZap({ aberto, aoFechar, nome, pubkey, endereco, assinante }
   }
 
   let corpo
-  if (!endereco) {
+  if (!endereco && procurandoPerfil) {
+    corpo = <p role="status">{t.zap.procurandoPerfil(nome)}</p>
+  } else if (!endereco) {
     corpo = <Aviso>{t.zap.semEndereco(nome)}</Aviso>
   } else if (servico.fase === 'consultando') {
     corpo = <p role="status">{t.zap.consultando}</p>

@@ -2,6 +2,7 @@ import { get, set } from 'idb-keyval'
 import type { NostrEvent } from 'nostr-tools'
 import { create } from 'zustand'
 import { lerPerfil, maisRecente, VALIDADE_CACHE_MS, type Perfil, type PerfilSalvo } from './perfis'
+import { GRACA_PERFIL_MS, relaysDePerfil } from './config'
 import { relays } from './relays'
 
 // undefined = ainda nao carregou; null = carregou e a pessoa nao tem perfil.
@@ -10,6 +11,8 @@ type Entrada = Perfil | null | undefined
 interface EstadoPerfis {
   perfis: Record<string, Entrada>
   carregar(pubkey: string): Promise<void>
+  // Busca de novo nos relays mesmo com cache fresco (ex.: antes de enviar um zap).
+  recarregar(pubkey: string): Promise<void>
   // Usado ao publicar o proprio perfil: a tela e o cache mudam na hora, sem esperar o relay.
   definirPerfil(pubkey: string, evento: NostrEvent): Promise<void>
 }
@@ -21,17 +24,30 @@ export function eventoEmCache(pubkey: string): Promise<PerfilSalvo | undefined> 
   return get<PerfilSalvo>(chaveCache(pubkey)).catch(() => undefined)
 }
 
-async function carregarPerfil(pubkey: string, aplicar: (perfil: Perfil | null) => void) {
+// RN-WEB-PERFIL-015: o perfil e procurado nos relays padrao e nos de perfil; a busca termina
+// logo depois do primeiro resultado (com uma pequena graca para versoes mais novas).
+export function buscarPerfilNosRelays(pubkey: string): Promise<unknown[]> {
+  return relays.consultar({ kinds: [0], authors: [pubkey], limit: 5 }, undefined, relaysDePerfil, {
+    suficiente: (eventos) => maisRecente(eventos, pubkey) !== null,
+    gracaMs: GRACA_PERFIL_MS,
+  })
+}
+
+async function carregarPerfil(
+  pubkey: string,
+  aplicar: (perfil: Perfil | null) => void,
+  ignorarValidade = false,
+) {
   const salvo = await get<PerfilSalvo>(chaveCache(pubkey)).catch(() => undefined)
   if (salvo) {
     aplicar(lerPerfil(salvo.evento))
-    // RN-WEB-PERFIL-007: cache fresco dispensa a consulta.
-    if (Date.now() - salvo.buscadoEm < VALIDADE_CACHE_MS) return
+    // RN-WEB-PERFIL-007: cache fresco dispensa a consulta (salvo quando a tela pede dados novos).
+    if (!ignorarValidade && Date.now() - salvo.buscadoEm < VALIDADE_CACHE_MS) return
   }
 
   let eventos: unknown[]
   try {
-    eventos = await relays.consultar({ kinds: [0], authors: [pubkey], limit: 5 })
+    eventos = await buscarPerfilNosRelays(pubkey)
   } catch {
     if (!salvo) aplicar(null)
     return
@@ -58,6 +74,14 @@ export const usePerfis = create<EstadoPerfis>((definir) => ({
       definir((estado) => ({ perfis: { ...estado.perfis, [pubkey]: perfil } })),
     ).finally(() => emAndamento.delete(pubkey))
     emAndamento.set(pubkey, tarefa)
+    return tarefa
+  },
+  recarregar(pubkey) {
+    const tarefa = carregarPerfil(
+      pubkey,
+      (perfil) => definir((estado) => ({ perfis: { ...estado.perfis, [pubkey]: perfil } })),
+      true,
+    )
     return tarefa
   },
   async definirPerfil(pubkey, evento) {

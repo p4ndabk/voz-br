@@ -23,15 +23,22 @@ vi.mock('@/nostr/relays', async (original) => ({
   },
 }))
 const perfis = vi.hoisted(() => ({}) as Record<string, { nome?: string; lightning?: string }>)
-vi.mock('@/nostr/usePerfil', () => ({ usePerfil: (pubkey: string) => perfis[pubkey] ?? null }))
+vi.mock('@/nostr/usePerfil', () => ({
+  usePerfil: (pubkey: string) => (pubkey in perfis ? perfis[pubkey] : null),
+}))
+const recarregar = vi.hoisted(() => vi.fn(async () => {}))
+vi.mock('@/nostr/perfisStore', () => ({ usePerfis: { getState: () => ({ recarregar }) } }))
 const reciboValido = vi.hoisted(() => ({ valor: false }))
 vi.mock('@/nostr/zap', () => ({ reciboConfirma: () => reciboValido.valor }))
 
 const eu = criarAssinanteLocal(gerarChave())
 const maria = pubkeyDe(gerarChave())
 const joao = pubkeyDe(gerarChave())
+const ana = pubkeyDe(gerarChave())
 perfis[maria] = { nome: 'Maria', lightning: 'maria@exemplo.com' }
 perfis[joao] = { nome: 'João' }
+// ana: o perfil ainda esta carregando (undefined)
+perfis[ana] = undefined as unknown as { nome?: string }
 
 function servico(extra: object = {}) {
   return {
@@ -65,6 +72,8 @@ beforeEach(async () => {
   useSessao.setState({ fase: 'dentro', assinante: eu })
   await useConversas.getState().registrarRecebida(maria, 1000, 'oi')
   await useConversas.getState().registrarRecebida(joao, 1000, 'oi')
+  await useConversas.getState().registrarRecebida(ana, 1000, 'oi')
+  recarregar.mockClear()
   useConversas.setState({ conversas: [], carregada: false })
   await useConversas.getState().carregar()
 })
@@ -274,5 +283,23 @@ describe('enviar zap', () => {
     await userEvent.click(await screen.findByRole('button', { name: 'Enviar zap' }))
     await screen.findByRole('button', { name: 'Gerar fatura' })
     expect(screen.queryByText(/passa pela API do Voz/)).not.toBeInTheDocument()
+  })
+
+  // RN-WEB-PERFIL-015
+  it('procurando o perfil: o dialogo nao diz que falta o endereco', async () => {
+    abrir(ana)
+    await userEvent.click(await screen.findByRole('button', { name: 'Enviar zap' }))
+    expect(await screen.findByText(/Procurando o perfil de/)).toBeInTheDocument()
+    expect(screen.queryByText(/ainda não configurou/)).not.toBeInTheDocument()
+  })
+
+  it('RN-WEB-PERFIL-015: abrir o zap busca o perfil de novo nos relays', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => resposta(servico())),
+    )
+    abrir(maria)
+    await userEvent.click(await screen.findByRole('button', { name: 'Enviar zap' }))
+    expect(recarregar).toHaveBeenCalledWith(maria)
   })
 })

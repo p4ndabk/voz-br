@@ -46,3 +46,12 @@ Formato definido em [../README.md](../README.md).
 **Se violada:** relays que exigem AUTH não entregam as mensagens (`auth-required`), ou a chave é revelada a quem não pediu.
 **Onde vive:** `web/src/nostr/relays.ts` (`definirAutenticador`, `responderAuth`), `web/src/conversas/mensageria.ts` (`iniciarMensageria`)
 **Teste:** `web/src/nostr/relays.test.ts::autenticacao`
+
+---
+
+### RN-WEB-RELAYS-006 — Consulta que pode terminar antes dos relays lentos
+**Regra:** `consultar` aceita uma condição de suficiência: quando o que já chegou basta, espera a graça definida e encerra a busca em todos os relays (enviando CLOSE), sem esperar relay lento ou fora do ar até o tempo limite. Sem a condição, o comportamento é o de sempre (EOSE ou tempo limite de cada relay).
+**Quando:** buscas em que uma resposta basta (perfil).
+**Se violada:** um relay morto faz toda busca esperar o tempo limite inteiro (6 s).
+**Onde vive:** `web/src/nostr/relays.ts` (`consultar`)
+**Teste:** `web/src/nostr/relays.test.ts::consultar antecipada`

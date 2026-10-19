@@ -13,6 +13,7 @@ import { t } from '@/i18n/pt-BR'
 import { enderecoLightningValido, nomeExibido } from '@/nostr/perfis'
 import { useSessao } from '@/nostr/useSessao'
 import { usePerfil } from '@/nostr/usePerfil'
+import { usePerfis } from '@/nostr/perfisStore'
 import { AvisoPrivacidade } from './conversa/AvisoPrivacidade'
 import { CampoMensagem } from './conversa/CampoMensagem'
 import { ListaMensagens } from './conversa/ListaMensagens'
@@ -39,7 +40,19 @@ export function Conversa() {
   const [modal, setModal] = useState(false)
   const [apagando, setApagando] = useState(false)
   const [zapando, setZapando] = useState(false)
+  const [atualizandoPerfil, setAtualizandoPerfil] = useState(false)
   const [novas, setNovas] = useState(false)
+
+  // O perfil em cache pode ser antigo (a pessoa pode ter configurado o Lightning depois):
+  // ao abrir o zap, busca de novo nos relays. Enquanto isso o dialogo diz que esta procurando.
+  const abrirZap = () => {
+    setZapando(true)
+    setAtualizandoPerfil(true)
+    void usePerfis
+      .getState()
+      .recarregar(pubkey)
+      .finally(() => setAtualizandoPerfil(false))
+  }
   const rolagem = useRef<HTMLDivElement>(null)
   const pertoDoFim = useRef(true)
   const ultimaQuantidade = useRef(0)
@@ -122,7 +135,7 @@ export function Conversa() {
         {/* RN-WEB-CONVERSAS-007 e RN-WEB-MENSAGENS-008: o selo Privado esta sempre a vista. */}
         <Selo tipo="privado" />
         {/* RN-WEB-ZAP-001: o botao sempre aparece; sem endereco Lightning o dialogo explica por que nao da. */}
-        <Botao className="px-3 py-1.5 text-sm" onClick={() => setZapando(true)}>
+        <Botao className="px-3 py-1.5 text-sm" onClick={abrirZap}>
           {t.zap.botao}
         </Botao>
         <Botao
@@ -213,6 +226,7 @@ export function Conversa() {
         aoFechar={() => setZapando(false)}
         nome={nomeExibido(perfil, conversa.pubkey).texto}
         pubkey={conversa.pubkey}
+        procurandoPerfil={perfil === undefined || atualizandoPerfil}
         endereco={
           perfil?.lightning && enderecoLightningValido(perfil.lightning)
             ? perfil.lightning

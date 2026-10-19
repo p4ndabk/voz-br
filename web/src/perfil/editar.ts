@@ -1,5 +1,6 @@
 import { maisRecente } from '@/nostr/perfis'
-import { eventoEmCache, usePerfis } from '@/nostr/perfisStore'
+import { relaysDePerfil } from '@/nostr/config'
+import { buscarPerfilNosRelays, eventoEmCache, usePerfis } from '@/nostr/perfisStore'
 import { relays } from '@/nostr/relays'
 import type { Assinante } from '@/nostr/signer/tipos'
 import {
@@ -34,7 +35,7 @@ function lerConteudo(texto: string): Record<string, unknown> {
 export async function carregarPerfilAtual(pubkey: string): Promise<PerfilAtual> {
   const [doCache, dosRelays] = await Promise.all([
     eventoEmCache(pubkey),
-    relays.consultar({ kinds: [0], authors: [pubkey], limit: 5 }).catch(() => [] as unknown[]),
+    buscarPerfilNosRelays(pubkey).catch(() => [] as unknown[]),
   ])
   const recebido = maisRecente(dosRelays, pubkey)
   const candidatos = [recebido, doCache?.evento].filter((e) => e != null)
@@ -69,7 +70,8 @@ export async function salvarPerfil(
     tags: [],
     content: JSON.stringify(conteudo),
   })
-  const { aceitos, total } = await relays.publicar(evento)
+  // RN-WEB-PERFIL-015: o perfil vai tambem para os relays de perfil, onde os outros o procuram.
+  const { aceitos, total } = await relays.publicar(evento, undefined, relaysDePerfil)
   if (aceitos === 0) throw new ErroSalvarPerfil('nenhum-relay')
   await usePerfis.getState().definirPerfil(assinante.pubkey, evento)
   return { aceitos, total, publicado: { conteudo, criadoEm: evento.created_at, encontrado: true } }
