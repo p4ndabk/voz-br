@@ -1,12 +1,11 @@
-import type { NostrEvent } from 'nostr-tools'
-import { KIND_RELAYS_DM, relaysDoEvento } from '@/nostr/dm'
+import { KIND_RELAYS_DM, relaysDoEvento, type EventoNostr } from '@/nostr/dm'
 import { GRACA_PERFIL_MS, relaysDePerfil, relaysPadrao } from '@/nostr/config'
 import { maisRecente } from '@/nostr/perfis'
 import { relays } from '@/nostr/relays'
 
 // Lista de DM (kind 10050) mais recente de uma pessoa. Procura nos relays em uso e nos de perfil
 // (RN-WEB-RELAYS-008): quem usa relay proprio e achado por onde os amigos costumam olhar.
-export async function eventoRelaysDm(pubkey: string): Promise<NostrEvent | null> {
+export async function eventoRelaysDm(pubkey: string): Promise<EventoNostr | null> {
   try {
     const urls = [...new Set([...relays.snapshot().map((r) => r.url), ...relaysDePerfil])]
     const eventos = await relays.consultar(
