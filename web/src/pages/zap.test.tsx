@@ -191,6 +191,27 @@ describe('enviar zap', () => {
     expect(screen.getAllByText('De 10 a 1.000 sats.').length).toBeGreaterThan(0)
   })
 
+  it('RN-WEB-ZAP-010: o botao Outro valor limpa o campo, foca nele e aceita qualquer valor permitido', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => resposta(servico())),
+    )
+    abrir(maria)
+    await userEvent.click(await screen.findByRole('button', { name: 'Enviar zap' }))
+    const outro = await screen.findByRole('button', { name: 'Outro valor' })
+    expect(outro).toHaveAttribute('aria-pressed', 'false')
+    await userEvent.click(outro)
+    const campo = screen.getByLabelText('Outro valor (sats)')
+    expect(campo).toHaveValue(null)
+    expect(campo).toHaveFocus()
+    expect(outro).toHaveAttribute('aria-pressed', 'true')
+    // RN-WEB-UI: digitar varios digitos nao pode tirar o foco do campo.
+    await userEvent.type(campo, '777')
+    expect(campo).toHaveValue(777)
+    expect(campo).toHaveFocus()
+    expect(screen.getByRole('button', { name: 'Gerar fatura' })).toBeEnabled()
+  })
+
   // RN-WEB-ZAP-006
   it('fatura de valor diferente e descartada com aviso', async () => {
     vi.stubGlobal(

@@ -368,6 +368,7 @@ export const t = {
     valorLimite: (min: number, max: number) =>
       `De ${min.toLocaleString('pt-BR')} a ${max.toLocaleString('pt-BR')} sats.`,
     valorLivre: 'Outro valor (sats)',
+    outroValor: 'Outro valor',
     comentario: 'Comentário (opcional)',
     forma: 'Como enviar',
     modoZap: 'Zap (público)',

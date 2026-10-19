@@ -13,20 +13,26 @@ interface Props {
 export function Modal({ aberto, titulo, aoFechar, acoes, children }: Props) {
   const idTitulo = useId()
   const painel = useRef<HTMLDivElement>(null)
+  // O foco vai ao painel so quando o dialogo abre. `aoFechar` costuma mudar a cada renderizacao do
+  // pai, entao fica numa ref: se estivesse nas dependencias, digitar num campo tiraria o foco dele.
+  const fechar = useRef(aoFechar)
+  useEffect(() => {
+    fechar.current = aoFechar
+  })
 
   useEffect(() => {
     if (!aberto) return
     const anterior = document.activeElement as HTMLElement | null
     painel.current?.focus()
     const aoTeclar = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') aoFechar()
+      if (e.key === 'Escape') fechar.current()
     }
     document.addEventListener('keydown', aoTeclar)
     return () => {
       document.removeEventListener('keydown', aoTeclar)
       anterior?.focus()
     }
-  }, [aberto, aoFechar])
+  }, [aberto])
 
   if (!aberto) return null
 

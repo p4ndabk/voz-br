@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Aviso } from '@/components/ui/Aviso'
 import { Botao } from '@/components/ui/Botao'
 import { BotaoCopiar } from '@/components/ui/BotaoCopiar'
@@ -21,7 +21,7 @@ import {
 } from '@/zap/enviar'
 import { pagarComWebln, temWebln } from '@/zap/webln'
 
-const ATALHOS = [21, 100, 500, 1000]
+const ATALHOS = [21, 100, 500, 1000, 5000, 10000]
 
 interface Props {
   aberto: boolean
@@ -68,6 +68,7 @@ export function ModalZap({
   const [satsPedidos, setSatsPedidos] = useState(0)
   const [recebido, setRecebido] = useState(false)
   const [erroWebln, setErroWebln] = useState(false)
+  const campoValor = useRef<HTMLInputElement>(null)
 
   // RN-WEB-ZAP-002: so consulta o servidor quando o dialogo abre (ou se tenta de novo).
   useEffect(() => {
@@ -244,9 +245,22 @@ export function ModalZap({
                 </Botao>
               ),
             )}
+            {/* RN-WEB-ZAP-010: "Outro valor" limpa o campo e leva a pessoa a digitar o que quiser. */}
+            <Botao
+              variante="secundario"
+              aria-pressed={!ATALHOS.includes(valor)}
+              className={`px-3 py-1.5 text-sm ${!ATALHOS.includes(valor) ? 'bg-vermelho text-sobre-vermelho' : ''}`}
+              onClick={() => {
+                setSats('')
+                campoValor.current?.focus()
+              }}
+            >
+              {t.zap.outroValor}
+            </Botao>
           </div>
         </fieldset>
         <Campo
+          ref={campoValor}
           rotulo={t.zap.valorLivre}
           type="number"
           inputMode="numeric"

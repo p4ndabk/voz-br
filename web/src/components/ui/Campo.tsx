@@ -1,9 +1,10 @@
-import { useId, type InputHTMLAttributes } from 'react'
+import { useId, type InputHTMLAttributes, type Ref } from 'react'
 
 interface Props extends InputHTMLAttributes<HTMLInputElement> {
   rotulo: string
   ajuda?: string
   erro?: string
+  ref?: Ref<HTMLInputElement>
 }
 
 export function Campo({ rotulo, ajuda, erro, className = '', ...resto }: Props) {

@@ -80,3 +80,10 @@ Formato definido em [../README.md](../README.md).
 **Se violada:** a pessoa fica sem caminho para pagar quem tem endereço sem CORS.
 **Onde vive:** `web/src/pages/conversa/ModalZap.tsx`
 **Teste:** `web/src/pages/zap.test.tsx::RN-WEB-ZAP-009`
+
+### RN-WEB-ZAP-010 — A pessoa escolhe qualquer valor dentro do limite do serviço
+**Regra:** além dos atalhos (21, 100, 500, 1.000, 5.000 e 10.000 sats, só os que cabem no limite do serviço), há o botão **Outro valor**, que limpa o campo e leva o cursor até ele. O campo aceita qualquer número inteiro entre o mínimo e o máximo do serviço (RN-WEB-ZAP-003); fora disso "Gerar fatura" fica desabilitado.
+**Quando:** formulário do zap.
+**Se violada:** só dá para enviar os valores dos botões.
+**Onde vive:** `web/src/pages/conversa/ModalZap.tsx`
+**Teste:** `web/src/pages/zap.test.tsx::RN-WEB-ZAP-010`
