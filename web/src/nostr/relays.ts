@@ -7,6 +7,11 @@ import {
   TEMPO_PUBLICAR_MS,
 } from './config'
 
+// RN-WEB-RELAYS-013: de quanto em quanto tempo conferir se as conexoes ainda respondem, e quanto esperar.
+const INTERVALO_SONDA_MS = 45_000
+const TEMPO_SONDA_MS = 5_000
+const SEM_EVENTO = '0'.repeat(64)
+
 // RN-WEB-RELAYS-012: tempo para a prova de AUTH chegar antes de reenviar o evento.
 const ESPERA_REENVIO_AUTH_MS = 1_500
 
@@ -29,6 +34,8 @@ interface Entrada {
   temporizador: ReturnType<typeof setTimeout> | null
   // Id do evento de autenticacao (NIP-42) enviado e ainda sem resposta do relay.
   autenticacaoPendente: string | null
+  // Quando chegou a ultima mensagem deste relay (qualquer uma): serve para descobrir conexao morta.
+  ultimaResposta: number
 }
 
 // Monta a prova de identidade pedida pelo relay (evento kind 22242 ja assinado).
@@ -52,6 +59,7 @@ function criarEntrada(url: string, extra: boolean): Entrada {
     socket: null,
     temporizador: null,
     autenticacaoPendente: null,
+    ultimaResposta: Date.now(),
   }
 }
 
@@ -266,6 +274,7 @@ export class GerenteDeRelays {
   }
 
   private aoReceberMensagem(entrada: Entrada, msg: MessageEvent): void {
+    entrada.ultimaResposta = Date.now()
     try {
       const dados: unknown = JSON.parse(String(msg.data))
       if (!Array.isArray(dados)) return
@@ -432,6 +441,62 @@ export class GerenteDeRelays {
         enviar()
       })
     })
+  }
+
+  // RN-WEB-RELAYS-013: uma conexao pode morrer sem avisar (computador que dormiu, troca de rede) e o
+  // navegador demora minutos para notar. Pergunta algo barato a cada relay conectado; quem nao responde em
+  // pouco tempo e derrubado, e a reconexao refaz as assinaturas e traz o que ficou para tras.
+  sondar(): void {
+    for (const entrada of this.entradas) {
+      if (entrada.estado !== 'conectado' || !entrada.socket) continue
+      const socket = entrada.socket
+      const inicio = Date.now()
+      const id = `voz-sonda-${Math.random().toString(36).slice(2, 8)}`
+      try {
+        socket.send(JSON.stringify(['REQ', id, { ids: [SEM_EVENTO], limit: 1 }]))
+        socket.send(JSON.stringify(['CLOSE', id]))
+      } catch {
+        this.derrubar(entrada)
+        continue
+      }
+      setTimeout(() => {
+        if (entrada.socket === socket && entrada.ultimaResposta < inicio) this.derrubar(entrada)
+      }, TEMPO_SONDA_MS)
+    }
+  }
+
+  private derrubar(entrada: Entrada): void {
+    const socket = entrada.socket
+    entrada.socket = null
+    if (socket) {
+      socket.onopen = socket.onclose = socket.onerror = null
+      try {
+        socket.close()
+      } catch {
+        // ja estava fechado
+      }
+    }
+    entrada.tentativas = 0
+    this.aoCair(entrada)
+  }
+
+  // Liga as verificacoes: ao voltar para a aba, ao voltar a internet e de tempos em tempos.
+  monitorarConexoes(): () => void {
+    const aoVoltar = () => {
+      if (document.visibilityState === 'visible') this.sondar()
+    }
+    // A rede mudou: as conexoes antigas quase sempre estao mortas.
+    const aoVoltarARede = () => {
+      for (const entrada of [...this.entradas]) if (entrada.socket) this.derrubar(entrada)
+    }
+    document.addEventListener('visibilitychange', aoVoltar)
+    window.addEventListener('online', aoVoltarARede)
+    const timer = setInterval(aoVoltar, INTERVALO_SONDA_MS)
+    return () => {
+      document.removeEventListener('visibilitychange', aoVoltar)
+      window.removeEventListener('online', aoVoltarARede)
+      clearInterval(timer)
+    }
   }
 
   private conectar(entrada: Entrada): void {

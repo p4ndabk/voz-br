@@ -44,6 +44,16 @@ interface EstadoConversas {
 export const useFotoLiberada = (pubkey: string) =>
   useConversas((estado) => fotoLiberada(estado.conversas.find((c) => c.pubkey === pubkey)))
 
+// RN-WEB-CONVERSAS-012: ler, alterar e gravar uma conversa nao pode se misturar com outra alteracao
+// (uma mensagem que chega enquanto a conversa e marcada como lida, ou enquanto a lista recarrega); senao a
+// gravacao mais lenta devolve a lista a um estado antigo e ela so "atualiza" quando alguem abre um chat.
+let fila: Promise<unknown> = Promise.resolve()
+function exclusivo<T>(trabalho: () => Promise<T>): Promise<T> {
+  const proxima = fila.then(trabalho, trabalho)
+  fila = proxima.catch(() => {})
+  return proxima
+}
+
 export const useConversas = create<EstadoConversas>((definir, obter) => {
   const gravar = async (conversa: Conversa) => {
     await salvarConversa(conversa)
@@ -61,102 +71,116 @@ export const useConversas = create<EstadoConversas>((definir, obter) => {
     conversas: [],
     carregada: false,
 
-    async carregar() {
-      const salvas = await listarConversas()
-      definir({ conversas: salvas.sort(ordemRecente), carregada: true })
-    },
-
-    async abrirOuCriar(pubkey, relaysDica = []) {
-      const existente = await obterConversa(pubkey)
-      if (existente) {
-        // Reabrir uma conversa removida: o marcador de remocao continua, mas a reabertura e mais nova.
-        const reaberta =
-          existente.removidaEm !== undefined && !estaVisivel(existente)
-            ? { ...existente, reabertaEm: Math.floor(Date.now() / 1000) }
-            : existente
-        if (reaberta !== existente || !obter().conversas.some((c) => c.pubkey === pubkey)) {
-          await gravar(reaberta)
-        }
-        return { conversa: reaberta, criada: false }
-      }
-      const conversa: Conversa = {
-        pubkey,
-        relaysDica,
-        criadaEm: Math.floor(Date.now() / 1000),
-        novaPessoa: false,
-        conheco: true,
-      }
-      await gravar(conversa)
-      return { conversa, criada: true }
-    },
-
-    async registrarRecebida(pubkey, quando, trecho, relaysDica = [], propria = false) {
-      const existente = await obterConversa(pubkey)
-      const base: Conversa = existente ?? {
-        pubkey,
-        relaysDica,
-        criadaEm: quando,
-        novaPessoa: !propria,
-        conheco: propria,
-        lidaAte: await desdeNesteNavegador(Math.floor(Date.now() / 1000)),
-      }
-      // RN-WEB-CONVERSAS-010 e 011: so conta o que e do outro e mais novo que o ja visto.
-      const vistoAte = base.lidaAte ?? base.ultimaMensagemEm ?? 0
-      const naoLida = !propria && quando > vistoAte
-      const atualizada: Conversa = {
-        ...base,
-        conheco: base.conheco || propria ? true : base.conheco,
-        naoLidas: (base.naoLidas ?? 0) + (naoLida ? 1 : 0),
-        ultimaMensagemEm: Math.max(base.ultimaMensagemEm ?? 0, quando),
-        trecho: quando >= (base.ultimaMensagemEm ?? 0) ? trecho : base.trecho,
-      }
-      await gravar(atualizada)
-      return atualizada
-    },
-
-    async marcarVista(pubkey) {
-      const existente = await obterConversa(pubkey)
-      if (!existente) return
-      if (existente.novaPessoa || existente.naoLidas) {
-        await gravar({
-          ...existente,
-          novaPessoa: false,
-          naoLidas: 0,
-          lidaAte: Math.max(existente.lidaAte ?? 0, existente.ultimaMensagemEm ?? 0),
-        })
-      }
-    },
-
-    async registrarApagamento(pubkey, limite, por) {
-      const existente = await obterConversa(pubkey)
-      const base: Conversa = existente ?? {
-        pubkey,
-        relaysDica: [],
-        criadaEm: limite,
-        novaPessoa: por === 'outro',
-        conheco: por === 'eu',
-      }
-      await gravar({
-        ...base,
-        apagadoAte: Math.max(base.apagadoAte ?? 0, limite),
-        apagadoPor: por,
-        ultimaMensagemEm: limite,
-        trecho: undefined,
+    carregar() {
+      return exclusivo(async () => {
+        const salvas = await listarConversas()
+        definir({ conversas: salvas.sort(ordemRecente), carregada: true })
       })
     },
 
-    async liberarFoto(pubkey) {
-      const existente = await obterConversa(pubkey)
-      if (existente && !fotoLiberada(existente)) await gravar({ ...existente, conheco: true })
+    abrirOuCriar(pubkey, relaysDica = []) {
+      return exclusivo(async () => {
+        const existente = await obterConversa(pubkey)
+        if (existente) {
+          // Reabrir uma conversa removida: o marcador de remocao continua, mas a reabertura e mais nova.
+          const reaberta =
+            existente.removidaEm !== undefined && !estaVisivel(existente)
+              ? { ...existente, reabertaEm: Math.floor(Date.now() / 1000) }
+              : existente
+          if (reaberta !== existente || !obter().conversas.some((c) => c.pubkey === pubkey)) {
+            await gravar(reaberta)
+          }
+          return { conversa: reaberta, criada: false }
+        }
+        const conversa: Conversa = {
+          pubkey,
+          relaysDica,
+          criadaEm: Math.floor(Date.now() / 1000),
+          novaPessoa: false,
+          conheco: true,
+        }
+        await gravar(conversa)
+        return { conversa, criada: true }
+      })
     },
 
-    async remover(pubkey) {
-      // RN-WEB-SYNC-003: fica um marcador (escondido da lista) para a remocao tambem valer nos outros aparelhos.
-      const existente = await obterConversa(pubkey)
-      if (existente) {
-        await salvarConversa({ ...existente, removidaEm: Math.floor(Date.now() / 1000) })
-      }
-      definir((estado) => ({ conversas: estado.conversas.filter((c) => c.pubkey !== pubkey) }))
+    registrarRecebida(pubkey, quando, trecho, relaysDica = [], propria = false) {
+      return exclusivo(async () => {
+        const existente = await obterConversa(pubkey)
+        const base: Conversa = existente ?? {
+          pubkey,
+          relaysDica,
+          criadaEm: quando,
+          novaPessoa: !propria,
+          conheco: propria,
+          lidaAte: await desdeNesteNavegador(Math.floor(Date.now() / 1000)),
+        }
+        // RN-WEB-CONVERSAS-010 e 011: so conta o que e do outro e mais novo que o ja visto.
+        const vistoAte = base.lidaAte ?? base.ultimaMensagemEm ?? 0
+        const naoLida = !propria && quando > vistoAte
+        const atualizada: Conversa = {
+          ...base,
+          conheco: base.conheco || propria ? true : base.conheco,
+          naoLidas: (base.naoLidas ?? 0) + (naoLida ? 1 : 0),
+          ultimaMensagemEm: Math.max(base.ultimaMensagemEm ?? 0, quando),
+          trecho: quando >= (base.ultimaMensagemEm ?? 0) ? trecho : base.trecho,
+        }
+        await gravar(atualizada)
+        return atualizada
+      })
+    },
+
+    marcarVista(pubkey) {
+      return exclusivo(async () => {
+        const existente = await obterConversa(pubkey)
+        if (!existente) return
+        if (existente.novaPessoa || existente.naoLidas) {
+          await gravar({
+            ...existente,
+            novaPessoa: false,
+            naoLidas: 0,
+            lidaAte: Math.max(existente.lidaAte ?? 0, existente.ultimaMensagemEm ?? 0),
+          })
+        }
+      })
+    },
+
+    registrarApagamento(pubkey, limite, por) {
+      return exclusivo(async () => {
+        const existente = await obterConversa(pubkey)
+        const base: Conversa = existente ?? {
+          pubkey,
+          relaysDica: [],
+          criadaEm: limite,
+          novaPessoa: por === 'outro',
+          conheco: por === 'eu',
+        }
+        await gravar({
+          ...base,
+          apagadoAte: Math.max(base.apagadoAte ?? 0, limite),
+          apagadoPor: por,
+          ultimaMensagemEm: limite,
+          trecho: undefined,
+        })
+      })
+    },
+
+    liberarFoto(pubkey) {
+      return exclusivo(async () => {
+        const existente = await obterConversa(pubkey)
+        if (existente && !fotoLiberada(existente)) await gravar({ ...existente, conheco: true })
+      })
+    },
+
+    remover(pubkey) {
+      return exclusivo(async () => {
+        // RN-WEB-SYNC-003: fica um marcador (escondido da lista) para a remocao tambem valer nos outros aparelhos.
+        const existente = await obterConversa(pubkey)
+        if (existente) {
+          await salvarConversa({ ...existente, removidaEm: Math.floor(Date.now() / 1000) })
+        }
+        definir((estado) => ({ conversas: estado.conversas.filter((c) => c.pubkey !== pubkey) }))
+      })
     },
   }
 })

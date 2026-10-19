@@ -6,6 +6,7 @@ na privacidade, não um status HTTP: a lista de conversas nunca passa pela API.
 ---
 
 ### RN-WEB-CONVERSAS-001 — Uma sala tem exatamente duas pessoas
+
 **Regra:** uma conversa é entre mim e uma única pubkey; o registro é identificado só pela pubkey do amigo.
 **Quando:** criação de conversa.
 **Se violada:** defeito de produto (grupos estão fora de escopo).
@@ -15,6 +16,7 @@ na privacidade, não um status HTTP: a lista de conversas nunca passa pela API.
 ---
 
 ### RN-WEB-CONVERSAS-002 — A chave do amigo é validada
+
 **Regra:** aceita `npub1…`, `nprofile1…` (guardando até 5 relays ws/wss indicados nele), hex de 64 caracteres e `nostr:` na frente; qualquer outra coisa é recusada.
 **Quando:** ao colar ou ler o QR.
 **Se violada:** "Essa chave não parece válida. Peça para a pessoa copiar o código dela de novo." e nenhuma conversa é criada.
@@ -24,6 +26,7 @@ na privacidade, não um status HTTP: a lista de conversas nunca passa pela API.
 ---
 
 ### RN-WEB-CONVERSAS-003 — Nsec colada por engano é apagada na hora
+
 **Regra:** se o texto digitado ou colado é uma chave secreta (`nsec1…`), o campo é limpo imediatamente, nada é guardado e a pessoa é avisada.
 **Quando:** digitação ou colagem no campo de chave do amigo.
 **Se violada:** defeito de segurança: a chave secreta ficaria na tela e no histórico do campo.
@@ -33,6 +36,7 @@ na privacidade, não um status HTTP: a lista de conversas nunca passa pela API.
 ---
 
 ### RN-WEB-CONVERSAS-004 — Não é possível conversar consigo mesmo
+
 **Regra:** a própria chave, em qualquer formato, é recusada.
 **Quando:** ao colar ou ler o QR.
 **Se violada:** "Essa é a sua própria chave."
@@ -42,6 +46,7 @@ na privacidade, não um status HTTP: a lista de conversas nunca passa pela API.
 ---
 
 ### RN-WEB-CONVERSAS-005 — No máximo uma sala por pubkey
+
 **Regra:** abrir conversa com quem já tem sala abre a existente em vez de criar outra.
 **Quando:** criação de conversa.
 **Se violada:** lista com salas duplicadas da mesma pessoa.
@@ -51,6 +56,7 @@ na privacidade, não um status HTTP: a lista de conversas nunca passa pela API.
 ---
 
 ### RN-WEB-CONVERSAS-006 — A lista de conversas nunca sai do navegador
+
 **Regra:** criar, abrir, atualizar e remover conversas só mexe no IndexedDB; nenhuma dessas operações publica ou consulta relay.
 **Quando:** sempre.
 **Se violada:** defeito de privacidade: alguém fora do aparelho saberia com quem a pessoa conversa.
@@ -60,6 +66,7 @@ na privacidade, não um status HTTP: a lista de conversas nunca passa pela API.
 ---
 
 ### RN-WEB-CONVERSAS-007 — Toda sala mostra o selo Privado
+
 **Regra:** a tela da conversa mostra sempre o selo "Privado" e o aviso de que só os dois leem o conteúdo (regra 3 da spec 0000).
 **Quando:** sempre que uma conversa está aberta.
 **Se violada:** defeito de produto.
@@ -69,6 +76,7 @@ na privacidade, não um status HTTP: a lista de conversas nunca passa pela API.
 ---
 
 ### RN-WEB-CONVERSAS-008 — Remover da lista não apaga mensagens nem avisa o amigo
+
 **Regra:** remover tira a conversa só da lista local; não apaga mensagens e não publica nada nos relays (apagar o histórico é a spec 0007).
 **Quando:** "Remover da lista".
 **Se violada:** defeito de produto: a pessoa acharia que apagou algo que continua nos relays.
@@ -77,7 +85,7 @@ na privacidade, não um status HTTP: a lista de conversas nunca passa pela API.
 
 ### RN-WEB-CONVERSAS-009 — Colar uma chave na busca abre a conversa
 
-**Regra:** se o texto da busca for um `npub`, `nprofile` ou hex válido (e não a minha chave), a lista mostra "Conversar com npub1…"; escolher abre (ou cria) a sala com essa pessoa. As mesmas recusas da *Nova conversa* valem (`nsec` e chave própria não oferecem nada).
+**Regra:** se o texto da busca for um `npub`, `nprofile` ou hex válido (e não a minha chave), a lista mostra "Conversar com npub1…"; escolher abre (ou cria) a sala com essa pessoa. As mesmas recusas da _Nova conversa_ valem (`nsec` e chave própria não oferecem nada).
 **Quando:** busca preenchida com uma chave.
 **Se violada:** falar com alguém novo exige trocar de tela.
 **Onde vive:** `web/src/pages/conversas/ListaConversas.tsx`
@@ -92,6 +100,7 @@ na privacidade, não um status HTTP: a lista de conversas nunca passa pela API.
 **Teste:** `web/src/conversas/naoLidas.test.ts`
 
 ### RN-WEB-CONVERSAS-011 — O histórico dos relays não vira "não lida"
+
 **Regra:** mensagens mais antigas que o primeiro acesso deste navegador (`voz:desde`), ou que o já visto na conversa, não contam como novas; conversas anteriores a este recurso valem como lidas.
 **Quando:** entrar num navegador novo ou reentrega de eventos antigos pelos relays.
 **Se violada:** contador falso com dezenas de "não lidas" ao entrar.
@@ -99,8 +108,17 @@ na privacidade, não um status HTTP: a lista de conversas nunca passa pela API.
 **Teste:** `web/src/conversas/naoLidas.test.ts`
 
 ### RN-WEB-CONVERSAS-012 — A aba do navegador avisa que há mensagem nova
+
 **Regra:** com mensagens não lidas, além do número no título (`(3) Voz`), o ícone da aba ganha uma bolinha vermelha; sem elas, volta ao ícone normal.
 **Quando:** contador de não lidas muda.
 **Se violada:** com a aba em segundo plano a pessoa não percebe a novidade.
 **Onde vive:** `web/src/conversas/iconeDaAba.ts`, `web/src/pages/conversas/LayoutConversas.tsx`
 **Teste:** `web/src/conversas/iconeDaAba.test.ts`
+
+### RN-WEB-CONVERSAS-012 — A lista não volta a um estado antigo
+
+**Regra:** ler, alterar e gravar uma conversa (ou grupo), e recarregar a lista, acontecem uma de cada vez. Uma mensagem que chega enquanto a conversa é marcada como lida, ou enquanto a lista recarrega, não é desfeita pela gravação mais lenta.
+**Quando:** ao chegar mensagem, abrir um chat, marcar como lida, apagar, remover ou recarregar a lista.
+**Se violada:** o último trecho, a hora e o contador da lista ficam desatualizados até a pessoa abrir um chat.
+**Onde vive:** `web/src/conversas/useConversas.ts`, `web/src/grupos/useGrupos.ts` (`exclusivo`)
+**Teste:** `web/src/conversas/useConversas.test.ts::RN-WEB-CONVERSAS-012`

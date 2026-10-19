@@ -43,6 +43,7 @@ vi.mock('@/nostr/relays', async (original) => ({
     assinar: vi.fn(() => () => {}),
     conectados: vi.fn(() => 0),
     definirAutenticador: vi.fn(),
+    monitorarConexoes: vi.fn(() => () => {}),
     definirRelays: vi.fn(),
     snapshot: vi.fn(() => []),
     publicar: vi.fn(async (evento: EventoNostr, _t?: number, urls?: readonly string[]) => {

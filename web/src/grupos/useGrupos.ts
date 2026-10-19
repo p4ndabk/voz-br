@@ -16,26 +16,46 @@ interface EstadoGrupos {
   marcarVisto(id: string): Promise<void>
 }
 
+// RN-WEB-CONVERSAS-012: mesma ideia da lista de conversas: uma alteracao de cada vez.
+let fila: Promise<unknown> = Promise.resolve()
+function exclusivo<T>(trabalho: () => Promise<T>): Promise<T> {
+  const proxima = fila.then(trabalho, trabalho)
+  fila = proxima.catch(() => {})
+  return proxima
+}
+
 export const useGrupos = create<EstadoGrupos>((definir) => ({
   grupos: [],
   carregada: false,
 
-  async carregar() {
-    const salvos = await listarGrupos()
-    definir({ grupos: salvos.sort(ordem), carregada: true })
+  carregar() {
+    return exclusivo(async () => {
+      const salvos = await listarGrupos()
+      definir({ grupos: salvos.sort(ordem), carregada: true })
+    })
   },
 
-  async gravar(grupo) {
-    await salvarGrupo(grupo)
-    definir((e) => ({ grupos: [...e.grupos.filter((g) => g.id !== grupo.id), grupo].sort(ordem) }))
-    return grupo
+  gravar(grupo) {
+    return exclusivo(async () => {
+      await salvarGrupo(grupo)
+      definir((e) => ({
+        grupos: [...e.grupos.filter((g) => g.id !== grupo.id), grupo].sort(ordem),
+      }))
+      return grupo
+    })
   },
 
-  async marcarVisto(id) {
-    const g = await obterGrupo(id)
-    if (!g || !g.naoLidas) return
-    const visto = { ...g, naoLidas: 0, lidaAte: Math.max(g.lidaAte ?? 0, g.ultimaMensagemEm ?? 0) }
-    await salvarGrupo(visto)
-    definir((e) => ({ grupos: e.grupos.map((x) => (x.id === id ? visto : x)) }))
+  marcarVisto(id) {
+    return exclusivo(async () => {
+      const g = await obterGrupo(id)
+      if (!g || !g.naoLidas) return
+      const visto = {
+        ...g,
+        naoLidas: 0,
+        lidaAte: Math.max(g.lidaAte ?? 0, g.ultimaMensagemEm ?? 0),
+      }
+      await salvarGrupo(visto)
+      definir((e) => ({ grupos: e.grupos.map((x) => (x.id === id ? visto : x)) }))
+    })
   },
 }))

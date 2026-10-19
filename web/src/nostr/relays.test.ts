@@ -562,6 +562,55 @@ describe('GerenteDeRelays', () => {
     })
   })
 
+  // RN-WEB-RELAYS-013
+  describe('conexao morta', () => {
+    it('RN-WEB-RELAYS-013: relay que nao responde a sonda e derrubado e reconecta sozinho', async () => {
+      const gerente = criar(['wss://a'])
+      gerente.iniciar()
+      const socket = ultimoSocket('wss://a')
+      socket.abrir()
+      gerente.inscrever({ kinds: [1059] }, () => {})
+      await vi.advanceTimersByTimeAsync(10)
+      gerente.sondar()
+      expect(socket.enviados.some((e) => e.includes('voz-sonda'))).toBe(true)
+      await vi.advanceTimersByTimeAsync(5_100) // ninguem respondeu
+      expect(socket.fechado).toBe(true)
+      expect(estados(gerente)['wss://a']).toBe('desconectado')
+      await vi.advanceTimersByTimeAsync(1_100)
+      const novo = ultimoSocket('wss://a')
+      expect(novo).not.toBe(socket)
+      novo.abrir()
+      // ao reconectar, a assinatura e refeita (traz o que ficou para tras)
+      expect(novo.enviados.some((e) => e.startsWith('["REQ"') && e.includes('1059'))).toBe(true)
+    })
+
+    it('RN-WEB-RELAYS-013: relay que responde a sonda continua conectado', async () => {
+      const gerente = criar(['wss://a'])
+      gerente.iniciar()
+      const socket = ultimoSocket('wss://a')
+      socket.abrir()
+      await vi.advanceTimersByTimeAsync(10)
+      gerente.sondar()
+      socket.receber(['EOSE', 'qualquer'])
+      await vi.advanceTimersByTimeAsync(5_100)
+      expect(socket.fechado).toBe(false)
+      expect(estados(gerente)['wss://a']).toBe('conectado')
+    })
+
+    it('RN-WEB-RELAYS-013: ao voltar a internet as conexoes antigas sao refeitas', async () => {
+      const gerente = criar(['wss://a'])
+      gerente.iniciar()
+      const socket = ultimoSocket('wss://a')
+      socket.abrir()
+      const parar = gerente.monitorarConexoes()
+      window.dispatchEvent(new Event('online'))
+      expect(socket.fechado).toBe(true)
+      await vi.advanceTimersByTimeAsync(1_100)
+      expect(ultimoSocket('wss://a')).not.toBe(socket)
+      parar()
+    })
+  })
+
   describe('normalizarRelay', () => {
     it('tira a barra final e recusa o que nao e ws/wss', () => {
       expect(normalizarRelay(' wss://x.org/ ')).toBe('wss://x.org')

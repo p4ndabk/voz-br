@@ -282,6 +282,8 @@ export function iniciarMensageria(assinante: Assinante): () => void {
     }),
   )
   // RN-WEB-APAGAR-003: pedidos que nao puderam sair saem quando algum relay volta.
+  // RN-WEB-RELAYS-013: conexao morta e refeita sozinha, e o que ficou para tras chega.
+  const pararMonitor = relays.monitorarConexoes()
   const pararFila = relays.assinar(() => {
     if (relays.conectados() > 0) void processarFila().catch(() => {})
   })
@@ -289,6 +291,7 @@ export function iniciarMensageria(assinante: Assinante): () => void {
     pararRecebimento()
     pararSincronia()
     pararFila()
+    pararMonitor()
     relays.definirAutenticador(null)
     useMeusRelays.getState().limpar()
   }

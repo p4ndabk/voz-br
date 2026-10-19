@@ -120,4 +120,20 @@ describe('useConversas', () => {
     expect(fotoLiberada({ ...base, novaPessoa: true })).toBe(false)
     expect(fotoLiberada(undefined)).toBe(false)
   })
+
+  it('RN-WEB-CONVERSAS-012: marcar como lida junto com uma mensagem nova nao devolve a lista ao estado antigo', async () => {
+    await useConversas.getState().registrarRecebida(maria, 1000, 'primeira')
+    // as duas coisas ao mesmo tempo, como quando uma mensagem chega com a conversa abrindo
+    await Promise.all([
+      useConversas.getState().marcarVista(maria),
+      useConversas.getState().registrarRecebida(maria, 2000, 'segunda'),
+      useConversas.getState().carregar(),
+    ])
+    const guardada = await obterConversa(maria)
+    expect(guardada).toMatchObject({ trecho: 'segunda', ultimaMensagemEm: 2000 })
+    expect(useConversas.getState().conversas[0]).toMatchObject({
+      trecho: 'segunda',
+      ultimaMensagemEm: 2000,
+    })
+  })
 })
