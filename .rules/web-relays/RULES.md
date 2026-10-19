@@ -98,3 +98,10 @@ Formato definido em [../README.md](../README.md).
 **Se violada:** escolher relays vira chute.
 **Onde vive:** `web/src/nostr/relays.ts` (`medirRelay`), `web/src/pages/Relays.tsx`
 **Teste:** `web/src/nostr/relays.test.ts::RN-WEB-RELAYS-011`, `web/src/pages/relays.test.tsx::RN-WEB-RELAYS-011`
+
+### RN-WEB-RELAYS-012 — Relay que exige AUTH recebe o evento de novo depois da prova
+**Regra:** se um relay recusa a publicação com `auth-required`, o Voz espera 1,5 s (a prova de AUTH sai ao receber o desafio) e reenvia o mesmo evento uma única vez. Se recusar de novo, conta como não aceito.
+**Quando:** ao publicar em relay que pede AUTH.
+**Se violada:** mensagens para quem usa relay privado nunca saem, porque o primeiro envio sempre chega antes da prova.
+**Onde vive:** `web/src/nostr/relays.ts` (`enviarEvento`)
+**Teste:** `web/src/nostr/relays.test.ts::RN-WEB-RELAYS-012`

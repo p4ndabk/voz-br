@@ -58,3 +58,10 @@ o Voz entrega; o que é do protocolo (a tag `p` do embrulho, o IP) fica dito com
 **Se violada:** quem pega o aparelho, um backup ou uma extensão lê todas as conversas mesmo com a chave protegida.
 **Onde vive:** `web/src/nostr/cofre.ts`, `web/src/nostr/sessao.ts`, `web/src/conversas/armazem.ts`, `web/src/conversas/armazemMensagens.ts`
 **Teste:** `web/src/nostr/cofre.test.ts`
+
+### RN-WEB-PRIVACIDADE-008 — Existe um atalho para um relay que exige autenticação
+**Regra:** em Relays, "Usar relay privado" troca o rascunho da lista pelo relay `relayPrivado`, que só entrega embrulhos a quem se autentica (NIP-42). Continua preciso salvar. O texto avisa que com um relay só, se ele cair, a pessoa deixa de receber.
+**Quando:** a pessoa toca no botão.
+**Se violada:** o botão não existe ou salva sem a pessoa confirmar, e os relays comuns continuam mostrando quem recebe mensagens.
+**Onde vive:** `web/src/pages/Relays.tsx`, `web/src/nostr/config.ts` (`relayPrivado`)
+**Teste:** `web/src/pages/relays.test.tsx::RN-WEB-PRIVACIDADE-008`

@@ -7,6 +7,9 @@ import {
   TEMPO_PUBLICAR_MS,
 } from './config'
 
+// RN-WEB-RELAYS-012: tempo para a prova de AUTH chegar antes de reenviar o evento.
+const ESPERA_REENVIO_AUTH_MS = 1_500
+
 export type EstadoRelay = 'conectando' | 'conectado' | 'desconectado'
 
 export interface RelayStatus {
@@ -290,11 +293,25 @@ export class GerenteDeRelays {
     return new Promise((resolve) => {
       let socketUsado: WebSocket | null = null
       let cancelarEspera: (() => void) | null = null
+      let reenviado = false
 
       const aoReceber = (msg: MessageEvent) => {
         try {
           const dados: unknown = JSON.parse(String(msg.data))
           if (Array.isArray(dados) && dados[0] === 'OK' && dados[1] === evento.id) {
+            // RN-WEB-RELAYS-012: relay que exige AUTH recusa o primeiro envio, que chegou antes da prova.
+            // Espera a prova e tenta uma vez de novo.
+            if (dados[2] !== true && !reenviado && String(dados[3]).startsWith('auth-required')) {
+              reenviado = true
+              setTimeout(() => {
+                try {
+                  entrada.socket?.send(JSON.stringify(['EVENT', evento]))
+                } catch {
+                  // o tempo limite cuida
+                }
+              }, ESPERA_REENVIO_AUTH_MS)
+              return
+            }
             terminar(dados[2] === true)
           }
         } catch {

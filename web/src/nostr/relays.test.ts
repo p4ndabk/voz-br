@@ -522,6 +522,34 @@ describe('GerenteDeRelays', () => {
       expect(gerente.conectados()).toBe(1)
     })
 
+    it('RN-WEB-RELAYS-012: auth-required ao publicar reenvia uma vez depois da prova', async () => {
+      const gerente = criar(['wss://a'])
+      gerente.definirAutenticador(async () => prova)
+      gerente.iniciar()
+      const socket = ultimoSocket('wss://a')
+      socket.abrir()
+      const resultado = gerente.publicar({ id: 'ev1' }, 10_000)
+      expect(socket.enviados).toEqual([JSON.stringify(['EVENT', { id: 'ev1' }])])
+      socket.receber(['OK', 'ev1', false, 'auth-required: you must auth'])
+      await vi.advanceTimersByTimeAsync(1_600)
+      expect(socket.enviados).toHaveLength(2)
+      socket.receber(['OK', 'ev1', true, ''])
+      expect((await resultado).aceitos).toBe(1)
+    })
+
+    it('RN-WEB-RELAYS-012: recusa que se repete nao entra em laco', async () => {
+      const gerente = criar(['wss://a'])
+      gerente.iniciar()
+      const socket = ultimoSocket('wss://a')
+      socket.abrir()
+      const resultado = gerente.publicar({ id: 'ev2' }, 10_000)
+      socket.receber(['OK', 'ev2', false, 'auth-required: x'])
+      await vi.advanceTimersByTimeAsync(1_600)
+      socket.receber(['OK', 'ev2', false, 'auth-required: x'])
+      expect((await resultado).aceitos).toBe(0)
+      expect(socket.enviados).toHaveLength(2)
+    })
+
     it('relay que nunca pede AUTH nunca recebe prova', async () => {
       const autenticador = vi.fn(async () => prova)
       const gerente = criar(['wss://a'])

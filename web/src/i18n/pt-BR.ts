@@ -165,6 +165,11 @@ export const t = {
       `Não consegui conectar em ${url}. Ele pode estar fora do ar agora ou o endereço pode estar errado.`,
     adicionarMesmoAssim: 'Adicionar mesmo assim',
     cancelar: 'Cancelar',
+    privado: {
+      botao: 'Usar relay privado',
+      texto:
+        'Troca a lista por um relay que só entrega as mensagens a quem prova ser o destinatário. Os relays comuns deixam qualquer pessoa ver quem recebe mensagens e quando. Com um relay só, se ele cair você deixa de receber até voltar.',
+    },
     restaurar: 'Restaurar padrão',
     salvar: 'Salvar relays',
     salvando: 'Publicando…',

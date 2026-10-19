@@ -4,7 +4,7 @@ import { clear } from 'idb-keyval'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { useMeusRelays } from '@/conversas/meusRelays'
-import { relaysPadrao } from '@/nostr/config'
+import { relayPrivado, relaysPadrao } from '@/nostr/config'
 import { gerarChave } from '@/nostr/signer/chaves'
 import { criarAssinanteLocal } from '@/nostr/signer/local'
 import { useSessao } from '@/nostr/useSessao'
@@ -70,6 +70,16 @@ describe('tela de relays', () => {
     expect(screen.getAllByText('conectado')).toHaveLength(relaysPadrao.length)
     expect(screen.getByRole('link', { name: 'Voltar' })).toHaveAttribute('href', '/configuracoes')
     expect(screen.getByRole('button', { name: 'Salvar relays' })).toBeDisabled()
+  })
+
+  it('RN-WEB-PRIVACIDADE-008: "Usar relay privado" troca a lista por um relay que exige autenticacao', async () => {
+    abrir()
+    await userEvent.click(screen.getByRole('button', { name: 'Usar relay privado' }))
+    expect(screen.getByText(relayPrivado)).toBeInTheDocument()
+    for (const url of relaysPadrao) expect(screen.queryByText(url)).not.toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Salvar relays' }))
+    await screen.findByText(/Lista publicada/)
+    expect(rede.publicados[0]!.evento.tags).toEqual([['relay', relayPrivado]])
   })
 
   it('RN-WEB-RELAYS-011: testar velocidade mostra o tempo de cada relay', async () => {

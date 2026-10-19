@@ -33,6 +33,11 @@ export const TEMPO_CONSULTA_MS = 6_000
 // Teto de conexoes extras (relays do amigo etc.), para um relay malicioso nao encher o navegador.
 export const MAXIMO_RELAYS_EXTRAS = 12
 
+// RN-WEB-PRIVACIDADE-008: relay que so entrega embrulhos a quem prova ser o destinatario (NIP-42). Em
+// 2026-10-19 foi o unico dos testados em que Alice publicou, Bob autenticado leu e um anonimo recebeu
+// "auth-required" (os padrao entregam embrulhos a qualquer um; damus, nostr.net e nip17.com recusaram a prova).
+export const relayPrivado = 'wss://auth.nostr1.com'
+
 // Perfis (kind 0) ficam espalhados: cada pessoa publica em alguns relays. Alem dos padrao, o Voz le
 // (e publica o proprio perfil) nestes, que em 2026-10-18 responderam bem. Nao servem para DMs.
 const RELAYS_EXTRAS_DE_PERFIL = [

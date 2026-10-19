@@ -5,7 +5,7 @@ import { CabecalhoPagina } from '@/components/ui/CabecalhoPagina'
 import { Campo } from '@/components/ui/Campo'
 import { useMeusRelays, validarRelay } from '@/conversas/meusRelays'
 import { t } from '@/i18n/pt-BR'
-import { relaysPadrao } from '@/nostr/config'
+import { relayPrivado, relaysPadrao } from '@/nostr/config'
 import { medirRelay } from '@/nostr/relays'
 import { useRelays } from '@/nostr/useRelays'
 import { useSessao } from '@/nostr/useSessao'
@@ -195,6 +195,16 @@ export function Relays() {
             disabled={iguais(mostrada, relaysPadrao) || salvando}
           >
             {t.relaysConfig.restaurar}
+          </Botao>
+        </div>
+        <div className="flex flex-col items-start gap-2 rounded-cordel border-2 border-borda bg-superficie p-3">
+          <p className="text-sm text-tinta-suave">{t.relaysConfig.privado.texto}</p>
+          <Botao
+            variante="secundario"
+            onClick={() => editar([relayPrivado])}
+            disabled={iguais(mostrada, [relayPrivado]) || salvando}
+          >
+            {t.relaysConfig.privado.botao}
           </Botao>
         </div>
         {resultado?.tipo === 'ok' && (
