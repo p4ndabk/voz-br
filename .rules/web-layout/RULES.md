@@ -31,12 +31,12 @@ Formato definido em [../README.md](../README.md). "Se violada" descreve o efeito
 
 ---
 
-### RN-WEB-LAYOUT-004 — Perfil, código e sair ficam no pé da lateral
-**Regra:** a lateral das conversas termina num menu com a pessoa logada (nome e foto, link para a conta), "Editar perfil", "Meu código" e "Sair" (com confirmação); essas telas (`/conta`, `/conta/perfil`, `/meu-codigo`) abrem no painel do meio, sem tirar a lista de vista.
+### RN-WEB-LAYOUT-004 — O pé da lateral tem a conta, com engrenagem, e o código
+**Regra:** a lateral das conversas termina em dois botões com cara de botão: um cartão com a foto, o nome e o rótulo "Configurações" com uma engrenagem (leva a `/conta`, e fica destacado enquanto `/conta`, `/conta/perfil` ou `/conta/relays` estão abertas), e um botão com o ícone de QR para "Meu código". "Editar perfil", "Relays", "Meu código" e "Ver chave secreta" ficam no alto da página de conta, e "Sair" (com confirmação) dentro dela. Essas telas abrem no painel do meio, sem tirar a lista de vista. (Antes eram quatro botões soltos e a foto clicável sem pista; decisão do David em 2026-10-19.)
 **Quando:** qualquer tela dentro do layout de conversas.
-**Se violada:** para mudar o perfil ou sair é preciso deixar a conversa e voltar para a lista.
-**Onde vive:** `web/src/pages/conversas/MenuConta.tsx`, `web/src/components/ModalSair.tsx`, rotas em `web/src/App.tsx`
-**Teste:** `web/src/pages/layout.test.tsx::menu da conta`
+**Se violada:** a pessoa não percebe que a foto é o caminho para as configurações, ou o pé da lateral volta a ficar poluído.
+**Onde vive:** `web/src/pages/conversas/MenuConta.tsx`, `web/src/pages/Conta.tsx`, `web/src/components/ui/{IconeEngrenagem,IconeQr}.tsx`, rotas em `web/src/App.tsx`
+**Teste:** `web/src/pages/layout.test.tsx::RN-WEB-LAYOUT-004`
 
 ### RN-WEB-LAYOUT-005 — Navegação sempre com saída
 

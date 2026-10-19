@@ -101,6 +101,28 @@ export function Conta() {
       <Identidade pubkey={assinante.pubkey} tamanho={56} />
       <p className="text-tinta-suave">{t.conta.metodo[assinante.metodo]}</p>
 
+      {/* RN-WEB-LAYOUT-004: os atalhos da conta ficam no topo, a vista, sem precisar rolar. */}
+      <div className="flex flex-wrap gap-3">
+        <Link
+          to="/conta/perfil"
+          className="inline-flex items-center justify-center rounded-cordel border-2 border-borda bg-vermelho px-5 py-2.5 font-bold text-sobre-vermelho shadow-carimbo active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+        >
+          {t.conta.editarPerfil}
+        </Link>
+        <Link
+          to="/conta/relays"
+          className="inline-flex items-center justify-center rounded-cordel border-2 border-borda bg-superficie px-5 py-2.5 font-bold shadow-carimbo active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+        >
+          {t.relaysConfig.link}
+        </Link>
+        <Link
+          to="/meu-codigo"
+          className="inline-flex items-center justify-center rounded-cordel border-2 border-borda bg-superficie px-5 py-2.5 font-bold shadow-carimbo active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
+        >
+          {t.conversas.meuCodigo}
+        </Link>
+      </div>
+
       <section className="flex flex-col gap-2">
         <h2 className="font-bold">{t.conta.chavePublica}</h2>
         <p className="break-all rounded-cordel border-2 border-borda bg-superficie p-3 font-mono text-sm">
@@ -222,18 +244,6 @@ export function Conta() {
       </section>
 
       <div className="flex flex-wrap gap-3">
-        <Link
-          to="/conta/perfil"
-          className="inline-flex items-center justify-center rounded-cordel border-2 border-borda bg-vermelho px-5 py-2.5 font-bold text-sobre-vermelho shadow-carimbo active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
-        >
-          {t.conta.editarPerfil}
-        </Link>
-        <Link
-          to="/conta/relays"
-          className="inline-flex items-center justify-center rounded-cordel border-2 border-borda bg-superficie px-5 py-2.5 font-bold shadow-carimbo active:translate-x-[3px] active:translate-y-[3px] active:shadow-none"
-        >
-          {t.relaysConfig.link}
-        </Link>
         {assinante.exportarNsec && (
           <Botao variante="secundario" onClick={() => setModalChave(true)}>
             {t.conta.verChave}

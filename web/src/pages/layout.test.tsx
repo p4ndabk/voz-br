@@ -148,7 +148,7 @@ describe('layout de duas colunas', () => {
   })
 
   // RN-WEB-LAYOUT-004
-  it('a lateral oferece Nova conversa e, no pe, Editar perfil, Meu codigo e Sair', async () => {
+  it('a lateral oferece Nova conversa e, no pe, so a conta (com engrenagem) e o codigo', async () => {
     abrir(`/conversas/${maria}`)
     await screen.findByText('Privado')
     const nav = within(lateral())
@@ -156,18 +156,30 @@ describe('layout de duas colunas', () => {
       'href',
       '/conversas/nova',
     )
-    expect(nav.getByRole('link', { name: 'Editar perfil' })).toHaveAttribute(
-      'href',
-      '/conta/perfil',
-    )
+    const conta = nav.getByRole('link', { name: 'Minha conta' })
+    expect(conta).toHaveAttribute('href', '/conta')
+    expect(conta).toHaveTextContent('Configurações')
+    expect(conta.querySelector('svg')).toHaveAttribute('aria-hidden', 'true')
     expect(nav.getByRole('link', { name: 'Meu código' })).toHaveAttribute('href', '/meu-codigo')
-    expect(nav.getAllByRole('link', { name: 'Minha conta' })[0]).toHaveAttribute('href', '/conta')
+    // Perfil, relays e sair agora ficam dentro da conta, nao soltos na lateral.
+    expect(nav.queryByRole('link', { name: 'Editar perfil' })).not.toBeInTheDocument()
+    expect(nav.queryByRole('link', { name: 'Relays' })).not.toBeInTheDocument()
+    expect(nav.queryByRole('button', { name: 'Sair' })).not.toBeInTheDocument()
   })
 
-  it('Sair pede confirmacao e so entao encerra a sessao', async () => {
-    abrir(`/conversas/${maria}`)
-    await screen.findByText('Privado')
-    await userEvent.click(within(lateral()).getByRole('button', { name: 'Sair' }))
+  it('RN-WEB-LAYOUT-004: a conta fica destacada quando a pagina de conta esta aberta', async () => {
+    abrir('/conta')
+    await screen.findByRole('heading', { name: 'Minha conta' })
+    expect(within(lateral()).getByRole('link', { name: 'Minha conta' })).toHaveAttribute(
+      'aria-current',
+      'page',
+    )
+  })
+
+  it('Sair (dentro da conta) pede confirmacao e so entao encerra a sessao', async () => {
+    abrir('/conta')
+    await screen.findByRole('heading', { name: 'Minha conta' })
+    await userEvent.click(within(meio()).getByRole('button', { name: 'Sair' }))
     expect(useSessao.getState().assinante).not.toBeNull()
     await userEvent.click(screen.getByRole('button', { name: 'Sair mesmo' }))
     expect(useSessao.getState().assinante).toBeNull()

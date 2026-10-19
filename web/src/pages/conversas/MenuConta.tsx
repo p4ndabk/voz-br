@@ -1,52 +1,51 @@
-import { useState } from 'react'
-import { Link, NavLink } from 'react-router-dom'
+import { NavLink } from 'react-router-dom'
 import { Avatar } from '@/components/ui/Avatar'
-import { ModalSair } from '@/components/ModalSair'
+import { IconeEngrenagem } from '@/components/ui/IconeEngrenagem'
+import { IconeQr } from '@/components/ui/IconeQr'
 import { t } from '@/i18n/pt-BR'
 import { nomeExibido } from '@/nostr/perfis'
 import { usePerfil } from '@/nostr/usePerfil'
 import { useSessao } from '@/nostr/useSessao'
 
-const item =
-  'inline-flex items-center rounded-cordel border-2 border-borda bg-superficie px-3 py-1.5 text-sm font-bold shadow-carimbo-pequeno active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
+const botao =
+  'rounded-cordel border-2 border-borda bg-superficie shadow-carimbo-pequeno hover:bg-fundo active:translate-x-[2px] active:translate-y-[2px] active:shadow-none'
 
-const ativo = 'bg-tinta text-fundo'
+const ativo = 'bg-fundo border-l-8 border-l-vermelho'
 
-// RN-WEB-LAYOUT-004: perfil, codigo e saida ficam sempre no pe da lateral das conversas.
+// RN-WEB-LAYOUT-004: o pe da lateral tem so dois botoes claros: a conta (nome, foto e a engrenagem de
+// configuracoes) e o codigo para o amigo. Perfil, relays, senha e sair ficam dentro da conta.
 export function MenuConta() {
   const assinante = useSessao((s) => s.assinante)
   const perfil = usePerfil(assinante?.pubkey ?? '')
-  const [modalSair, setModalSair] = useState(false)
   if (!assinante) return null
   const { texto: nome } = nomeExibido(perfil, assinante.pubkey)
 
   return (
-    <footer className="flex flex-col gap-3 border-t-2 border-borda bg-superficie p-4">
-      <Link to="/conta" className="flex items-center gap-3" aria-label={t.minhaConta}>
+    <footer className="flex items-stretch gap-2 border-t-2 border-borda bg-superficie p-3">
+      <NavLink
+        to="/conta"
+        aria-label={t.minhaConta}
+        className={({ isActive }) =>
+          `${botao} flex min-w-0 flex-1 items-center gap-3 px-3 py-2 ${isActive ? ativo : ''}`
+        }
+      >
         <Avatar semente={assinante.pubkey} foto={perfil?.foto} tamanho={40} />
-        <span className="min-w-0 flex-1 truncate font-bold">{nome}</span>
-      </Link>
-      <nav aria-label={t.minhaConta} className="flex flex-wrap gap-2">
-        <NavLink
-          to="/conta/perfil"
-          className={({ isActive }) => `${item} ${isActive ? ativo : ''}`}
-        >
-          {t.conta.editarPerfil}
-        </NavLink>
-        <NavLink
-          to="/conta/relays"
-          className={({ isActive }) => `${item} ${isActive ? ativo : ''}`}
-        >
-          {t.relaysConfig.link}
-        </NavLink>
-        <NavLink to="/meu-codigo" className={({ isActive }) => `${item} ${isActive ? ativo : ''}`}>
-          {t.conversas.meuCodigo}
-        </NavLink>
-        <button type="button" className={item} onClick={() => setModalSair(true)}>
-          {t.conta.sair}
-        </button>
-      </nav>
-      <ModalSair aberto={modalSair} aoFechar={() => setModalSair(false)} />
+        <span className="flex min-w-0 flex-1 flex-col text-left">
+          <span className="truncate font-bold">{nome}</span>
+          <span className="truncate text-xs text-tinta-suave">{t.conta.configuracoes}</span>
+        </span>
+        <IconeEngrenagem className="h-6 w-6 shrink-0" />
+      </NavLink>
+      <NavLink
+        to="/meu-codigo"
+        aria-label={t.conversas.meuCodigo}
+        title={t.conversas.meuCodigo}
+        className={({ isActive }) =>
+          `${botao} flex w-14 shrink-0 items-center justify-center ${isActive ? ativo : ''}`
+        }
+      >
+        <IconeQr className="h-6 w-6" />
+      </NavLink>
     </footer>
   )
 }

@@ -212,6 +212,7 @@ export const t = {
       nsec: 'Entrou com chave guardada neste navegador',
     },
     verChave: 'Ver chave secreta',
+    configuracoes: 'Configurações',
     editarPerfil: 'Editar perfil',
     verChaveTitulo: 'Mostrar chave secreta',
     verChaveAviso:
