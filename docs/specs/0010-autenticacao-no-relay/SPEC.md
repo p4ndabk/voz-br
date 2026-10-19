@@ -17,7 +17,7 @@
 
 **Problema:** em teste com relays reais (2026-10-18), o `wss://relay.damus.io`, que é relay padrão do Voz, respondeu à busca de embrulhos (kind 1059) com `CLOSED auth-required: requested filter requires authentication`. Sem responder ao desafio AUTH (NIP-42) o Voz não recebe mensagens por esse relay. O `relay.primal.net` entregou e decifrou normalmente.
 
-**Descoberta no mesmo teste:** o damus recusa a própria prova de AUTH (`relay needs serviceUrl to be configured before AUTH can work`), então o NIP-42 sozinho não o conserta. Foram testados 20 relays; passaram (publicar e ler um embrulho sem conta): `relay.primal.net`, `offchain.pub`, `purplerelay.com`, `relay.snort.social`, `nostr-pub.wellorder.net`, `nostr.oxtr.dev`, `nostr.bitcoiner.social`, `relay.coinos.io`. Os padrão do Voz passam a ser `primal`, `offchain.pub` e `purplerelay.com`.
+**Descoberta no mesmo teste:** o damus recusa a própria prova de AUTH (`relay needs serviceUrl to be configured before AUTH can work`), então o NIP-42 sozinho não o conserta. Foram testados 20 relays; passaram (publicar e ler um embrulho sem conta): `relay.primal.net`, `offchain.pub`, `purplerelay.com`, `relay.snort.social`, `nostr-pub.wellorder.net`, `nostr.oxtr.dev`, `nostr.bitcoiner.social`, `relay.coinos.io`. Os padrão do Voz passaram a ser `primal`, `offchain.pub` e `purplerelay.com`; depois, no mesmo dia, o `offchain.pub` passou a recusar conexões e foi trocado por `relay.snort.social`.
 
 **Objetivo:** quando um relay pedir autenticação, o Voz prova que é o dono da chave e refaz as assinaturas, para receber as mensagens também por esses relays.
 
