@@ -84,3 +84,24 @@ existe é o pedido (NIP-09), e estas regras existem para o Voz nunca prometer ma
 **Se violada:** o histórico apagado ressuscitaria a cada reconexão.
 **Onde vive:** `web/src/conversas/mensageria.ts` (`receberRumor`), `web/src/conversas/useConversas.ts` (`registrarApagamento`)
 **Teste:** `web/src/conversas/apagar.test.ts::RN-WEB-APAGAR-009`. Limite: uma mensagem nova cujo remetente tenha o relógio atrasado, com `created_at` até o limite, também seria ignorada.
+
+### RN-WEB-APAGAR-010 — O fogo só atrasa a saída das mensagens da tela
+**Regra:** o apagamento de verdade (IndexedDB e fila de pedidos) acontece antes e nunca depende da animação; o fogo só segura por cerca de 2,4 s o instante em que as mensagens saem da memória da tela. Qualquer falha na animação deixa o apagamento seguir.
+**Quando:** apagar o histórico, por vontade minha ou a pedido do amigo.
+**Se violada:** mensagem apagada reaparece, ou apagar falha por causa de um efeito visual.
+**Onde vive:** `web/src/conversas/{apagar,queima}.ts`
+**Teste:** `web/src/conversas/queima.test.ts`, `web/src/conversas/apagar.test.ts::RN-WEB-APAGAR-010`
+
+### RN-WEB-APAGAR-011 — Movimento reduzido só esmaece
+**Regra:** com `prefers-reduced-motion: reduce` não há fogo nem canvas: as mensagens esmaecem em cerca de 0,5 s.
+**Quando:** apagar com a preferência ligada.
+**Se violada:** animação intensa para quem pediu menos movimento.
+**Onde vive:** `web/src/pages/Conversa.tsx`, `web/src/styles/index.css`
+**Teste:** `web/src/pages/apagar.test.tsx::RN-WEB-APAGAR-011`
+
+### RN-WEB-APAGAR-012 — Só anima com a conversa aberta e a aba visível
+**Regra:** o fogo roda quando a conversa apagada está aberta e a aba visível, também quando o pedido vem do amigo; caso contrário as mensagens saem na hora.
+**Quando:** apagar.
+**Se violada:** animação rodando sem ninguém ver, ou apagar demorando à toa.
+**Onde vive:** `web/src/conversas/queima.ts`
+**Teste:** `web/src/conversas/queima.test.ts`
