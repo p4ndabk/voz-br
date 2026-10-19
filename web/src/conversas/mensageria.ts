@@ -22,6 +22,7 @@ import {
 import { obterConversa } from './armazem'
 import { aplicarPedidoRecebido, processarFila } from './apagar'
 import { notificarNovaMensagem } from './notificacoes'
+import { tocarPlin } from './som'
 import { useMeusRelays } from './meusRelays'
 import { meusRelaysDm, relaysDeDmDe, relaysDoAmigo } from './relaysDm'
 import { useConversas } from './useConversas'
@@ -182,7 +183,10 @@ async function receberRumor(minhaPubkey: string, rumor: Rumor): Promise<void> {
       propria,
     )
   // RN-WEB-NOTIF-003: so avisa o que acabou de contar como nova; o historico dos relays nao.
-  if ((atualizada.naoLidas ?? 0) > (conversa?.naoLidas ?? 0)) notificarNovaMensagem(parceiro)
+  if ((atualizada.naoLidas ?? 0) > (conversa?.naoLidas ?? 0)) {
+    tocarPlin()
+    notificarNovaMensagem(parceiro)
+  }
 }
 
 // RN-WEB-MENSAGENS-001/006: assina os embrulhos enderecados a mim, abre um de cada vez e

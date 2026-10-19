@@ -13,6 +13,7 @@ import {
   ligarNotificacoes,
   type EstadoNotificacoes,
 } from '@/conversas/notificacoes'
+import { definirSom, somLigado, tocarPlin } from '@/conversas/som'
 import { t } from '@/i18n/pt-BR'
 import { npubDe } from '@/nostr/signer/chaves'
 import { useSessao } from '@/nostr/useSessao'
@@ -25,6 +26,7 @@ export function Conta() {
   const [modalChave, setModalChave] = useState(false)
   const [nsecVisivel, setNsecVisivel] = useState<string>()
   const [modalSair, setModalSair] = useState(false)
+  const [som, setSom] = useState(somLigado)
   const [avisos, setAvisos] = useState<EstadoNotificacoes>(estadoNotificacoes)
 
   useEffect(() => {
@@ -58,6 +60,26 @@ export function Conta() {
         <p className="text-sm text-tinta-suave">{t.conta.chavePublicaAjuda}</p>
         <div>
           <BotaoCopiar texto={npub} />
+        </div>
+      </section>
+
+      <section className="flex flex-col gap-2" aria-labelledby="som-mensagem">
+        <h2 id="som-mensagem" className="font-bold">
+          {t.notificacoes.som}
+        </h2>
+        <p className="text-sm text-tinta-suave">{t.notificacoes.somAjuda}</p>
+        <p role="status">{som ? t.notificacoes.somLigado : t.notificacoes.somSilenciado}</p>
+        <div>
+          <Botao
+            variante="secundario"
+            onClick={() => {
+              definirSom(!som)
+              setSom(!som)
+              if (!som) tocarPlin()
+            }}
+          >
+            {som ? t.notificacoes.somSilenciar : t.notificacoes.somLigar}
+          </Botao>
         </div>
       </section>
 

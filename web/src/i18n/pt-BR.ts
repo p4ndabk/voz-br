@@ -161,6 +161,12 @@ export const t = {
     secao: 'Avisos do navegador',
     ajuda:
       'Mostra um aviso quando chega mensagem com o Voz em segundo plano. O aviso não traz o texto da mensagem. Com o Voz fechado, nada chega.',
+    som: 'Som de mensagem nova',
+    somAjuda: 'Um “plin” curto quando chega mensagem.',
+    somLigar: 'Ligar som',
+    somSilenciar: 'Silenciar som',
+    somLigado: 'Som ligado.',
+    somSilenciado: 'Som silenciado.',
     ligar: 'Ligar avisos',
     desligar: 'Desligar avisos',
     ligados: 'Avisos ligados.',
