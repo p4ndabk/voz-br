@@ -164,6 +164,7 @@ export const t = {
     som: 'Som de mensagem nova',
     somAjuda: 'Um “plin” curto quando chega mensagem.',
     somLigar: 'Ligar som',
+    somOuvir: 'Ouvir o som',
     somSilenciar: 'Silenciar som',
     somLigado: 'Som ligado.',
     somSilenciado: 'Som silenciado.',

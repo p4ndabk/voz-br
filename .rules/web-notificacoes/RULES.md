@@ -26,7 +26,7 @@ Formato definido em [../README.md](../README.md).
 **Teste:** `web/src/conversas/notificacoes.test.ts::RN-WEB-NOTIF-003`
 
 ### RN-WEB-NOTIF-004 — "Plin" ao chegar mensagem, com opção de silenciar
-**Regra:** quando chega mensagem nova (a que conta como não lida, RN-WEB-CONVERSAS-011), o Voz toca um "plin" curto gerado no navegador. O som vem ligado; em *Conta* a pessoa silencia ou religa, e a escolha fica guardada neste navegador. Ao religar, toca uma vez para ela ouvir.
+**Regra:** quando chega mensagem nova (a que conta como não lida, RN-WEB-CONVERSAS-011), o Voz toca um "plin" curto gerado no navegador. O som vem ligado; em *Conta* a pessoa silencia ou religa, e a escolha fica guardada neste navegador. O botão "Ouvir o som" toca na hora. O navegador só libera áudio depois de um gesto da pessoa; por isso o Voz destrava o áudio no primeiro clique, toque ou tecla.
 **Quando:** chega mensagem do outro; tela de conta.
 **Se violada:** som que não se consegue desligar, ou tocando com o histórico ao entrar.
 **Onde vive:** `web/src/conversas/{som,mensageria}.ts`, `web/src/pages/Conta.tsx`

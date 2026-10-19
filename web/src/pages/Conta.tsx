@@ -75,10 +75,12 @@ export function Conta() {
             onClick={() => {
               definirSom(!som)
               setSom(!som)
-              if (!som) tocarPlin()
             }}
           >
             {som ? t.notificacoes.somSilenciar : t.notificacoes.somLigar}
+          </Botao>
+          <Botao variante="secundario" className="ml-3" onClick={() => tocarPlin(true)}>
+            {t.notificacoes.somOuvir}
           </Botao>
         </div>
       </section>

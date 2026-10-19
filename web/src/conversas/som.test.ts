@@ -15,6 +15,7 @@ function simularAudio() {
     'AudioContext',
     class {
       currentTime = 0
+      state = 'running'
       destination = {}
       resume = vi.fn(async () => {})
       createOscillator = no
@@ -44,6 +45,12 @@ describe('som de mensagem nova', () => {
     definirSom(true)
     tocarPlin()
     expect(iniciados).toHaveBeenCalled()
+  })
+
+  it('RN-WEB-NOTIF-004: o botao Ouvir toca mesmo silenciado', () => {
+    definirSom(false)
+    tocarPlin(true)
+    expect(iniciados).toHaveBeenCalledTimes(2)
   })
 
   it('RN-WEB-NOTIF-004: sem suporte a audio nao quebra', () => {
