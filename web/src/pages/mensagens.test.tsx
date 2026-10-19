@@ -196,11 +196,13 @@ describe('aviso de privacidade', () => {
     await abrir()
     expect(
       await screen.findByText(
-        /O conteúdo só você e Maria leem\. Os relays veem que houve uma mensagem e quando/,
+        /O conteúdo é criptografado: só você e Maria conseguem ler\. Os servidores \(relays\) só sabem que houve uma mensagem e quando/,
       ),
     ).toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: 'Entendi' }))
-    expect(screen.queryByText(/O conteúdo só você e Maria leem/)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/O conteúdo é criptografado: só você e Maria conseguem ler/),
+    ).not.toBeInTheDocument()
   })
 
   it('nao volta nas proximas vezes que a conversa e aberta', async () => {
@@ -220,7 +222,9 @@ describe('aviso de privacidade', () => {
     )
     await screen.findByText('Privado')
     await new Promise((r) => setTimeout(r, 30))
-    expect(screen.queryByText(/O conteúdo só você e Maria leem/)).not.toBeInTheDocument()
+    expect(
+      screen.queryByText(/O conteúdo é criptografado: só você e Maria conseguem ler/),
+    ).not.toBeInTheDocument()
   })
 })
 

@@ -330,7 +330,7 @@ export const t = {
     ontem: 'Ontem',
     contador: (n: number, max: number) => `${n}/${max}`,
     avisoPrivacidade: (nome: string) =>
-      `O conteúdo só você e ${nome} leem. Os relays veem que houve uma mensagem e quando, mas não o que foi dito.`,
+      `O conteúdo é criptografado: só você e ${nome} conseguem ler. Os servidores (relays) só sabem que houve uma mensagem e quando, nunca o que foi dito.`,
     entendi: 'Entendi',
     lista: 'Mensagens',
   },
