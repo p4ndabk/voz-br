@@ -62,3 +62,10 @@ class ServiceUnavailableError(AppError):
 
     status_code = 503
     code = "SERVICE_UNAVAILABLE"
+
+
+class UpstreamError(AppError):
+    """Servico de terceiro respondeu errado, lento ou nao respondeu. -> HTTP 502"""
+
+    status_code = 502
+    code = "UPSTREAM_ERROR"

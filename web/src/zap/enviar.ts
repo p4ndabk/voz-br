@@ -1,3 +1,4 @@
+import { ErroPonte, pedirFaturaPelaApi } from '@/api/lnurl'
 import { relaysPadrao } from '@/nostr/config'
 import type { Assinante } from '@/nostr/signer/tipos'
 import type { ParametrosLnurl } from '@/perfil/lightning'
@@ -62,6 +63,8 @@ export async function pedirFatura(opcoes: {
   assinante: Assinante
   relays?: readonly string[]
   buscar?: typeof fetch
+  // Para testes; por padrao vem de urlDaApi().
+  urlApi?: string
 }): Promise<FaturaPedida> {
   const { parametros, sats, modo, assinante } = opcoes
   const buscar = opcoes.buscar ?? fetch
@@ -69,8 +72,6 @@ export async function pedirFatura(opcoes: {
   const milissats = sats * 1000
   const zap = modo === 'zap' && parametros.aceitaZap
 
-  const url = new URL(parametros.callback)
-  url.searchParams.set('amount', String(milissats))
   let pedido: EventoAssinado | undefined
   if (zap) {
     try {
@@ -86,30 +87,93 @@ export async function pedirFatura(opcoes: {
     } catch {
       throw new ErroZap('assinatura')
     }
-    url.searchParams.set('nostr', JSON.stringify(pedido))
-    url.searchParams.set('lnurl', codificarLnurl(parametros.url))
-  } else if (comentario && parametros.comentarioMax > 0) {
-    url.searchParams.set('comment', comentario.slice(0, parametros.comentarioMax))
+  }
+  const lnurl = zap ? codificarLnurl(parametros.url) : undefined
+  const comentarioSimples =
+    !zap && comentario && parametros.comentarioMax > 0
+      ? comentario.slice(0, parametros.comentarioMax)
+      : undefined
+
+  const pelaApi = () =>
+    pedirFaturaPelaApi(
+      {
+        endereco: parametros.endereco,
+        sats,
+        nostr: pedido ? JSON.stringify(pedido) : undefined,
+        lnurl,
+        comentario: comentarioSimples,
+      },
+      { buscar, urlApi: opcoes.urlApi },
+    )
+
+  let pr: string
+  try {
+    if (parametros.via === 'api' || !parametros.callback) {
+      pr = await pelaApi()
+    } else {
+      try {
+        pr = await faturaDireta(
+          parametros.callback,
+          milissats,
+          { pedido, lnurl, comentarioSimples },
+          buscar,
+        )
+      } catch (erro) {
+        // Sem resposta (rede ou CORS): o mesmo pedido segue pela API do Voz (spec 0012).
+        if (!(erro instanceof SemRespostaError)) throw erro
+        pr = await pelaApi()
+      }
+    }
+  } catch (erro) {
+    if (erro instanceof ErroZap) throw erro
+    throw new ErroZap('servico', erro instanceof ErroPonte ? erro.motivo : undefined)
+  }
+  // RN-WEB-ZAP-006: quem entrega a fatura (servico ou API) nao e confiavel; o valor e conferido aqui.
+  if (!faturaConfere(pr, milissats)) throw new ErroZap('fatura')
+  return { fatura: pr.trim(), pedido }
+}
+
+// O navegador nao obteve resposta: rede fora do ar, tempo esgotado ou bloqueio de CORS.
+class SemRespostaError extends Error {}
+
+async function faturaDireta(
+  callback: string,
+  milissats: number,
+  extras: { pedido?: EventoAssinado; lnurl?: string; comentarioSimples?: string },
+  buscar: typeof fetch,
+): Promise<string> {
+  const url = new URL(callback)
+  url.searchParams.set('amount', String(milissats))
+  if (extras.pedido) {
+    url.searchParams.set('nostr', JSON.stringify(extras.pedido))
+    if (extras.lnurl) url.searchParams.set('lnurl', extras.lnurl)
+  } else if (extras.comentarioSimples) {
+    url.searchParams.set('comment', extras.comentarioSimples)
   }
 
   const controle = new AbortController()
   const limite = setTimeout(() => controle.abort(), TEMPO_MS)
   try {
-    const resposta = await buscar(url.toString(), {
-      signal: controle.signal,
-      credentials: 'omit',
-      referrerPolicy: 'no-referrer',
-      headers: { Accept: 'application/json' },
-    })
-    const dados = (await resposta.json()) as { pr?: unknown; status?: unknown; reason?: unknown }
+    let resposta: Response
+    try {
+      resposta = await buscar(url.toString(), {
+        signal: controle.signal,
+        credentials: 'omit',
+        referrerPolicy: 'no-referrer',
+        headers: { Accept: 'application/json' },
+      })
+    } catch {
+      throw new SemRespostaError()
+    }
+    const dados = (await resposta.json().catch(() => ({}))) as {
+      pr?: unknown
+      status?: unknown
+      reason?: unknown
+    }
     if (!resposta.ok || dados.status === 'ERROR' || typeof dados.pr !== 'string') {
       throw new ErroZap('servico', typeof dados.reason === 'string' ? dados.reason : undefined)
     }
-    if (!faturaConfere(dados.pr, milissats)) throw new ErroZap('fatura')
-    return { fatura: dados.pr.trim(), pedido }
-  } catch (erro) {
-    if (erro instanceof ErroZap) throw erro
-    throw new ErroZap('servico')
+    return dados.pr
   } finally {
     clearTimeout(limite)
   }

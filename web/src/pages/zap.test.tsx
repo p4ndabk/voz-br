@@ -68,7 +68,10 @@ beforeEach(async () => {
   useConversas.setState({ conversas: [], carregada: false })
   await useConversas.getState().carregar()
 })
-afterEach(() => vi.unstubAllGlobals())
+afterEach(() => {
+  vi.unstubAllGlobals()
+  vi.unstubAllEnvs()
+})
 
 describe('enviar zap', () => {
   // RN-WEB-ZAP-001
@@ -226,5 +229,50 @@ describe('enviar zap', () => {
     expect(pagar).not.toHaveBeenCalled()
     await userEvent.click(botao)
     expect(pagar).toHaveBeenCalledWith('lnbc1u1pabc')
+  })
+
+  // Spec 0012: servico sem CORS (como a Bipa) passa pela API do Voz.
+  it('servico que bloqueia o navegador: consulta e fatura passam pela API, com aviso', async () => {
+    vi.stubEnv('VITE_API_URL', 'http://api.test')
+    const buscar = vi.fn(async (url: string, init?: RequestInit) => {
+      if (url.startsWith('https://exemplo.com')) throw new TypeError('Failed to fetch')
+      if (url.startsWith('http://api.test/lnurl/consulta')) {
+        return resposta({
+          url: 'https://exemplo.com/.well-known/lnurlp/maria',
+          min_sats: 1,
+          max_sats: 1000,
+          aceita_zap: true,
+          nostr_pubkey: 'c'.repeat(64),
+          comentario_max: 100,
+        })
+      }
+      expect(JSON.parse(String(init?.body))).toMatchObject({
+        endereco: 'maria@exemplo.com',
+        sats: 100,
+      })
+      return resposta({ fatura: 'lnbc1u1pabc' })
+    })
+    vi.stubGlobal('fetch', buscar)
+    abrir(maria)
+    await userEvent.click(await screen.findByRole('button', { name: 'Enviar zap' }))
+
+    expect(await screen.findByText(/passa pela API do Voz/)).toBeInTheDocument()
+    await userEvent.click(screen.getByRole('button', { name: 'Gerar fatura' }))
+    expect(await screen.findByText('Pague 100 sats')).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: 'Abrir na carteira' })).toHaveAttribute(
+      'href',
+      'lightning:lnbc1u1pabc',
+    )
+  })
+
+  it('consulta direta que funciona nao mostra o aviso da API', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async () => resposta(servico())),
+    )
+    abrir(maria)
+    await userEvent.click(await screen.findByRole('button', { name: 'Enviar zap' }))
+    await screen.findByRole('button', { name: 'Gerar fatura' })
+    expect(screen.queryByText(/passa pela API do Voz/)).not.toBeInTheDocument()
   })
 })

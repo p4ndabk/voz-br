@@ -28,6 +28,7 @@ A pasta espelha `app/modules/`. Cada módulo tem a sua, e dentro dela o
 | `auth/` | Regras do módulo `auth` |
 | `roles/` | Regras do módulo `roles` |
 | `permissions/` | Regras do módulo `permissions` |
+| `lnurl/` | Regras do módulo `lnurl` (ponte para serviços Lightning) |
 
 **`RULES.md` é obrigatório** em todo módulo que tem regra de negócio própria.
 A pasta existe (em vez de um arquivo solto) para o módulo poder crescer sem

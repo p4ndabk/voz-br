@@ -1,5 +1,5 @@
-import { describe, expect, it, vi } from 'vitest'
-import { verificarEnderecoLightning } from './lightning'
+import { afterEach, describe, expect, it, vi } from 'vitest'
+import { consultarLnurl, verificarEnderecoLightning } from './lightning'
 
 const respostaJson = (corpo: unknown, ok = true) => ({ ok, json: async () => corpo }) as Response
 
@@ -125,5 +125,95 @@ describe('verificarEnderecoLightning', () => {
     } finally {
       vi.useRealTimers()
     }
+  })
+})
+
+// Spec 0012
+describe('consultarLnurl com a ponte da API', () => {
+  afterEach(() => vi.unstubAllEnvs())
+
+  const doServico = {
+    tag: 'payRequest',
+    callback: 'https://exemplo.com/cb',
+    minSendable: 1000,
+    maxSendable: 5_000_000,
+    allowsNostr: true,
+    nostrPubkey: 'c'.repeat(64),
+  }
+
+  it('consulta direta que funciona nao toca na API', async () => {
+    vi.stubEnv('VITE_API_URL', 'http://api.test')
+    const buscar = vi.fn<typeof fetch>(
+      async () => ({ ok: true, json: async () => doServico }) as Response,
+    )
+    const r = await consultarLnurl('Maria@Exemplo.com', buscar)
+    expect(r).toMatchObject({ ok: true, via: 'direto', endereco: 'maria@exemplo.com' })
+    expect(buscar).toHaveBeenCalledTimes(1)
+  })
+
+  it('navegador bloqueado (sem resposta): cai para a API e marca via=api', async () => {
+    vi.stubEnv('VITE_API_URL', 'http://api.test/')
+    const buscar = vi.fn<typeof fetch>(async (entrada) => {
+      if (String(entrada).startsWith('https://')) throw new TypeError('Failed to fetch')
+      return {
+        ok: true,
+        json: async () => ({
+          url: 'https://exemplo.com/.well-known/lnurlp/maria',
+          min_sats: 1,
+          max_sats: 5000,
+          aceita_zap: true,
+          nostr_pubkey: 'c'.repeat(64),
+          comentario_max: 140,
+        }),
+      } as Response
+    })
+    const r = await consultarLnurl('maria@exemplo.com', buscar)
+    expect(r).toMatchObject({
+      ok: true,
+      via: 'api',
+      endereco: 'maria@exemplo.com',
+      minSats: 1,
+      maxSats: 5000,
+      aceitaZap: true,
+      comentarioMax: 140,
+    })
+    expect((r as { callback?: string }).callback).toBeUndefined()
+    expect(String(buscar.mock.calls[1]?.[0])).toBe(
+      'http://api.test/lnurl/consulta?endereco=maria%40exemplo.com',
+    )
+  })
+
+  it('API que recusa vira "invalido"; API fora do ar ou sem API vira "indisponivel"', async () => {
+    vi.stubEnv('VITE_API_URL', 'http://api.test')
+    const bloqueado = (status: number | 'cair') =>
+      vi.fn<typeof fetch>(async (entrada) => {
+        if (String(entrada).startsWith('https://')) throw new TypeError('Failed to fetch')
+        if (status === 'cair') throw new TypeError('api fora')
+        return { ok: false, status, json: async () => ({}) } as Response
+      })
+    expect(await consultarLnurl('a@exemplo.com', bloqueado(400))).toEqual({
+      ok: false,
+      motivo: 'invalido',
+    })
+    expect(await consultarLnurl('a@exemplo.com', bloqueado(502))).toEqual({
+      ok: false,
+      motivo: 'indisponivel',
+    })
+    expect(await consultarLnurl('a@exemplo.com', bloqueado('cair'))).toEqual({
+      ok: false,
+      motivo: 'indisponivel',
+    })
+    vi.stubEnv('VITE_API_URL', '')
+    expect(await consultarLnurl('a@exemplo.com', bloqueado(400))).toEqual({
+      ok: false,
+      motivo: 'indisponivel',
+    })
+  })
+
+  it('erro HTTP do proprio servico e resposta real: nao cai na API', async () => {
+    vi.stubEnv('VITE_API_URL', 'http://api.test')
+    const buscar = vi.fn<typeof fetch>(async () => ({ ok: false, status: 404 }) as Response)
+    expect(await consultarLnurl('a@exemplo.com', buscar)).toEqual({ ok: false, motivo: 'invalido' })
+    expect(buscar).toHaveBeenCalledTimes(1)
   })
 })

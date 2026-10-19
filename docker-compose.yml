@@ -24,6 +24,7 @@ services:
       DATABASE_URL: postgresql+asyncpg://postgres:postgres@db:5432/app
       ENVIRONMENT: development
       JWT_SECRET: dev-secret-nao-use-em-producao
+      CORS_ORIGINS: http://localhost:3000,http://localhost:5173
     ports:
       - "8000:8000"
     volumes:

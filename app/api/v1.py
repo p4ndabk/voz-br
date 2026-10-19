@@ -8,6 +8,7 @@ from fastapi import APIRouter
 
 from app.modules.auth.router import router as auth_router
 from app.modules.health.router import router as health_router
+from app.modules.lnurl.router import router as lnurl_router
 from app.modules.permissions.router import router as permissions_router
 from app.modules.roles.router import router as roles_router
 from app.modules.users.router import router as users_router
@@ -19,4 +20,5 @@ api_router.include_router(auth_router)
 api_router.include_router(users_router)
 api_router.include_router(roles_router)
 api_router.include_router(permissions_router)
+api_router.include_router(lnurl_router)
 # api_router.include_router(products_router)  # <- proximo modulo entra aqui

@@ -203,6 +203,7 @@ export function ModalZap({ aberto, aoFechar, nome, pubkey, endereco, assinante }
   } else {
     corpo = (
       <div className="flex flex-col gap-4">
+        {parametros.via === 'api' && <Aviso>{t.zap.viaApi}</Aviso>}
         <fieldset className="flex flex-col gap-2">
           <legend className="font-bold">{t.zap.valor}</legend>
           <div className="flex flex-wrap gap-2">
