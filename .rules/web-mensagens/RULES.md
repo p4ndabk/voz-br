@@ -114,3 +114,11 @@ na segurança, não um status HTTP: as mensagens vão do navegador direto aos re
 ## RN-WEB-MENSAGENS-012 — Emojis no campo de mensagem
 
 O botão 🙂 ao lado do campo abre uma grade fixa de emojis; tocar em um insere no cursor (ou no lugar da seleção) e mantém o foco no campo. O emoji vai junto com o texto, como qualquer caractere. Clicar fora da grade (no chat, no campo) ou apertar Esc fecha o seletor; clicar num emoji não fecha, para poder pôr vários.
+
+### RN-WEB-MENSAGENS-013 — Carregar o histórico não apaga a mensagem que acabou de chegar
+
+**Regra:** ao carregar o histórico de uma conversa (ou grupo), o que já está na memória é juntado ao que foi lido do armazenamento, por id. Uma mensagem que chegou durante a leitura não some da tela.
+**Quando:** ao abrir uma conversa ou um grupo.
+**Se violada:** o aviso e o som chegam, mas a mensagem não aparece até reabrir o Voz.
+**Onde vive:** `web/src/conversas/useMensagens.ts` (`carregar`)
+**Teste:** `web/src/conversas/useMensagens.test.ts`

@@ -25,7 +25,13 @@ export const useMensagens = create<EstadoMensagens>((definir, obter) => ({
 
   async carregar(conversa) {
     const salvas = await listarMensagens(conversa)
-    definir((e) => ({ porConversa: { ...e.porConversa, [conversa]: salvas.sort(emOrdem) } }))
+    // RN-WEB-MENSAGENS-013: uma mensagem que chegou enquanto o historico carregava ja esta na memoria e
+    // pode nao estar na leitura do armazenamento; junta as duas em vez de trocar uma pela outra.
+    definir((e) => {
+      const porId = new Map(salvas.map((m) => [m.id, m]))
+      for (const m of e.porConversa[conversa] ?? []) porId.set(m.id, m)
+      return { porConversa: { ...e.porConversa, [conversa]: [...porId.values()].sort(emOrdem) } }
+    })
   },
 
   async inserir(mensagem) {
