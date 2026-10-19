@@ -63,12 +63,8 @@ Sempre estes cinco campos, nesta ordem — nem mais, nem menos:
 
 - **Regra** — uma frase, no presente, afirmativa. Sem "deveria", sem "talvez".
 - **Quando** — em que operações a regra é avaliada.
-- **Se violada** — a consequência da violação. Para regra de domínio (a
-  maioria): a exceção de domínio e o status HTTP resultante. Para regra
-  estrutural em `_global/` que não passa por uma requisição HTTP (ex:
-  `RN-GLOBAL-001`, sobre timestamp): o efeito técnico observável, sem status
-  HTTP — porque não há um.
-- **Onde vive** — o arquivo que implementa. Quase sempre um `service.py`, porque
+- **Se violada** — a consequência na tela ou no fluxo (mensagem de erro, botão desabilitado, nada é enviado).
+- **Onde vive** — o arquivo que implementa.
   essa é a única camada onde regra de negócio pode morar.
 - **Teste** — o teste que prova a regra. Se não existe teste, a regra não está pronta.
 
@@ -94,7 +90,7 @@ Assim, `grep -r "RN-USERS-002" .` mostra a regra, a implementação e o teste.
 
 1. Escreva a regra em `.rules/<modulo>/RULES.md` **primeiro**, com um ID novo
    (crie a pasta se o módulo ainda não tiver uma).
-2. Implemente no `service.py` citando o ID no comentário.
+2. Implemente citando o ID no comentário.
 3. Escreva o teste citando o ID no docstring.
 4. Volte e preencha os campos **Onde vive** e **Teste** com os caminhos reais.
 
