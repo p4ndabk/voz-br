@@ -5,7 +5,7 @@ export const t = {
   voltarPagina: 'Voltar',
   lema: 'Conversa livre, sem dono.',
   descricao:
-    'Um espaço para conversar sobre política e filosofia, em português, sem depender de uma plataforma central.',
+    'Um espaço aberto para filosofar e falar de cultura, em português, sem depender de uma plataforma central.',
   entrar: 'Entrar',
   relays: {
     rotulo: 'Rede Nostr',
