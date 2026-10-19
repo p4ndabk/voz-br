@@ -25,6 +25,7 @@
 - [ ] Mensagens que queimam em CSS, cada uma quando a frente das chamas chega nela
 - [ ] Roda ao apagar por minha vontade e quando o pedido do amigo chega com a conversa aberta e a aba visível
 - [ ] Movimento reduzido (`prefers-reduced-motion`): só esmaece
+- [ ] Sem tela de resultado: um clique em Apagar fecha o aviso e só o fogo aparece (`RN-WEB-APAGAR-013`)
 
 ## 4. Fora de escopo
 

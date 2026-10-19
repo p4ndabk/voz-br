@@ -105,3 +105,10 @@ existe é o pedido (NIP-09), e estas regras existem para o Voz nunca prometer ma
 **Se violada:** animação rodando sem ninguém ver, ou apagar demorando à toa.
 **Onde vive:** `web/src/conversas/queima.ts`
 **Teste:** `web/src/conversas/queima.test.ts`
+
+### RN-WEB-APAGAR-013 — Sem tela de resultado: o fogo é o resultado
+**Regra:** clicar em **Apagar** fecha o aviso na hora e só o fogo aparece; não há tela de "Apagado deste aparelho", de pedidos enviados a relays nem de aviso pendente. O envio dos pedidos aos relays e do aviso ao amigo continua acontecendo (com fila e reenvio, RN-WEB-APAGAR-003), mas em silêncio, e uma falha nele não mostra nada. Isso substitui a parte "mostrar o resumo" de RN-WEB-APAGAR-003 e RN-WEB-APAGAR-008 (decisão do David em 2026-10-19); o aviso de antes de apagar (RN-WEB-APAGAR-004) continua.
+**Quando:** depois de clicar em Apagar.
+**Se violada:** uma tela de texto aparece por cima do fogo.
+**Onde vive:** `web/src/pages/conversa/ModalApagarHistorico.tsx`
+**Teste:** `web/src/pages/apagar.test.tsx::RN-WEB-APAGAR-013`

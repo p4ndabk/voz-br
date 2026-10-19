@@ -111,61 +111,30 @@ describe('apagar historico (interface)', () => {
     return modal
   }
 
-  it('apaga com o meu nome para o aviso e mostra o resumo', async () => {
-    const modal = await apagarTudo()
+  it('um clique em Apagar fecha o aviso, apaga com o meu nome e nao mostra tela de resultado', async () => {
+    await apagarTudo()
     expect(apagarHistorico).toHaveBeenCalledWith(eu, maria, 'Ana')
-    expect(await modal.findByText('Apagado deste aparelho.')).toBeInTheDocument()
-    expect(modal.getByText('Pedido enviado a 3 de 3 relays.')).toBeInTheDocument()
-    expect(modal.getByText('Pedido enviado a Maria.')).toBeInTheDocument()
-    expect(modal.queryByText(/quando a conexão voltar/)).not.toBeInTheDocument()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.queryByText('Apagado deste aparelho.')).not.toBeInTheDocument()
+    expect(screen.queryByText(/Pedido enviado/)).not.toBeInTheDocument()
   })
 
   it('a conversa fica vazia com a linha "Historico apagado em"', async () => {
-    const modal = await apagarTudo()
-    await modal.findByText('Apagado deste aparelho.')
-    await userEvent.click(modal.getByRole('button', { name: 'Fechar' }))
+    await apagarTudo()
     const hoje = new Intl.DateTimeFormat('pt-BR').format(new Date())
-    expect(screen.getByTestId('linha-apagado')).toHaveTextContent(`Histórico apagado em ${hoje}`)
+    expect(await screen.findByTestId('linha-apagado')).toHaveTextContent(
+      `Histórico apagado em ${hoje}`,
+    )
     const meio = within(screen.getByTestId('coluna-conversa'))
     expect(meio.queryByText('Nenhuma mensagem ainda')).not.toBeInTheDocument()
   })
 
-  it('RN-WEB-APAGAR-003: sem internet avisa que os pedidos saem quando a conexao voltar', async () => {
-    apagarHistorico.mockResolvedValue(
-      resultado({ relaysAtendidos: 0, aviso: 'pendente', pendentes: 7 }),
-    )
-    const modal = await apagarTudo()
-    expect(await modal.findByText('Apagado deste aparelho.')).toBeInTheDocument()
-    expect(modal.getByText('Pedido enviado a 0 de 3 relays.')).toBeInTheDocument()
-    expect(
-      modal.getByText('O aviso a Maria será enviado quando a conexão voltar.'),
-    ).toBeInTheDocument()
-    expect(
-      modal.getByText('Os pedidos aos relays serão enviados quando a conexão voltar.'),
-    ).toBeInTheDocument()
-  })
-
-  it('RN-WEB-APAGAR-008: informa quantas mensagens antigas nao puderam ser pedidas', async () => {
-    apagarHistorico.mockResolvedValue(resultado({ semChave: 5 }))
-    const modal = await apagarTudo()
-    expect(
-      await modal.findByText('5 mensagens antigas não puderam ser pedidas para apagar nos relays.'),
-    ).toBeInTheDocument()
-  })
-
-  it('RN-WEB-APAGAR-008: singular quando e so uma', async () => {
-    apagarHistorico.mockResolvedValue(resultado({ semChave: 1 }))
-    const modal = await apagarTudo()
-    expect(
-      await modal.findByText('1 mensagem antiga não pôde ser pedida para apagar nos relays.'),
-    ).toBeInTheDocument()
-  })
-
-  it('se der erro inesperado, mostra a falha em vez de fingir que apagou', async () => {
+  it('RN-WEB-APAGAR-013: erro no envio dos pedidos nao mostra nada nem quebra a tela', async () => {
     apagarHistorico.mockRejectedValue(new Error('boom'))
-    const modal = await apagarTudo()
-    expect(await modal.findByRole('alert')).toHaveTextContent('Não foi possível enviar')
-    expect(modal.queryByText('Apagado deste aparelho.')).not.toBeInTheDocument()
+    await apagarTudo()
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getByTestId('coluna-conversa')).toBeInTheDocument()
   })
 
   it('quando foi o amigo que apagou, a linha diz o nome dele', async () => {
@@ -235,7 +204,7 @@ describe('apagar historico (interface)', () => {
       vi.unstubAllGlobals()
     })
 
-    it('RN-WEB-APAGAR-010: ao apagar, o fogo aparece, as mensagens queimam e depois saem; o modal volta com o resultado', async () => {
+    it('RN-WEB-APAGAR-010: ao apagar, o fogo aparece, as mensagens queimam e depois saem, sem tela de resultado', async () => {
       await semear()
       apagarComFogo()
       simularCanvas()
@@ -248,15 +217,15 @@ describe('apagar historico (interface)', () => {
       expect(await screen.findByTestId('fogo')).toBeInTheDocument()
       expect(screen.getByText('primeira').closest('li')).toHaveClass('queimar')
       expect(screen.getByText('Queimando o histórico da conversa…')).toBeInTheDocument()
-      // O aviso sai da frente enquanto queima.
-      expect(screen.queryByRole('dialog', { name: 'Apagar histórico' })).not.toBeInTheDocument()
+      // O aviso fecha no clique: so o fogo fica na tela.
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
 
       await waitFor(() => expect(screen.queryByTestId('fogo')).not.toBeInTheDocument(), {
         timeout: 5000,
       })
       expect(screen.queryByText('primeira')).not.toBeInTheDocument()
-      const volta = within(await screen.findByRole('dialog', { name: 'Apagar histórico' }))
-      expect(await volta.findByText('Apagado deste aparelho.')).toBeInTheDocument()
+      // Nada de tela de resultado depois.
+      expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
     })
 
     it('RN-WEB-APAGAR-011: com movimento reduzido nao ha fogo, so esmaece', async () => {

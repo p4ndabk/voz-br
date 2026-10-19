@@ -269,7 +269,6 @@ export function Conversa() {
       {apagando && (
         <ModalApagarHistorico
           nome={nomeExibido(perfil, conversa.pubkey).texto}
-          oculto={queima !== null}
           aoFechar={() => setApagando(false)}
           aoApagar={() =>
             apagarHistorico(
