@@ -1,6 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ESPERA_MAXIMA_MS, MAXIMO_RELAYS_EXTRAS } from './config'
-import { esperaDaTentativa, GerenteDeRelays, normalizarRelay, type EstadoRelay } from './relays'
+import {
+  esperaDaTentativa,
+  GerenteDeRelays,
+  normalizarRelay,
+  testarRelay,
+  type EstadoRelay,
+} from './relays'
 
 class SocketFalso {
   static todos: SocketFalso[] = []
@@ -275,6 +281,71 @@ describe('GerenteDeRelays', () => {
       expect(pronto).toBe(false)
       await vi.advanceTimersByTimeAsync(100)
       expect(await resultado).toEqual([])
+    })
+  })
+
+  describe('definirRelays', () => {
+    it('RN-WEB-RELAYS-010: conecta os novos, fecha os que sairam e atualiza o indicador', () => {
+      const gerente = criar(['wss://a', 'wss://b'])
+      gerente.iniciar()
+      ultimoSocket('wss://a').abrir()
+      ultimoSocket('wss://b').abrir()
+      const antigo = ultimoSocket('wss://b')
+
+      gerente.definirRelays(['wss://a', 'wss://meu/'])
+
+      expect(antigo.fechado).toBe(true)
+      expect(gerente.snapshot().map((r) => r.url)).toEqual(['wss://a', 'wss://meu'])
+      expect(estados(gerente)['wss://meu']).toBe('conectando')
+      ultimoSocket('wss://meu').abrir()
+      expect(gerente.conectados()).toBe(2)
+      expect(gerente.total()).toBe(2)
+    })
+
+    it('um relay extra que entra na lista vira principal e aparece no indicador', async () => {
+      const gerente = criar(['wss://a'])
+      gerente.iniciar()
+      void gerente.publicar({ id: 'e' }, 1_000, ['wss://amigo'])
+      expect(gerente.total()).toBe(1)
+      gerente.definirRelays(['wss://a', 'wss://amigo'])
+      expect(gerente.total()).toBe(2)
+      expect(SocketFalso.todos.filter((x) => x.url === 'wss://amigo')).toHaveLength(1)
+      await vi.advanceTimersByTimeAsync(1_000)
+    })
+
+    it('ignora endereco invalido e repetido; assinatura em relay removido nao quebra', () => {
+      const gerente = criar(['wss://a', 'wss://b'])
+      gerente.iniciar()
+      ultimoSocket('wss://a').abrir()
+      ultimoSocket('wss://b').abrir()
+      gerente.inscrever({ kinds: [1059] }, () => {})
+      gerente.definirRelays(['wss://a', 'wss://a/', 'https://nao', 'wss://c'])
+      expect(gerente.snapshot().map((r) => r.url)).toEqual(['wss://a', 'wss://c'])
+      ultimoSocket('wss://c').abrir()
+      expect(gerente.conectados()).toBe(2)
+    })
+  })
+
+  describe('testarRelay', () => {
+    const Falso = SocketFalso as unknown as typeof WebSocket
+
+    it('RN-WEB-RELAYS-009: true quando abre', async () => {
+      const r = testarRelay('wss://ok', 5_000, Falso)
+      ultimoSocket('wss://ok').abrir()
+      expect(await r).toBe(true)
+      expect(ultimoSocket('wss://ok').fechado).toBe(true)
+    })
+
+    it('false quando cai ou da erro antes de abrir', async () => {
+      const r = testarRelay('wss://ruim', 5_000, Falso)
+      ultimoSocket('wss://ruim').cair()
+      expect(await r).toBe(false)
+    })
+
+    it('false quando passa do tempo', async () => {
+      const r = testarRelay('wss://mudo', 5_000, Falso)
+      await vi.advanceTimersByTimeAsync(5_000)
+      expect(await r).toBe(false)
     })
   })
 

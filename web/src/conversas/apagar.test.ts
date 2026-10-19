@@ -41,6 +41,8 @@ vi.mock('@/nostr/relays', async (original) => ({
     }),
     conectados: vi.fn(() => rede.conectados),
     definirAutenticador: vi.fn(),
+    definirRelays: vi.fn(),
+    snapshot: vi.fn(() => []),
     publicar: vi.fn(async (evento: EventoNostr, _t?: number, urls?: readonly string[]) => {
       const alvos = urls ?? []
       if (!rede.offline) rede.publicados.push({ evento, urls: alvos })

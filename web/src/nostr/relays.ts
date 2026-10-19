@@ -106,6 +106,43 @@ export class GerenteDeRelays {
     this.avisar()
   }
 
+  // RN-WEB-RELAYS-010: troca os relays principais (os da lista da pessoa). Os novos conectam, os que
+  // sairam fecham e deixam de receber assinaturas; um relay extra que entra na lista vira principal.
+  definirRelays(urls: readonly string[]): void {
+    const novos = [...new Set(urls.map(normalizarRelay).filter((u): u is string => u !== null))]
+    const saindo = this.entradas.filter((e) => !e.extra && !novos.includes(e.url))
+    for (const entrada of saindo) this.encerrarEntrada(entrada)
+    this.entradas = this.entradas.filter((e) => !saindo.includes(e))
+    for (const url of novos) {
+      const existente = this.entradas.find((e) => e.url === url)
+      if (existente) {
+        existente.extra = false
+        continue
+      }
+      const entrada = criarEntrada(url, false)
+      this.entradas.push(entrada)
+      this.conectar(entrada)
+    }
+    // Mantem a ordem da lista da pessoa.
+    this.entradas.sort((a, b) => ordem(novos, a) - ordem(novos, b))
+    for (const inscricao of this.inscricoes.values()) {
+      inscricao.alvos = inscricao.alvos.filter((e) => !saindo.includes(e))
+    }
+    this.avisar()
+  }
+
+  private encerrarEntrada(entrada: Entrada): void {
+    if (entrada.temporizador) clearTimeout(entrada.temporizador)
+    entrada.temporizador = null
+    const socket = entrada.socket
+    entrada.socket = null
+    if (socket) {
+      socket.onopen = socket.onclose = socket.onerror = null
+      socket.close()
+    }
+    entrada.estado = 'desconectado'
+  }
+
   // RN-WEB-RELAYS-005: sem autenticador (ninguem logado) o desafio AUTH e ignorado.
   definirAutenticador(autenticador: Autenticador | null): void {
     this.autenticador = autenticador
@@ -430,6 +467,42 @@ export class GerenteDeRelays {
     this.atualizarFotografia()
     this.ouvintes.forEach((ouvinte) => ouvinte())
   }
+}
+
+// Principais primeiro, na ordem da lista; extras depois.
+function ordem(lista: string[], entrada: Entrada): number {
+  const i = lista.indexOf(entrada.url)
+  return entrada.extra || i < 0 ? lista.length : i
+}
+
+// RN-WEB-RELAYS-009: abre uma conexao descartavel para ver se o relay responde. Nao mexe no gerente.
+export function testarRelay(
+  url: string,
+  tempoMs = 5_000,
+  Socket: typeof WebSocket = WebSocket,
+): Promise<boolean> {
+  return new Promise((resolve) => {
+    let socket: WebSocket
+    try {
+      socket = new Socket(url)
+    } catch {
+      return resolve(false)
+    }
+    const terminar = (ok: boolean) => {
+      clearTimeout(limite)
+      socket.onopen = socket.onerror = socket.onclose = null
+      try {
+        socket.close()
+      } catch {
+        // ja fechou
+      }
+      resolve(ok)
+    }
+    const limite = setTimeout(() => terminar(false), tempoMs)
+    socket.onopen = () => terminar(true)
+    socket.onerror = () => terminar(false)
+    socket.onclose = () => terminar(false)
+  })
 }
 
 export const relays = new GerenteDeRelays(relaysPadrao)

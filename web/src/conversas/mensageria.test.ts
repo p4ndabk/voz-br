@@ -16,6 +16,7 @@ import {
   reenviarMensagem,
   validarTexto,
 } from './mensageria'
+import { useMeusRelays } from './meusRelays'
 import { useConversas } from './useConversas'
 import { useMensagens } from './useMensagens'
 
@@ -36,6 +37,8 @@ vi.mock('@/nostr/relays', async (original) => ({
     assinar: vi.fn(() => () => {}),
     conectados: vi.fn(() => 0),
     definirAutenticador: vi.fn(),
+    definirRelays: vi.fn(),
+    snapshot: vi.fn(() => []),
     publicar: vi.fn(async (evento: EventoNostr, _t?: number, urls?: readonly string[]) => {
       if (rede.falhaAoPublicar) throw new Error('rede caiu')
       rede.publicados.push({ evento, urls })
@@ -208,6 +211,20 @@ describe('recebimento', () => {
     })
     parar()
     expect(rede.cancelou).toBe(true)
+  })
+
+  it('RN-WEB-RELAYS-010: se a minha lista muda, passa a escutar nos relays novos', async () => {
+    await listaDm(ana, ['wss://meu-dm'])
+    const parar = iniciarRecebimento(ana)
+    await vi.waitFor(() => expect(rede.inscricoes).toHaveLength(1))
+    useMeusRelays.setState({ lista: ['wss://novo-dm', 'wss://outro'] })
+    expect(rede.inscricoes).toHaveLength(2)
+    expect(rede.inscricoes[1]?.urls).toEqual(['wss://novo-dm', 'wss://outro'])
+    expect(rede.cancelou).toBe(true) // a escuta antiga foi encerrada
+    parar()
+    useMeusRelays.setState({ lista: ['wss://depois'] })
+    expect(rede.inscricoes).toHaveLength(2) // parado: nao escuta mais
+    useMeusRelays.setState({ lista: [] })
   })
 
   it('mensagem do amigo aparece na conversa, com a hora do rumor', async () => {

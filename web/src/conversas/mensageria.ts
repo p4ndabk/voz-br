@@ -21,6 +21,7 @@ import {
 } from './armazemMensagens'
 import { obterConversa } from './armazem'
 import { aplicarPedidoRecebido, processarFila } from './apagar'
+import { useMeusRelays } from './meusRelays'
 import { meusRelaysDm, relaysDeDmDe, relaysDoAmigo } from './relaysDm'
 import { useConversas } from './useConversas'
 import { useMensagens } from './useMensagens'
@@ -200,17 +201,25 @@ export function iniciarRecebimento(assinante: Assinante): () => void {
     })
   }
 
-  void meusRelaysDm(assinante.pubkey).then((urls) => {
-    if (parado) return
+  const escutar = (urls: string[]) => {
+    cancelar?.()
     cancelar = relays.inscrever(
       { kinds: [KIND_EMBRULHO], '#p': [assinante.pubkey], limit: 500 },
       aoEvento,
       urls,
     )
+  }
+  void meusRelaysDm(assinante.pubkey).then((urls) => {
+    if (!parado) escutar(urls)
+  })
+  // RN-WEB-RELAYS-010: se a lista mudar (carregou dos relays, ou a pessoa salvou), escuta nos novos.
+  const deixarDeObservar = useMeusRelays.subscribe((estado, anterior) => {
+    if (!parado && estado.lista !== anterior.lista && estado.lista.length > 0) escutar(estado.lista)
   })
 
   return () => {
     parado = true
+    deixarDeObservar()
     cancelar?.()
   }
 }
@@ -239,7 +248,12 @@ async function recuperarEnvios(): Promise<void> {
 
 export function iniciarMensageria(assinante: Assinante): () => void {
   void recuperarEnvios()
-  void garantirRelaysDm(assinante).catch(() => {})
+  // RN-WEB-RELAYS-007: carrega a lista da pessoa e so publica a padrao se ela nao tiver nenhuma.
+  void useMeusRelays
+    .getState()
+    .carregar(assinante.pubkey)
+    .then(() => garantirRelaysDm(assinante))
+    .catch(() => {})
   void processarFila().catch(() => {})
   const pararRecebimento = iniciarRecebimento(assinante)
   // RN-WEB-RELAYS-005: prova de identidade so quando o relay pede (NIP-42).
@@ -262,5 +276,6 @@ export function iniciarMensageria(assinante: Assinante): () => void {
     pararRecebimento()
     pararFila()
     relays.definirAutenticador(null)
+    useMeusRelays.getState().limpar()
   }
 }
