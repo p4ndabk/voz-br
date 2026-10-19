@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import {
+  alturaDaLingua,
   atualizar,
   brilhoDoFundo,
   corDaChama,
@@ -10,6 +11,7 @@ import {
   MAX_PARTICULAS,
   opacidadeFinal,
   passo,
+  progressoDaCauda,
   progressoDaFrente,
   yDaFrente,
 } from './motorDoFogo'
@@ -111,5 +113,34 @@ describe('fogo (motor de particulas)', () => {
     expect(chamas.length).toBeGreaterThan(0)
     // No inicio a frente esta embaixo: nenhuma chama pode estar na metade de cima.
     expect(chamas.every((p) => p.y > 300)).toBe(true)
+  })
+
+  it('a cauda do muro so comeca depois da frente chegar ao topo e termina antes do fim', () => {
+    expect(progressoDaCauda(0)).toBe(0)
+    expect(progressoDaCauda(1349)).toBe(0)
+    expect(progressoDaCauda(1800)).toBeGreaterThan(0.2)
+    expect(progressoDaCauda(1800)).toBeLessThan(0.8)
+    expect(progressoDaCauda(2250)).toBe(1)
+    expect(progressoDaCauda(DURACAO_MS)).toBe(1)
+  })
+
+  it('as linguas tem pontas afiadas: variam em x e no tempo, nunca ficam negativas', () => {
+    const alturas = new Set<number>()
+    for (let x = 0; x < 400; x += 7) {
+      for (const t of [0, 300, 700]) {
+        const h = alturaDaLingua(x, t, 1)
+        expect(h).toBeGreaterThanOrEqual(0)
+        expect(h).toBeLessThan(80)
+        alturas.add(Math.round(h))
+      }
+    }
+    expect(alturas.size).toBeGreaterThan(10)
+  })
+
+  it('no estilo cartoon nao nasce fumaca', () => {
+    const mundo = criarMundo(800, 600)
+    const aleatorio = sequencia()
+    for (let t = 0; t < FIM_DA_EMISSAO_MS; t += 16) passo(mundo, t, 16, aleatorio)
+    expect(mundo.particulas.some((p) => p.tipo === 'fumaca')).toBe(false)
   })
 })

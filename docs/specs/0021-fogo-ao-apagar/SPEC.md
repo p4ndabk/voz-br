@@ -17,7 +17,7 @@
 
 **Problema:** ao apagar o histórico as mensagens somem de uma vez, sem nenhum sinal de que algo grave aconteceu.
 
-**Objetivo:** uma animação de fogo realista, como o botão Fire do DuckDuckGo no Android: chamas sobem pela área da conversa e queimam as mensagens, que viram cinza. Só visual (sem som nem vibração). Aparece também quando a **outra pessoa** apaga e a conversa está aberta.
+**Objetivo:** uma animação de fogo em estilo **cartoon**, como o botão Fire do DuckDuckGo no Android: um muro de chamas chapadas (vermelho, laranja e amarelo, com pontas afiadas) sobe pela área da conversa e queima as mensagens, depois a base sobe e leva o fogo embora. Só visual (sem som nem vibração). Aparece também quando a **outra pessoa** apaga e a conversa está aberta.
 
 ## 3. Escopo — o que entra
 
@@ -74,7 +74,7 @@ Cenário: aba em segundo plano
 
 | Decisão | Por quê | Quem decidiu |
 |---|---|---|
-| Visual realista | o pedido é igual ao do DuckDuckGo | David |
+| Visual realista, depois trocado por **cartoon** (cores chapadas, sem brilho nem degradê) | o David achou a textura realista errada; a implementação (movimento, duração) ficou | David |
 | Só visual | evita som inesperado e vibração | David |
 | Roda também quando o outro apaga | dá o mesmo peso ao gesto | David |
 | Canvas próprio, sem biblioteca | a política de segurança só aceita scripts do próprio site | Claude |

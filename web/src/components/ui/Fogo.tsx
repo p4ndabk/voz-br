@@ -1,11 +1,11 @@
 import { useEffect, useRef } from 'react'
 import {
-  brilhoDoFundo,
-  corDaChama,
+  alturaDaLingua,
   criarMundo,
   DURACAO_MS,
   opacidadeFinal,
   passo,
+  progressoDaCauda,
   yDaFrente,
   type Mundo,
   type Particula,
@@ -16,63 +16,77 @@ interface Props {
   aoTerminar: () => void
 }
 
+// Cores chapadas do cartoon (sem degrade nem brilho).
+const VERMELHO = '#e8321a'
+const LARANJA = '#ff8a1c'
+const AMARELO = '#ffd23a'
+const CLARO = '#fff4a8'
+
+// Muro de chamas: tres camadas de linguas afiadas, uma dentro da outra. A de cima acompanha a frente
+// que sobe; a de baixo, a cauda que leva o fogo embora (RN-WEB-APAGAR-010).
+function desenharMuro(ctx: CanvasRenderingContext2D, mundo: Mundo, tempo: number) {
+  const { largura, altura } = mundo
+  const frente = yDaFrente(tempo, altura)
+  const cauda = altura * (1 - progressoDaCauda(tempo)) + 8
+  const camadas = [
+    { cor: VERMELHO, recuo: 0, fase: 0 },
+    { cor: LARANJA, recuo: 16, fase: 1.3 },
+    { cor: AMARELO, recuo: 36, fase: 2.6 },
+  ]
+  for (const { cor, recuo, fase } of camadas) {
+    const topo = frente + recuo
+    const base = cauda - recuo * 0.6
+    if (topo >= base) continue
+    ctx.fillStyle = cor
+    ctx.beginPath()
+    ctx.moveTo(0, base + alturaDaLingua(0, tempo, fase + 3) * 0.5)
+    ctx.lineTo(0, topo - alturaDaLingua(0, tempo, fase))
+    for (let x = 6; x <= largura + 6; x += 6) {
+      ctx.lineTo(x, topo - alturaDaLingua(x, tempo, fase))
+    }
+    ctx.lineTo(largura + 6, base + alturaDaLingua(largura, tempo, fase + 3) * 0.5)
+    for (let x = largura; x >= 0; x -= 6) {
+      ctx.lineTo(x, base + alturaDaLingua(x, tempo, fase + 3) * 0.5)
+    }
+    ctx.closePath()
+    ctx.fill()
+  }
+}
+
+function gota(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
+  ctx.beginPath()
+  ctx.moveTo(x, y - r * 1.7)
+  ctx.bezierCurveTo(x + r * 0.95, y - r * 0.3, x + r * 0.75, y + r, x, y + r)
+  ctx.bezierCurveTo(x - r * 0.75, y + r, x - r * 0.95, y - r * 0.3, x, y - r * 1.7)
+  ctx.closePath()
+  ctx.fill()
+}
+
 function desenhar(ctx: CanvasRenderingContext2D, mundo: Mundo, tempo: number) {
   const { largura, altura } = mundo
   ctx.clearRect(0, 0, largura, altura)
-
-  // Escurece a area queimada (sem isso a luz do fogo some no fundo claro) e acende um brilho na base.
-  const frente = yDaFrente(tempo, altura)
-  const brilho = brilhoDoFundo(tempo)
-  const topo = Math.max(0, frente - altura * 0.22)
-  const gradiente = ctx.createLinearGradient(0, topo, 0, altura)
-  gradiente.addColorStop(0, 'rgba(24, 10, 6, 0)')
-  gradiente.addColorStop(0.3, `rgba(24, 10, 6, ${brilho * 0.8})`)
-  gradiente.addColorStop(1, `rgba(40, 12, 4, ${Math.min(0.9, brilho * 1.3)})`)
   ctx.globalCompositeOperation = 'source-over'
-  ctx.fillStyle = gradiente
-  ctx.fillRect(0, topo, largura, altura - topo)
+  desenharMuro(ctx, mundo, tempo)
 
-  // Fumaca primeiro (por baixo), depois chamas e brasas somando luz.
-  const ordem = (p: Particula) => (p.tipo === 'fumaca' ? 0 : p.tipo === 'chama' ? 1 : 2)
-  const ordenadas = [...mundo.particulas].sort((a, b) => ordem(a) - ordem(b))
-  for (const p of ordenadas) {
+  // Linguas soltas e fagulhas, sempre chapadas: a cor so muda em degraus, conforme a idade.
+  const pintar = (p: Particula) => {
     const relativa = p.idade / p.vida
-    const [r, g, b, a] = corDaChama(relativa)
-    if (p.tipo === 'fumaca') {
-      ctx.globalCompositeOperation = 'source-over'
-      const alfa = 0.28 * (1 - relativa) * Math.min(1, p.idade / 200)
-      const f = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.raio)
-      f.addColorStop(0, `rgba(60, 52, 50, ${alfa})`)
-      f.addColorStop(1, 'rgba(60, 52, 50, 0)')
-      ctx.fillStyle = f
-    } else {
-      ctx.globalCompositeOperation = 'lighter'
-      // Chama e alongada na vertical e tremula; brasa e um pontinho.
-      const alongar = p.tipo === 'chama' ? 1.9 : 1
-      const tremer = p.tipo === 'chama' ? 0.8 + 0.2 * Math.sin(p.idade / 55 + p.x) : 1
-      ctx.save()
-      ctx.translate(p.x, p.y)
-      ctx.scale(p.tipo === 'chama' ? 0.65 : 1, alongar)
-      const f = ctx.createRadialGradient(0, 0, 0, 0, 0, p.raio)
-      const intensidade = (p.tipo === 'brasa' ? Math.min(1, a * 1.3) : a) * tremer
-      f.addColorStop(0, `rgba(${r | 0}, ${g | 0}, ${b | 0}, ${intensidade})`)
-      f.addColorStop(
-        0.45,
-        `rgba(${r | 0}, ${(g * 0.7) | 0}, ${(b * 0.4) | 0}, ${intensidade * 0.55})`,
-      )
-      f.addColorStop(1, `rgba(${(r * 0.6) | 0}, 20, 0, 0)`)
-      ctx.fillStyle = f
-      ctx.beginPath()
-      ctx.arc(0, 0, p.raio, 0, Math.PI * 2)
-      ctx.fill()
-      ctx.restore()
-      continue
+    ctx.globalAlpha = relativa > 0.8 ? Math.max(0, (1 - relativa) / 0.2) : 1
+    if (p.tipo === 'brasa') {
+      ctx.fillStyle = relativa < 0.5 ? CLARO : AMARELO
+      const lado = Math.max(2, p.raio * 1.6)
+      ctx.fillRect(p.x - lado / 2, p.y - lado / 2, lado, lado)
+      return
     }
-    ctx.beginPath()
-    ctx.arc(p.x, p.y, p.raio, 0, Math.PI * 2)
-    ctx.fill()
+    if (p.tipo !== 'chama') return
+    const r = Math.max(4, p.raio * 0.85)
+    ctx.fillStyle = relativa < 0.4 ? LARANJA : VERMELHO
+    gota(ctx, p.x, p.y, r)
+    ctx.fillStyle = relativa < 0.4 ? AMARELO : LARANJA
+    gota(ctx, p.x, p.y + r * 0.2, r * 0.55)
   }
-  ctx.globalCompositeOperation = 'source-over'
+  for (const p of mundo.particulas) pintar(p)
+  ctx.globalAlpha = 1
 }
 
 // RN-WEB-APAGAR-010: fogo em canvas por cima da area das mensagens. Nao captura toque nem aparece para

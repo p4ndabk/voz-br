@@ -57,6 +57,23 @@ export function corDaChama(idadeRelativa: number): [number, number, number, numb
   return [70, 40, 36, 0]
 }
 
+// Fim do muro de chamas: depois que a frente chega ao topo, a base sobe e leva o fogo embora.
+export const CAUDA_INICIO_MS = 1350
+export const CAUDA_FIM_MS = 2250
+
+// 0 = a base do muro ainda esta embaixo, 1 = ja saiu pelo topo.
+export function progressoDaCauda(tempoMs: number): number {
+  return facilitar(limitar((tempoMs - CAUDA_INICIO_MS) / (CAUDA_FIM_MS - CAUDA_INICIO_MS), 0, 1))
+}
+
+// Altura (px) da ponta de uma lingua de fogo no ponto x: pontas afiadas e vales arredondados, em
+// movimento. `fase` desloca as linguas de cada camada para elas nao ficarem alinhadas.
+export function alturaDaLingua(x: number, tempoMs: number, fase = 0): number {
+  const base = Math.abs(Math.sin(x / 34 + tempoMs / 150 + fase))
+  const miudo = Math.sin(x / 15 - tempoMs / 95 + fase * 2) * 0.12
+  return Math.max(0, (1 - base) ** 1.4 + miudo) * 54
+}
+
 // Brilho laranja no fundo, que sobe com a frente e se apaga no fim.
 export function brilhoDoFundo(tempoMs: number): number {
   const entrada = limitar(tempoMs / 300, 0, 1)
@@ -105,7 +122,7 @@ export function criarParticula(
     y,
     vx: (aleatorio() - 0.5) * 40,
     vy: -(90 + aleatorio() * 190),
-    raio: 9 + aleatorio() * 15,
+    raio: 13 + aleatorio() * 17,
     idade: 0,
     vida: 600 + aleatorio() * 600,
   }
@@ -155,11 +172,11 @@ export function passo(mundo: Mundo, tempoMs: number, dtMs: number, aleatorio: Al
   if (tempoMs >= FRENTE_INICIO_MS - 100 && tempoMs < FIM_DA_EMISSAO_MS) {
     const frente = yDaFrente(tempoMs, mundo.altura)
     // Taxa proporcional a largura: ~1 chama a cada 5 px por segundo de cada tipo, vezes o quadro.
-    mundo.resto += (mundo.largura / 5) * (dtMs / 1000) * 5
+    mundo.resto += (mundo.largura / 5) * (dtMs / 1000) * 2
     while (mundo.resto >= 1 && mundo.particulas.length < MAX_PARTICULAS) {
       mundo.resto -= 1
       const sorteio = aleatorio()
-      const tipo: TipoDeParticula = sorteio < 0.72 ? 'chama' : sorteio < 0.9 ? 'brasa' : 'fumaca'
+      const tipo: TipoDeParticula = sorteio < 0.72 ? 'chama' : 'brasa'
       const x = aleatorio() * mundo.largura
       // Nasce na frente e um pouco abaixo dela (o que ja queimou continua em chamas).
       // Tudo abaixo da frente continua queimando: mais denso junto dela, mais ralo para baixo.
