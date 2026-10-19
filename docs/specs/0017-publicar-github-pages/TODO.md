@@ -33,3 +33,10 @@
 | ID | Título | Resolvida em | Onde |
 |---|---|---|---|
 | | | | |
+
+## Domínio próprio (passo a passo, quando for comprar um)
+
+1. Registre o domínio e crie um registro `CNAME` apontando `www` (ou um subdomínio, como `voz`) para `p4ndabk.github.io`.
+2. No GitHub: *Settings* → *Pages* → *Custom domain* e marque *Enforce HTTPS*.
+3. No workflow, troque `VITE_BASE: /voz-br/` por `VITE_BASE: /` (o site passa a ficar na raiz do domínio).
+4. Quem já usa o endereço `github.io` terá outra origem: precisará entrar de novo (o armazenamento do navegador não é compartilhado entre origens).

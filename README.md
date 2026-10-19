@@ -22,8 +22,8 @@ O Voz funciona de outro jeito:
    - *Já tem Nostr?* Use uma extensão (Alby, nos2x), cole sua chave secreta (`nsec`) ou escaneie um QR code de um app como Amber.
    - *Nunca ouviu falar?* Clique em criar identidade. O Voz gera sua chave e pede que você a guarde. **Quem perde a chave perde a conta, e ninguém pode recuperar.**
 2. **Passe seu código a um amigo.** Em *Meu código* há um QR code e um texto (`npub`). É como seu número de telefone: pode compartilhar à vontade.
-3. **Comece uma conversa.** Em *Nova conversa*, cole o código do seu amigo ou leia o QR dele.
-4. **Converse.** O selo *Privado* fica sempre visível.
+3. **Comece uma conversa.** Toque no **+** ou, na busca da lista, cole o código do seu amigo (ou use *Nova conversa* para ler o QR dele). A busca também acha conversas antigas pelo nome ou pelo texto.
+4. **Converse.** O selo *Privado* fica sempre visível. Mensagens que você ainda não leu aparecem com um número na lista e no título da aba. Em *Conta* você pode ligar avisos do navegador (eles nunca mostram o texto da mensagem e só funcionam com o Voz aberto em segundo plano).
 5. **Mande bitcoin, se quiser.** O botão *Enviar zap* paga a pessoa pela rede Lightning. Ela precisa ter um endereço Lightning no perfil (algo como `nome@getalby.com`).
 6. **Escolha seus relays, se quiser.** Em *Conta* → *Relays* você vê por onde suas mensagens passam, adiciona outros ou o seu próprio (`wss://…`) e remove os que não quer. Essa lista também diz aos amigos onde entregar as mensagens para você.
 7. **Apague quando quiser.** Em *Mais* → *Apagar histórico*, o Voz apaga a conversa aqui, pede aos relays que apaguem e avisa seu amigo. Ele não pode **garantir** que a cópia do outro lado suma, e o Voz diz isso com todas as letras.
@@ -38,6 +38,10 @@ O Voz funciona de outro jeito:
 ## Usar agora
 
 O Voz está no ar em **https://p4ndabk.github.io/voz-br/**. Abra no navegador e siga os passos acima.
+
+### Instalar como app
+
+No celular ou no computador, use *Instalar* / *Adicionar à tela inicial* do navegador. O Voz abre em tela cheia e, sem internet, abre a lista de conversas (para enviar e receber é preciso estar online).
 
 ## Rodar no seu computador
 

@@ -17,7 +17,7 @@ Plano para as próximas entregas depois da tela de relays (spec 0013). Cada fase
 
 ---
 
-## Fase 1 — Navegação rápida: "+" e busca (spec 0014)
+## Fase 1 — Navegação rápida: "+" e busca (spec 0014) — **feita**
 
 **Problema:** o botão largo "Nova conversa" ocupa a lateral; para achar uma conversa só rolando; para falar com alguém é preciso ir a outra tela.
 
@@ -34,7 +34,7 @@ Plano para as próximas entregas depois da tela de relays (spec 0013). Cada fase
 
 ---
 
-## Fase 2 — Não lidas e notificações (spec 0015)
+## Fase 2 — Não lidas e notificações (spec 0015) — **feita** (RN-WEB-CONVERSAS-010/011, RN-WEB-NOTIF-001..003)
 
 **Estado hoje:** não existe controle de leitura nem aviso (conferido no código).
 
@@ -77,7 +77,7 @@ Plano para as próximas entregas depois da tela de relays (spec 0013). Cada fase
 - Cabeçalhos de segurança (CSP restringindo `connect-src` a `wss:` e serviços Lightning, sem scripts de terceiros), `_redirects` para o roteamento do SPA.
 - Atualizar a seção "Rodar" do README com o endereço público.
 
-**0018 — PWA**
+**0018 — PWA — feita** (RN-WEB-PWA-001..003)
 - `manifest.webmanifest` (nome, ícones gerados da logo, `display: standalone`, cores do Cordel) e service worker só para cache dos arquivos do app (sem cachear mensagens nem chaves).
 - Resultado: ícone na tela inicial, abre em tela cheia, carrega offline (a lista de conversas já é local).
 - Push com app fechado fica **fora**: exige servidor de push e quebraria o "sem backend". Registrar como decisão a tomar depois.
