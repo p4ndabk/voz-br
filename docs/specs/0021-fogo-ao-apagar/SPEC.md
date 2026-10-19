@@ -78,6 +78,7 @@ Cenário: aba em segundo plano
 | Visual realista, depois trocado por **cartoon** (cores chapadas, sem brilho nem degradê) | o David achou a textura realista errada; a implementação (movimento, duração) ficou | David |
 | Só visual | evita som inesperado e vibração | David |
 | Roda também quando o outro apaga | dá o mesmo peso ao gesto | David |
+| Versão aprovada guardada na etiqueta git `fogo-cartoon-v1` (chamas chapadas vermelho, laranja e amarelo); em seguida, teste de um estilo de xilogravura de cordel (contorno preto, paleta do Voz). Para voltar: `git checkout fogo-cartoon-v1 -- web/src/components/ui/Fogo.tsx` | David |
 | Canvas próprio, sem biblioteca | a política de segurança só aceita scripts do próprio site | Claude |
 
 ## 10. Definition of Ready

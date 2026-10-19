@@ -16,11 +16,27 @@ interface Props {
   aoTerminar: () => void
 }
 
-// Cores chapadas do cartoon (sem degrade nem brilho).
-const VERMELHO = '#e8321a'
-const LARANJA = '#ff8a1c'
-const AMARELO = '#ffd23a'
-const CLARO = '#fff4a8'
+// Xilogravura de cordel: poucas cores chapadas (a paleta do Voz), contorno preto grosso e riscado.
+const TINTA = '#1b1916'
+const VERMELHO = '#b3261e'
+const OCRE = '#e0a02c'
+const PAPEL = '#f2e8d5'
+
+// Riscado de entalhe: tracos verticais pretos dentro da camada vermelha (clipada pela propria forma).
+function riscar(ctx: CanvasRenderingContext2D, largura: number, topo: number, base: number) {
+  ctx.save()
+  ctx.clip()
+  ctx.strokeStyle = TINTA
+  ctx.lineWidth = 2
+  ctx.beginPath()
+  for (let x = 4; x < largura; x += 11) {
+    const comeco = topo + 18 + ((x * 7) % 23)
+    ctx.moveTo(x, comeco)
+    ctx.lineTo(x, Math.min(base, comeco + 26 + ((x * 13) % 31)))
+  }
+  ctx.stroke()
+  ctx.restore()
+}
 
 // Muro de chamas: tres camadas de linguas afiadas, uma dentro da outra. A de cima acompanha a frente
 // que sobe; a de baixo, a cauda que leva o fogo embora (RN-WEB-APAGAR-010).
@@ -29,11 +45,14 @@ function desenharMuro(ctx: CanvasRenderingContext2D, mundo: Mundo, tempo: number
   const frente = yDaFrente(tempo, altura)
   const cauda = altura * (1 - progressoDaCauda(tempo)) + 8
   const camadas = [
-    { cor: VERMELHO, recuo: 0, fase: 0 },
-    { cor: LARANJA, recuo: 16, fase: 1.3 },
-    { cor: AMARELO, recuo: 36, fase: 2.6 },
+    { cor: VERMELHO, recuo: 0, fase: 0, risca: true },
+    { cor: OCRE, recuo: 18, fase: 1.3, risca: false },
+    { cor: PAPEL, recuo: 40, fase: 2.6, risca: false },
   ]
-  for (const { cor, recuo, fase } of camadas) {
+  ctx.lineJoin = 'round'
+  ctx.lineWidth = 4
+  ctx.strokeStyle = TINTA
+  for (const { cor, recuo, fase, risca } of camadas) {
     const topo = frente + recuo
     const base = cauda - recuo * 0.6
     if (topo >= base) continue
@@ -50,6 +69,8 @@ function desenharMuro(ctx: CanvasRenderingContext2D, mundo: Mundo, tempo: number
     }
     ctx.closePath()
     ctx.fill()
+    if (risca) riscar(ctx, largura, topo, base)
+    ctx.stroke()
   }
 }
 
@@ -60,6 +81,7 @@ function gota(ctx: CanvasRenderingContext2D, x: number, y: number, r: number) {
   ctx.bezierCurveTo(x - r * 0.75, y + r, x - r * 0.95, y - r * 0.3, x, y - r * 1.7)
   ctx.closePath()
   ctx.fill()
+  ctx.stroke()
 }
 
 function desenhar(ctx: CanvasRenderingContext2D, mundo: Mundo, tempo: number) {
@@ -68,22 +90,28 @@ function desenhar(ctx: CanvasRenderingContext2D, mundo: Mundo, tempo: number) {
   ctx.globalCompositeOperation = 'source-over'
   desenharMuro(ctx, mundo, tempo)
 
-  // Linguas soltas e fagulhas, sempre chapadas: a cor so muda em degraus, conforme a idade.
+  // Linguas soltas e fagulhas, na mesma paleta; a cor so muda em degraus, conforme a idade.
   const pintar = (p: Particula) => {
     const relativa = p.idade / p.vida
     ctx.globalAlpha = relativa > 0.8 ? Math.max(0, (1 - relativa) / 0.2) : 1
+    ctx.strokeStyle = TINTA
+    ctx.lineWidth = 3
+    ctx.lineJoin = 'round'
     if (p.tipo === 'brasa') {
-      ctx.fillStyle = relativa < 0.5 ? CLARO : AMARELO
-      const lado = Math.max(2, p.raio * 1.6)
+      ctx.fillStyle = relativa < 0.5 ? PAPEL : OCRE
+      const lado = Math.max(3, p.raio * 1.5)
       ctx.fillRect(p.x - lado / 2, p.y - lado / 2, lado, lado)
+      ctx.lineWidth = 2
+      ctx.strokeRect(p.x - lado / 2, p.y - lado / 2, lado, lado)
       return
     }
     if (p.tipo !== 'chama') return
     const r = Math.max(4, p.raio * 0.85)
-    ctx.fillStyle = relativa < 0.4 ? LARANJA : VERMELHO
+    ctx.fillStyle = relativa < 0.4 ? OCRE : VERMELHO
     gota(ctx, p.x, p.y, r)
-    ctx.fillStyle = relativa < 0.4 ? AMARELO : LARANJA
-    gota(ctx, p.x, p.y + r * 0.2, r * 0.55)
+    ctx.lineWidth = 2
+    ctx.fillStyle = relativa < 0.4 ? PAPEL : OCRE
+    gota(ctx, p.x, p.y + r * 0.2, r * 0.5)
   }
   for (const p of mundo.particulas) pintar(p)
   ctx.globalAlpha = 1
