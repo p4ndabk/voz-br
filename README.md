@@ -36,18 +36,19 @@ O Voz funciona de outro jeito:
 
 ## Rodar no seu computador
 
-Precisa de [Node.js](https://nodejs.org) 20 ou mais.
+Precisa de [Node.js](https://nodejs.org) 20 ou mais. Use o gerenciador que preferir:
 
 ```bash
 cd web
-corepack enable
-pnpm install
-pnpm dev          # abre em http://localhost:5173
+npm install
+npm run dev       # abre em http://localhost:5173
 ```
+
+Se você usa o [pnpm](https://pnpm.io) (o que o projeto usa por dentro), é igual: `pnpm install` e `pnpm dev`.
 
 Ou com Docker: `docker compose up -d --build`.
 
-Antes de enviar uma mudança: `pnpm lint && pnpm test && pnpm build`.
+Antes de enviar uma mudança: `npm run lint && npm test && npm run build` (ou o mesmo com `pnpm`).
 
 ## Para quem quer ajudar
 
