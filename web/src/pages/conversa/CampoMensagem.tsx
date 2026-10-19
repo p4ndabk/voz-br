@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState, type KeyboardEvent, type PointerEvent } from 'react'
 import { Botao } from '@/components/ui/Botao'
+import { IconeEmoji } from '@/components/ui/IconeEmoji'
 import { LIMITE_MENSAGEM, validarTexto } from '@/conversas/mensageria'
 import { t } from '@/i18n/pt-BR'
 import { EMOJIS, inserirNoCursor } from './emojis'
@@ -111,7 +112,7 @@ export function CampoMensagem({ aoEnviar }: Props) {
         e.preventDefault()
         enviar()
       }}
-      className="flex flex-col gap-2 border-t-2 border-borda"
+      className="relative flex flex-col gap-2 border-t-2 border-borda"
     >
       {/* Alca de redimensionar no topo do campo. */}
       <div
@@ -132,7 +133,7 @@ export function CampoMensagem({ aoEnviar }: Props) {
         <div
           role="group"
           aria-label={t.mensagens.emojis}
-          className="grid grid-cols-8 gap-1 rounded-cordel border-2 border-borda bg-superficie p-2"
+          className="absolute bottom-full left-0 z-10 mb-2 grid grid-cols-8 gap-0.5 rounded-cordel border-2 border-borda bg-superficie p-1.5 shadow-carimbo-pequeno"
         >
           {EMOJIS.map((e) => (
             <button
@@ -140,22 +141,24 @@ export function CampoMensagem({ aoEnviar }: Props) {
               type="button"
               aria-label={t.mensagens.inserirEmoji(e)}
               onClick={() => colocarEmoji(e)}
-              className="rounded-cordel py-1 text-2xl hover:bg-fundo"
+              className="rounded-cordel p-1 text-xl leading-none hover:bg-fundo"
             >
               {e}
             </button>
           ))}
         </div>
       )}
-      <div className="flex items-end gap-3">
+      <div className="flex items-end gap-2">
         <button
           type="button"
           aria-label={t.mensagens.emojis}
           aria-expanded={emojisAbertos}
           onClick={() => setEmojisAbertos((a) => !a)}
-          className="h-11 shrink-0 rounded-cordel border-2 border-borda bg-superficie px-3 text-2xl"
+          className={`flex h-11 w-9 shrink-0 items-center justify-center transition-colors hover:text-tinta ${
+            emojisAbertos ? 'text-vermelho' : 'text-tinta-suave'
+          }`}
         >
-          <span aria-hidden>🙂</span>
+          <IconeEmoji />
         </button>
         <textarea
           ref={area}
