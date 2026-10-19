@@ -160,6 +160,8 @@ export function ModalZap({
     corpo = (
       <div className="flex flex-col items-start gap-3">
         <Aviso tom="erro">{t.zap.semServico}</Aviso>
+        <p className="text-sm text-tinta-suave">{t.zap.semServicoAjuda}</p>
+        <BotaoCopiar texto={endereco} rotulo={t.zap.copiarEndereco} />
         <Botao
           variante="secundario"
           onClick={() => {
@@ -215,7 +217,6 @@ export function ModalZap({
   } else {
     corpo = (
       <div className="flex flex-col gap-4">
-        {parametros.via === 'api' && <Aviso>{t.zap.viaApi}</Aviso>}
         <fieldset className="flex flex-col gap-2">
           <legend className="font-bold">{t.zap.valor}</legend>
           <div className="flex flex-wrap gap-2">

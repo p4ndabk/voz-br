@@ -290,9 +290,10 @@ export const t = {
     semEndereco: (nome: string) =>
       `${nome} ainda não configurou um endereço Lightning no perfil, então não dá para enviar bitcoin. Peça para a pessoa abrir Editar perfil e preencher o campo Endereço Lightning (algo como nome@getalby.com).`,
     consultando: 'Falando com o serviço Lightning…',
-    viaApi:
-      'Este serviço não aceita consulta direta do navegador, então o pedido passa pela API do Voz. Ela vê o endereço Lightning e o seu IP, mas nada da conversa.',
     semServico: 'Não foi possível falar com o serviço desse endereço. Tente de novo.',
+    semServicoAjuda:
+      'Alguns serviços Lightning não aceitam pedidos feitos pelo navegador. Se continuar assim, copie o endereço e pague pela sua carteira.',
+    copiarEndereco: 'Copiar endereço Lightning',
     tentarDeNovo: 'Tentar de novo',
     valor: 'Quantos sats?',
     valorLimite: (min: number, max: number) =>

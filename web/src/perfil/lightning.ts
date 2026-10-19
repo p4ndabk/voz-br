@@ -1,4 +1,3 @@
-import { consultarPelaApi, ErroPonte } from '@/api/lnurl'
 import { normalizarLightning, enderecoLightningValido } from '@/nostr/perfis'
 
 export type ResultadoLightning =
@@ -15,12 +14,7 @@ export type ResultadoLightning =
 export interface ParametrosLnurl {
   // Endereco https do servico (.well-known/lnurlp/usuario), que vira o codigo lnurl do zap.
   url: string
-  // Endereco no formato usuario@dominio, ja normalizado (a ponte da API precisa dele).
-  endereco: string
-  // 'direto': o navegador falou com o servico. 'api': o servico bloqueou o navegador (sem CORS)
-  // e a consulta passou pela API do Voz (spec 0012); nesse caso nao ha callback aqui.
-  via: 'direto' | 'api'
-  callback?: string
+  callback: string
   minSats: number
   maxSats: number
   aceitaZap: boolean
@@ -64,41 +58,16 @@ export async function consultarLnurl(
     })
     if (!resposta.ok) return { ok: false, motivo: 'invalido' }
     const dados: unknown = await resposta.json()
-    return interpretar(dados, url, normalizarLightning(entrada))
+    return interpretar(dados, url)
   } catch {
-    // Rede fora do ar ou bloqueio de CORS: o navegador nao distingue. Tenta pela API do Voz.
-    return consultarPelaPonte(normalizarLightning(entrada), buscar)
+    // Rede fora do ar ou bloqueio de CORS: o navegador nao distingue.
+    return { ok: false, motivo: 'indisponivel' }
   } finally {
     clearTimeout(limite)
   }
 }
 
-async function consultarPelaPonte(
-  endereco: string,
-  buscar: typeof fetch,
-): Promise<ResultadoConsulta> {
-  try {
-    const r = await consultarPelaApi(endereco, { buscar })
-    return {
-      ok: true,
-      url: r.url,
-      endereco,
-      via: 'api',
-      minSats: r.min_sats,
-      maxSats: r.max_sats,
-      aceitaZap: r.aceita_zap && typeof r.nostr_pubkey === 'string',
-      nostrPubkey: r.nostr_pubkey ?? undefined,
-      comentarioMax: r.comentario_max,
-    }
-  } catch (e) {
-    return {
-      ok: false,
-      motivo: e instanceof ErroPonte && e.tipo === 'recusado' ? 'invalido' : 'indisponivel',
-    }
-  }
-}
-
-function interpretar(dados: unknown, url: string, endereco: string): ResultadoConsulta {
+function interpretar(dados: unknown, url: string): ResultadoConsulta {
   const d = dados as Record<string, unknown> | null
   if (typeof d !== 'object' || d === null) return { ok: false, motivo: 'invalido' }
   if (d.status === 'ERROR' || d.tag !== 'payRequest') return { ok: false, motivo: 'invalido' }
@@ -117,8 +86,6 @@ function interpretar(dados: unknown, url: string, endereco: string): ResultadoCo
   return {
     ok: true,
     url,
-    endereco,
-    via: 'direto',
     callback,
     // O servico fala em milisatoshis.
     minSats: Math.ceil(min / 1000),
