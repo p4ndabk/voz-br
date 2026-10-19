@@ -46,6 +46,14 @@ export function desligarNotificacoes(): void {
   }
 }
 
+export function notificarNovaMensagemDeGrupo(id: string, nome: string): void {
+  if (estadoNotificacoes() !== 'ligada' || document.visibilityState !== 'hidden') return
+  new Notification(t.notificacoes.titulo, {
+    body: t.notificacoes.corpoGrupo(nome),
+    tag: `grupo:${id}`,
+  })
+}
+
 export function notificarNovaMensagem(pubkey: string): void {
   if (estadoNotificacoes() !== 'ligada' || document.visibilityState !== 'hidden') return
   const nome = nomeExibido(usePerfis.getState().perfis[pubkey], pubkey).texto

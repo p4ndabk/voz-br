@@ -21,7 +21,18 @@ export interface Grupo {
   criadoEm: number
   // Mensagens ate este instante (segundos) nao voltam, mesmo que um relay as reentregue.
   apagadoAte?: number
+  // Quando o admin (neste aparelho) mudou a lista pela ultima vez. Pedidos de membros mais velhos que isso
+  // sao reentregas de um relay e nao valem de novo (um "sair" antigo nao tira quem voltou).
+  alteradoEm?: number
+  // Mesmos campos da lista de conversas, para ordenar e contar nao lidas.
+  ultimaMensagemEm?: number
+  trecho?: string
+  lidaAte?: number
+  naoLidas?: number
 }
+
+// Folga para relogios diferentes entre os aparelhos.
+export const TOLERANCIA_RELOGIO_S = 300
 
 // O que a lista de membros carrega (sem estado nem datas locais).
 export interface DadosGrupo {

@@ -116,10 +116,10 @@ describe('criar e administrar (RN-WEB-GRUPOS-002 a 006)', () => {
 
   it('RN-WEB-GRUPOS-003: so o admin convida e remove', () => {
     const g = ativo()
-    expect(convidar(g, BIA, DUDA)).toEqual({ ok: false, erro: 'nao-e-admin' })
-    expect(remover(g, BIA, CAIO)).toEqual({ ok: false, erro: 'nao-e-admin' })
-    expect(passarAdmin(g, BIA, BIA)).toEqual({ ok: false, erro: 'nao-e-admin' })
-    const r = convidar(g, ADMIN, DUDA)
+    expect(convidar(g, BIA, DUDA, 700)).toEqual({ ok: false, erro: 'nao-e-admin' })
+    expect(remover(g, BIA, CAIO, 700)).toEqual({ ok: false, erro: 'nao-e-admin' })
+    expect(passarAdmin(g, BIA, BIA, 700)).toEqual({ ok: false, erro: 'nao-e-admin' })
+    const r = convidar(g, ADMIN, DUDA, 700)
     expect(r.ok && r.grupo.pendentes).toContain(DUDA)
     expect(r.ok && r.grupo.membros).not.toContain(DUDA) // convidar nao coloca ninguem como membro
     expect(r.ok && r.grupo.versao).toBe(4)
@@ -127,22 +127,22 @@ describe('criar e administrar (RN-WEB-GRUPOS-002 a 006)', () => {
 
   it('RN-WEB-GRUPOS-003: nao convida duas vezes, nem acima do limite; nao remove o admin', () => {
     const g = ativo()
-    expect(convidar(g, ADMIN, BIA)).toEqual({ ok: false, erro: 'ja-na-lista' })
-    expect(convidar(g, ADMIN, CAIO)).toEqual({ ok: false, erro: 'ja-na-lista' })
-    expect(remover(g, ADMIN, ADMIN)).toEqual({ ok: false, erro: 'e-o-admin' })
-    expect(remover(g, ADMIN, DUDA)).toEqual({ ok: false, erro: 'nao-esta-na-lista' })
+    expect(convidar(g, ADMIN, BIA, 700)).toEqual({ ok: false, erro: 'ja-na-lista' })
+    expect(convidar(g, ADMIN, CAIO, 700)).toEqual({ ok: false, erro: 'ja-na-lista' })
+    expect(remover(g, ADMIN, ADMIN, 700)).toEqual({ ok: false, erro: 'e-o-admin' })
+    expect(remover(g, ADMIN, DUDA, 700)).toEqual({ ok: false, erro: 'nao-esta-na-lista' })
     const cheio = ativo({
       membros: [ADMIN, ...Array.from({ length: MAXIMO_MEMBROS - 1 }, (_, i) => pk(100 + i))],
       pendentes: [],
     })
-    expect(convidar(cheio, ADMIN, DUDA)).toEqual({ ok: false, erro: 'cheio' })
+    expect(convidar(cheio, ADMIN, DUDA, 700)).toEqual({ ok: false, erro: 'cheio' })
   })
 
   it('RN-WEB-GRUPOS-003: remover tira o membro ou cancela o convite pendente', () => {
     const g = ativo()
-    const m = remover(g, ADMIN, BIA)
+    const m = remover(g, ADMIN, BIA, 700)
     expect(m.ok && m.grupo.membros).toEqual([ADMIN])
-    const p = remover(g, ADMIN, CAIO)
+    const p = remover(g, ADMIN, CAIO, 700)
     expect(p.ok && p.grupo.pendentes).toEqual([])
   })
 
@@ -150,21 +150,21 @@ describe('criar e administrar (RN-WEB-GRUPOS-002 a 006)', () => {
     const g = ativo()
     expect(podeSair(g, ADMIN)).toBe(false)
     expect(podeSair(g, BIA)).toBe(true)
-    const r = passarAdmin(g, ADMIN, BIA)
+    const r = passarAdmin(g, ADMIN, BIA, 700)
     expect(r.ok && r.grupo.admin).toBe(BIA)
     expect(r.ok && podeSair(r.grupo, ADMIN)).toBe(true)
-    expect(passarAdmin(g, ADMIN, CAIO)).toEqual({ ok: false, erro: 'nao-esta-na-lista' }) // pendente nao
+    expect(passarAdmin(g, ADMIN, CAIO, 700)).toEqual({ ok: false, erro: 'nao-esta-na-lista' }) // pendente nao
   })
 })
 
 describe('regras de quem recebe (RN-WEB-GRUPOS-004, 005, 007, 008)', () => {
   it('RN-WEB-GRUPOS-004: o convite cria o grupo so como "convidado", sem entregar mensagens', () => {
     const d = paraDados(novo())
-    const r = aplicarAcao(undefined, ADMIN, { tipo: 'convite', dados: d }, BIA, 900)
+    const r = aplicarAcao(undefined, ADMIN, { tipo: 'convite', dados: d }, BIA, 900, 900)
     expect(r.ok && r.grupo.estado).toBe('convidado')
     // convidado ainda nao e membro: mensagem do grupo e recusada
     const g = r.ok ? r.grupo : undefined
-    expect(aplicarAcao(g, ADMIN, { tipo: 'mensagem', grupo: ID }, BIA, 900)).toEqual({
+    expect(aplicarAcao(g, ADMIN, { tipo: 'mensagem', grupo: ID }, BIA, 900, 900)).toEqual({
       ok: false,
       motivo: 'inativo',
     })
@@ -172,11 +172,11 @@ describe('regras de quem recebe (RN-WEB-GRUPOS-004, 005, 007, 008)', () => {
 
   it('RN-WEB-GRUPOS-004: convite so vale do admin declarado e para quem esta nos pendentes', () => {
     const d = paraDados(novo())
-    expect(aplicarAcao(undefined, CAIO, { tipo: 'convite', dados: d }, BIA, 1)).toEqual({
+    expect(aplicarAcao(undefined, CAIO, { tipo: 'convite', dados: d }, BIA, 1, 1)).toEqual({
       ok: false,
       motivo: 'nao-e-admin',
     })
-    expect(aplicarAcao(undefined, ADMIN, { tipo: 'convite', dados: d }, DUDA, 1)).toEqual({
+    expect(aplicarAcao(undefined, ADMIN, { tipo: 'convite', dados: d }, DUDA, 1, 1)).toEqual({
       ok: false,
       motivo: 'sem-convite',
     })
@@ -184,14 +184,14 @@ describe('regras de quem recebe (RN-WEB-GRUPOS-004, 005, 007, 008)', () => {
 
   it('RN-WEB-GRUPOS-004: convite repetido de um grupo ativo e ignorado', () => {
     const d = paraDados(ativo())
-    expect(aplicarAcao(ativo(), ADMIN, { tipo: 'convite', dados: d }, BIA, 1)).toMatchObject({
+    expect(aplicarAcao(ativo(), ADMIN, { tipo: 'convite', dados: d }, BIA, 1, 1)).toMatchObject({
       ok: false,
     })
   })
 
   it('RN-WEB-GRUPOS-005: o admin processa o aceite, inclui a pessoa e manda a lista nova', () => {
     const g = novo()
-    const r = aplicarAcao(g, BIA, { tipo: 'aceito', grupo: ID }, ADMIN, 900)
+    const r = aplicarAcao(g, BIA, { tipo: 'aceito', grupo: ID }, ADMIN, 1000, 1000)
     expect(r.ok && r.grupo.membros).toEqual([ADMIN, BIA])
     expect(r.ok && r.grupo.pendentes).toEqual([CAIO])
     expect(r.ok && r.publicarMembros).toBe(true)
@@ -200,20 +200,20 @@ describe('regras de quem recebe (RN-WEB-GRUPOS-004, 005, 007, 008)', () => {
 
   it('RN-WEB-GRUPOS-005: aceite de quem nao foi convidado, ou fora do admin, nao entra', () => {
     const g = novo()
-    expect(aplicarAcao(g, DUDA, { tipo: 'aceito', grupo: ID }, ADMIN, 1)).toEqual({
+    expect(aplicarAcao(g, DUDA, { tipo: 'aceito', grupo: ID }, ADMIN, 1000, 1000)).toEqual({
       ok: false,
       motivo: 'sem-convite',
     })
     // quem nao e o admin nao muda a lista
     expect(
-      aplicarAcao(comoConvidado(g), BIA, { tipo: 'aceito', grupo: ID }, CAIO, 1),
+      aplicarAcao(comoConvidado(g), BIA, { tipo: 'aceito', grupo: ID }, CAIO, 1000, 1000),
     ).toMatchObject({
       ok: false,
     })
   })
 
   it('RN-WEB-GRUPOS-005: recusa tira so o pendente', () => {
-    const r = aplicarAcao(novo(), BIA, { tipo: 'recusado', grupo: ID }, ADMIN, 1)
+    const r = aplicarAcao(novo(), BIA, { tipo: 'recusado', grupo: ID }, ADMIN, 1000, 1000)
     expect(r.ok && r.grupo.pendentes).toEqual([CAIO])
     expect(r.ok && r.grupo.membros).toEqual([ADMIN])
   })
@@ -223,7 +223,7 @@ describe('regras de quem recebe (RN-WEB-GRUPOS-004, 005, 007, 008)', () => {
       membros: [ADMIN, ...Array.from({ length: MAXIMO_MEMBROS - 1 }, (_, i) => pk(100 + i))],
       pendentes: [CAIO],
     })
-    expect(aplicarAcao(cheio, CAIO, { tipo: 'aceito', grupo: ID }, ADMIN, 1)).toEqual({
+    expect(aplicarAcao(cheio, CAIO, { tipo: 'aceito', grupo: ID }, ADMIN, 1000, 1000)).toEqual({
       ok: false,
       motivo: 'cheio',
     })
@@ -231,102 +231,125 @@ describe('regras de quem recebe (RN-WEB-GRUPOS-004, 005, 007, 008)', () => {
 
   it('RN-WEB-GRUPOS-006: quem sai deixa a lista; o admin nao sai por mensagem', () => {
     const g = ativo({ pendentes: [] })
-    const r = aplicarAcao(g, BIA, { tipo: 'sair', grupo: ID }, ADMIN, 1)
+    const r = aplicarAcao(g, BIA, { tipo: 'sair', grupo: ID }, ADMIN, 1000, 1000)
     expect(r.ok && r.grupo.membros).toEqual([ADMIN])
     expect(r.ok && r.publicarMembros).toBe(true)
-    expect(aplicarAcao(g, ADMIN, { tipo: 'sair', grupo: ID }, ADMIN, 1)).toMatchObject({
+    expect(aplicarAcao(g, ADMIN, { tipo: 'sair', grupo: ID }, ADMIN, 1000, 1000)).toMatchObject({
       ok: false,
     })
-    expect(aplicarAcao(g, DUDA, { tipo: 'sair', grupo: ID }, ADMIN, 1)).toMatchObject({ ok: false })
+    expect(aplicarAcao(g, DUDA, { tipo: 'sair', grupo: ID }, ADMIN, 1000, 1000)).toMatchObject({
+      ok: false,
+    })
   })
 
   it('RN-WEB-GRUPOS-007: lista nova so vale se vier do admin e com versao maior', () => {
     const meu = ativo({ pendentes: [] })
     const nova = { ...paraDados(meu), versao: 4, membros: [ADMIN, BIA, DUDA] }
-    expect(aplicarAcao(meu, BIA, { tipo: 'membros', dados: nova }, CAIO, 1)).toEqual({
+    expect(aplicarAcao(meu, BIA, { tipo: 'membros', dados: nova }, CAIO, 1, 1)).toEqual({
       ok: false,
       motivo: 'nao-e-admin',
     })
     expect(
-      aplicarAcao(meu, ADMIN, { tipo: 'membros', dados: { ...nova, versao: 3 } }, BIA, 1),
+      aplicarAcao(meu, ADMIN, { tipo: 'membros', dados: { ...nova, versao: 3 } }, BIA, 1, 1),
     ).toEqual({ ok: false, motivo: 'versao-antiga' })
-    const r = aplicarAcao(meu, ADMIN, { tipo: 'membros', dados: nova }, BIA, 1)
+    const r = aplicarAcao(meu, ADMIN, { tipo: 'membros', dados: nova }, BIA, 1, 1)
     expect(r.ok && r.grupo.membros).toEqual([ADMIN, BIA, DUDA])
   })
 
   it('RN-WEB-GRUPOS-007: ao ser incluido o convidado vira ativo; ao sair da lista vira removido', () => {
     const conv = { ...comoConvidado(novo()), versao: 1 }
     const entrou = { ...paraDados(novo()), versao: 2, membros: [ADMIN, BIA], pendentes: [CAIO] }
-    const a = aplicarAcao(conv, ADMIN, { tipo: 'membros', dados: entrou }, BIA, 1)
+    const a = aplicarAcao(conv, ADMIN, { tipo: 'membros', dados: entrou }, BIA, 1, 1)
     expect(a.ok && a.grupo.estado).toBe('ativo')
     const saiu = { ...entrou, versao: 3, membros: [ADMIN] }
-    const b = aplicarAcao(a.ok ? a.grupo : conv, ADMIN, { tipo: 'membros', dados: saiu }, BIA, 1)
+    const b = aplicarAcao(a.ok ? a.grupo : conv, ADMIN, { tipo: 'membros', dados: saiu }, BIA, 1, 1)
     expect(b.ok && b.grupo.estado).toBe('removido')
   })
 
   it('RN-WEB-GRUPOS-007: passar o admin: so o admin atual assina; depois o novo manda', () => {
     const meu = ativo({ pendentes: [] })
     const nova = { ...paraDados(meu), versao: 4, admin: BIA }
-    const r = aplicarAcao(meu, ADMIN, { tipo: 'membros', dados: nova }, BIA, 1)
+    const r = aplicarAcao(meu, ADMIN, { tipo: 'membros', dados: nova }, BIA, 1, 1)
     expect(r.ok && r.grupo.admin).toBe(BIA)
     // o antigo admin ja nao manda mais
     const depois = r.ok ? r.grupo : meu
     const outra = { ...nova, versao: 5, membros: [ADMIN, BIA, DUDA] }
-    expect(aplicarAcao(depois, ADMIN, { tipo: 'membros', dados: outra }, BIA, 1)).toEqual({
+    expect(aplicarAcao(depois, ADMIN, { tipo: 'membros', dados: outra }, BIA, 1, 1)).toEqual({
       ok: false,
       motivo: 'nao-e-admin',
     })
-    expect(aplicarAcao(depois, BIA, { tipo: 'membros', dados: outra }, BIA, 1)).toMatchObject({
+    expect(aplicarAcao(depois, BIA, { tipo: 'membros', dados: outra }, BIA, 1, 1)).toMatchObject({
       ok: true,
     })
   })
 
   it('RN-WEB-GRUPOS-008: mensagem so vale de membro, com o grupo ativo e conhecido', () => {
     const g = ativo({ pendentes: [] })
-    expect(aplicarAcao(g, BIA, { tipo: 'mensagem', grupo: ID }, ADMIN, 1)).toMatchObject({
+    expect(aplicarAcao(g, BIA, { tipo: 'mensagem', grupo: ID }, ADMIN, 1, 1)).toMatchObject({
       ok: true,
       mensagem: true,
     })
-    expect(aplicarAcao(g, DUDA, { tipo: 'mensagem', grupo: ID }, ADMIN, 1)).toEqual({
+    expect(aplicarAcao(g, DUDA, { tipo: 'mensagem', grupo: ID }, ADMIN, 1, 1)).toEqual({
       ok: false,
       motivo: 'nao-e-membro',
     })
-    expect(aplicarAcao(undefined, BIA, { tipo: 'mensagem', grupo: ID }, ADMIN, 1)).toEqual({
+    expect(aplicarAcao(undefined, BIA, { tipo: 'mensagem', grupo: ID }, ADMIN, 1, 1)).toEqual({
       ok: false,
       motivo: 'desconhecido',
     })
     expect(
-      aplicarAcao({ ...g, estado: 'removido' }, BIA, { tipo: 'mensagem', grupo: ID }, ADMIN, 1),
+      aplicarAcao({ ...g, estado: 'removido' }, BIA, { tipo: 'mensagem', grupo: ID }, ADMIN, 1, 1),
     ).toEqual({ ok: false, motivo: 'inativo' })
   })
 
   it('RN-WEB-GRUPOS-008: quem foi removido da lista nova deixa de ter mensagem aceita', () => {
     const g = ativo({ pendentes: [] })
     const sem = { ...paraDados(g), versao: 4, membros: [ADMIN] }
-    const r = aplicarAcao(g, ADMIN, { tipo: 'membros', dados: sem }, CAIO, 1)
+    const r = aplicarAcao(g, ADMIN, { tipo: 'membros', dados: sem }, CAIO, 1, 1)
     const depois = r.ok ? r.grupo : g
-    expect(aplicarAcao(depois, BIA, { tipo: 'mensagem', grupo: ID }, ADMIN, 1)).toMatchObject({
+    expect(aplicarAcao(depois, BIA, { tipo: 'mensagem', grupo: ID }, ADMIN, 1, 1)).toMatchObject({
       ok: false,
     })
   })
 
   it('RN-WEB-GRUPOS-009: limpar para todos so do admin e so ate o instante do pedido', () => {
     const g = ativo({ pendentes: [] })
-    expect(aplicarAcao(g, BIA, { tipo: 'limpar', grupo: ID, ate: 1000 }, CAIO, 1)).toEqual({
+    expect(aplicarAcao(g, BIA, { tipo: 'limpar', grupo: ID, ate: 1000 }, CAIO, 1, 1)).toEqual({
       ok: false,
       motivo: 'nao-e-admin',
     })
-    const r = aplicarAcao(g, ADMIN, { tipo: 'limpar', grupo: ID, ate: 1000 }, BIA, 1)
+    const r = aplicarAcao(g, ADMIN, { tipo: 'limpar', grupo: ID, ate: 1000 }, BIA, 1, 1)
     expect(r.ok && r.limparAte).toBe(1000)
     expect(r.ok && r.grupo.apagadoAte).toBe(1000)
   })
 
   it('RN-WEB-GRUPOS-006: encerrar so do admin; depois ninguem manda mensagem', () => {
     const g = ativo({ pendentes: [] })
-    expect(aplicarAcao(g, BIA, { tipo: 'encerrar', grupo: ID }, CAIO, 1)).toMatchObject({
+    expect(aplicarAcao(g, BIA, { tipo: 'encerrar', grupo: ID }, CAIO, 1, 1)).toMatchObject({
       ok: false,
     })
-    const r = aplicarAcao(g, ADMIN, { tipo: 'encerrar', grupo: ID }, BIA, 1)
+    const r = aplicarAcao(g, ADMIN, { tipo: 'encerrar', grupo: ID }, BIA, 1, 1)
     expect(r.ok && r.grupo.estado).toBe('encerrado')
+  })
+
+  it('RN-WEB-GRUPOS-004: convite reentregue pelo relay nao ressuscita grupo de que sai ou recusei', () => {
+    const d = paraDados(novo())
+    const saiu = { ...comoConvidado(novo()), estado: 'saiu' as const, versao: d.versao }
+    expect(aplicarAcao(saiu, ADMIN, { tipo: 'convite', dados: d }, BIA, 1, 1)).toEqual({
+      ok: false,
+      motivo: 'versao-antiga',
+    })
+    // um convite novo (versao maior) depois de ter saido vale
+    const novoConvite = { ...d, versao: d.versao + 2 }
+    const r = aplicarAcao(saiu, ADMIN, { tipo: 'convite', dados: novoConvite }, BIA, 1, 1)
+    expect(r.ok && r.grupo.estado).toBe('convidado')
+  })
+
+  it('RN-WEB-GRUPOS-006: um "sair" antigo reentregue nao tira quem voltou depois', () => {
+    const g = ativo({ pendentes: [], alteradoEm: 100_000 })
+    const antigo = aplicarAcao(g, BIA, { tipo: 'sair', grupo: ID }, ADMIN, 50_000, 100_100)
+    expect(antigo).toEqual({ ok: false, motivo: 'versao-antiga' })
+    const recente = aplicarAcao(g, BIA, { tipo: 'sair', grupo: ID }, ADMIN, 100_050, 100_100)
+    expect(recente).toMatchObject({ ok: true, publicarMembros: true })
   })
 })

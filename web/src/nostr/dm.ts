@@ -67,6 +67,17 @@ export function criarRumor(
   return { ...semId, id: getEventHash(semId) }
 }
 
+// Rumor com tags escolhidas por quem chama (mensagens e controles de grupo, com varias tags `p`).
+export function criarRumorLivre(
+  autor: string,
+  texto: string,
+  tags: string[][],
+  agora: number,
+): Rumor {
+  const semId = { kind: KIND_MENSAGEM, pubkey: autor, created_at: agora, tags, content: texto }
+  return { ...semId, id: getEventHash(semId) }
+}
+
 async function embrulharPara(
   assinante: Assinante,
   rumor: Rumor,
@@ -108,6 +119,22 @@ export async function criarEmbrulhos(
     embrulharPara(assinante, rumor, assinante.pubkey, agora),
   ])
   return { rumor, paraAmigo, paraMim }
+}
+
+// RN-WEB-GRUPOS-001: o mesmo rumor embrulhado para cada destinatario (cada um com a sua chave efemera)
+// e uma copia para mim. Quem nao esta em `destinatarios` nao recebe nada que possa abrir.
+export async function embrulharParaVarios(
+  assinante: Assinante,
+  rumor: Rumor,
+  destinatarios: readonly string[],
+  agora = Math.floor(Date.now() / 1000),
+): Promise<{ paraOutros: Embrulho[]; paraMim: Embrulho }> {
+  const outros = destinatarios.filter((pk) => pk !== assinante.pubkey)
+  const [paraMim, ...paraOutros] = await Promise.all([
+    embrulharPara(assinante, rumor, assinante.pubkey, agora),
+    ...outros.map((pk) => embrulharPara(assinante, rumor, pk, agora)),
+  ])
+  return { paraOutros, paraMim: paraMim! }
 }
 
 function rumorValido(dados: unknown): dados is Rumor {

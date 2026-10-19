@@ -6,7 +6,13 @@ import { entries, get, set } from 'idb-keyval'
 // Sem senha, ou entrando por extensao/app assinante (sem chave aqui), nada muda: fica em texto.
 
 const INFO = new TextEncoder().encode('voz-cofre-v1')
-const PREFIXOS_SENSIVEIS = ['voz:conversa:', 'voz:msg:', 'voz:embrulho:', 'voz:fila:'] as const
+const PREFIXOS_SENSIVEIS = [
+  'voz:conversa:',
+  'voz:msg:',
+  'voz:embrulho:',
+  'voz:fila:',
+  'voz:grupo:',
+] as const
 
 interface Envelope {
   voz: 'cofre1'

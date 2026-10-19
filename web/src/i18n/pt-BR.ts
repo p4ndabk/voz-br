@@ -217,6 +217,7 @@ export const t = {
   notificacoes: {
     titulo: 'Voz',
     corpo: (nome: string) => `Nova mensagem de ${nome}`,
+    corpoGrupo: (grupo: string) => `Nova mensagem no grupo ${grupo}`,
     secao: 'Avisos do navegador',
     ajuda:
       'Mostra um aviso quando chega mensagem com o Voz em segundo plano. O aviso não traz o texto da mensagem. Com o Voz fechado, nada chega.',
@@ -372,6 +373,19 @@ export const t = {
       `O conteúdo é criptografado: só você e ${nome} conseguem ler. Os servidores (relays) veem para quem a mensagem vai, quando e o seu endereço de internet (IP), mas nunca o que foi dito.`,
     entendi: 'Entendi',
     lista: 'Mensagens',
+  },
+  // Textos legiveis que vao DENTRO das mensagens de controle do grupo, para quem usa outro cliente.
+  grupos: {
+    textoConvite: (quem: string, grupo: string) =>
+      `${quem} convidou você para o grupo "${grupo}" no Voz. Abra o Voz para aceitar ou recusar.`,
+    textoAceito: (quem: string, grupo: string) => `${quem} entrou no grupo "${grupo}".`,
+    textoRecusado: (quem: string, grupo: string) =>
+      `${quem} recusou o convite do grupo "${grupo}".`,
+    textoMembros: (grupo: string) => `A lista de pessoas do grupo "${grupo}" mudou.`,
+    textoSair: (quem: string, grupo: string) => `${quem} saiu do grupo "${grupo}".`,
+    textoLimpar: (quem: string, grupo: string) =>
+      `${quem} limpou o histórico do grupo "${grupo}" e pediu que você limpe também.`,
+    textoEncerrar: (grupo: string) => `O grupo "${grupo}" foi encerrado.`,
   },
   apagar: {
     botao: 'Apagar conversa',

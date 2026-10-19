@@ -1,5 +1,5 @@
 import type { AcaoDeGrupo } from './protocolo'
-import { MAXIMO_MEMBROS, type DadosGrupo, type Grupo } from './tipos'
+import { MAXIMO_MEMBROS, TOLERANCIA_RELOGIO_S, type DadosGrupo, type Grupo } from './tipos'
 
 export type Rejeicao =
   | 'desconhecido'
@@ -51,7 +51,9 @@ export function aplicarAcao(
   autor: string,
   acao: AcaoDeGrupo,
   eu: string,
-  quando: number,
+  // `rumorEm`: created_at do rumor (relogio de quem enviou). `agora`: relogio deste aparelho.
+  rumorEm: number,
+  agora: number,
 ): Resultado {
   switch (acao.tipo) {
     case 'convite': {
@@ -59,14 +61,12 @@ export function aplicarAcao(
       const d = acao.dados
       if (autor !== d.admin) return recusa('nao-e-admin')
       if (!d.pendentes.includes(eu)) return recusa('sem-convite')
-      if (local && local.estado !== 'removido' && local.estado !== 'saiu') {
-        // Ja conheco o grupo: se for uma versao mais nova de um convite pendente, atualiza.
-        if (local.estado === 'convidado' && d.versao > local.versao) {
-          return ok(deDados(d, 'convidado', quando, local))
-        }
-        return recusa('ja-existe')
+      // Convite reentregue pelo relay (versao igual ou menor) nao ressuscita um grupo de que saí ou recusei.
+      if (local) {
+        if (local.estado === 'ativo' || local.estado === 'encerrado') return recusa('ja-existe')
+        if (d.versao <= local.versao) return recusa('versao-antiga')
       }
-      return ok(deDados(d, 'convidado', quando))
+      return ok(deDados(d, 'convidado', agora, local))
     }
 
     case 'membros': {
@@ -77,10 +77,10 @@ export function aplicarAcao(
       if (local.estado === 'saiu' || local.estado === 'removido' || local.estado === 'encerrado') {
         return recusa('inativo')
       }
-      if (d.membros.includes(eu)) return ok(deDados(d, 'ativo', quando, local))
-      if (d.pendentes.includes(eu)) return ok(deDados(d, 'convidado', quando, local))
+      if (d.membros.includes(eu)) return ok(deDados(d, 'ativo', agora, local))
+      if (d.pendentes.includes(eu)) return ok(deDados(d, 'convidado', agora, local))
       // Fora da lista: era membro e foi removido, ou o convite foi cancelado.
-      return ok(deDados(d, 'removido', quando, local))
+      return ok(deDados(d, 'removido', agora, local))
     }
 
     case 'mensagem': {
@@ -96,6 +96,7 @@ export function aplicarAcao(
       // So o admin processa: ele e quem mantem a lista.
       if (!local || local.admin !== eu) return recusa('desconhecido')
       if (local.estado !== 'ativo') return recusa('inativo')
+      if (rumorEm < (local.alteradoEm ?? 0) - TOLERANCIA_RELOGIO_S) return recusa('versao-antiga')
       const eMembro = local.membros.includes(autor)
       const ePendente = local.pendentes.includes(autor)
       if (acao.tipo === 'sair') {
@@ -105,6 +106,7 @@ export function aplicarAcao(
             ...local,
             membros: local.membros.filter((pk) => pk !== autor),
             versao: local.versao + 1,
+            alteradoEm: agora,
           },
           { publicarMembros: true },
         )
@@ -112,11 +114,20 @@ export function aplicarAcao(
       if (!ePendente) return recusa('sem-convite')
       const pendentes = local.pendentes.filter((pk) => pk !== autor)
       if (acao.tipo === 'recusado') {
-        return ok({ ...local, pendentes, versao: local.versao + 1 }, { publicarMembros: true })
+        return ok(
+          { ...local, pendentes, versao: local.versao + 1, alteradoEm: agora },
+          { publicarMembros: true },
+        )
       }
       if (local.membros.length >= MAXIMO_MEMBROS) return recusa('cheio')
       return ok(
-        { ...local, pendentes, membros: [...local.membros, autor], versao: local.versao + 1 },
+        {
+          ...local,
+          pendentes,
+          membros: [...local.membros, autor],
+          versao: local.versao + 1,
+          alteradoEm: agora,
+        },
         { publicarMembros: true },
       )
     }

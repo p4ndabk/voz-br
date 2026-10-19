@@ -28,17 +28,12 @@ import { meusRelaysDm, relaysDeDmDe, relaysDoAmigo } from './relaysDm'
 import { iniciarSincronia } from './useSincronia'
 import { useConversas } from './useConversas'
 import { destinoDaCopia, esperar } from './copiaPropria'
+import { validarTexto } from './validarTexto'
+import { pareceDeGrupo, receberDeGrupo } from '@/grupos/receber'
+import { useGrupos } from '@/grupos/useGrupos'
 import { useMensagens } from './useMensagens'
 
-// RN-WEB-MENSAGENS-005
-export const LIMITE_MENSAGEM = 4000
-
-export type ValidacaoTexto = 'ok' | 'vazio' | 'longo'
-
-export function validarTexto(texto: string): ValidacaoTexto {
-  if (texto.trim() === '') return 'vazio'
-  return texto.length > LIMITE_MENSAGEM ? 'longo' : 'ok'
-}
+export { LIMITE_MENSAGEM, validarTexto, type ValidacaoTexto } from './validarTexto'
 
 const trechoDe = (texto: string) => texto.replace(/\s+/g, ' ').trim().slice(0, 80)
 const agoraEmSegundos = () => Math.floor(Date.now() / 1000)
@@ -154,7 +149,10 @@ export async function reenviarMensagem(assinante: Assinante, id: string): Promis
   ).catch(() => useMensagens.getState().atualizar(id, { estado: 'falhou' }))
 }
 
-async function receberRumor(minhaPubkey: string, rumor: Rumor): Promise<void> {
+async function receberRumor(assinante: Assinante, rumor: Rumor): Promise<void> {
+  const minhaPubkey = assinante.pubkey
+  // RN-WEB-GRUPOS-001: mensagens e controles de grupo tem caminho proprio; nunca viram conversa 1:1.
+  if (pareceDeGrupo(rumor)) return receberDeGrupo(assinante, rumor)
   const parceiro = parceiroDoRumor(rumor, minhaPubkey)
   if (!parceiro || parceiro === minhaPubkey) return
   const propria = rumor.pubkey === minhaPubkey
@@ -209,7 +207,7 @@ export function iniciarRecebimento(assinante: Assinante): () => void {
     fila = fila.then(async () => {
       if (parado) return
       const rumor = await abrirEmbrulho(assinante, evento)
-      if (rumor && !parado) await receberRumor(assinante.pubkey, rumor)
+      if (rumor && !parado) await receberRumor(assinante, rumor)
     })
   }
 
@@ -260,6 +258,7 @@ async function recuperarEnvios(): Promise<void> {
 
 export function iniciarMensageria(assinante: Assinante): () => void {
   void recuperarEnvios()
+  void useGrupos.getState().carregar()
   // RN-WEB-RELAYS-007: carrega a lista da pessoa e so publica a padrao se ela nao tiver nenhuma.
   void useMeusRelays
     .getState()
