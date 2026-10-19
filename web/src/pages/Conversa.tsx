@@ -121,12 +121,10 @@ export function Conversa() {
         </div>
         {/* RN-WEB-CONVERSAS-007 e RN-WEB-MENSAGENS-008: o selo Privado esta sempre a vista. */}
         <Selo tipo="privado" />
-        {/* RN-WEB-ZAP-001: so oferece pagar a quem configurou um endereco Lightning valido. */}
-        {perfil?.lightning && enderecoLightningValido(perfil.lightning) && (
-          <Botao className="px-3 py-1.5 text-sm" onClick={() => setZapando(true)}>
-            {t.zap.botao}
-          </Botao>
-        )}
+        {/* RN-WEB-ZAP-001: o botao sempre aparece; sem endereco Lightning o dialogo explica por que nao da. */}
+        <Botao className="px-3 py-1.5 text-sm" onClick={() => setZapando(true)}>
+          {t.zap.botao}
+        </Botao>
         <Botao
           variante="secundario"
           className="px-3 py-1.5 text-sm"
@@ -210,16 +208,18 @@ export function Conversa() {
         />
       )}
 
-      {perfil?.lightning && (
-        <ModalZap
-          aberto={zapando}
-          aoFechar={() => setZapando(false)}
-          nome={nomeExibido(perfil, conversa.pubkey).texto}
-          pubkey={conversa.pubkey}
-          endereco={perfil.lightning}
-          assinante={assinante}
-        />
-      )}
+      <ModalZap
+        aberto={zapando}
+        aoFechar={() => setZapando(false)}
+        nome={nomeExibido(perfil, conversa.pubkey).texto}
+        pubkey={conversa.pubkey}
+        endereco={
+          perfil?.lightning && enderecoLightningValido(perfil.lightning)
+            ? perfil.lightning
+            : undefined
+        }
+        assinante={assinante}
+      />
 
       <Modal
         aberto={modal}

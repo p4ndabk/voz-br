@@ -286,6 +286,8 @@ export const t = {
   zap: {
     botao: 'Enviar zap',
     titulo: (nome: string) => `Enviar bitcoin para ${nome}`,
+    semEndereco: (nome: string) =>
+      `${nome} ainda não configurou um endereço Lightning no perfil, então não dá para enviar bitcoin. Peça para a pessoa abrir Editar perfil e preencher o campo Endereço Lightning (algo como nome@getalby.com).`,
     consultando: 'Falando com o serviço Lightning…',
     semServico: 'Não foi possível falar com o serviço desse endereço. Tente de novo.',
     tentarDeNovo: 'Tentar de novo',

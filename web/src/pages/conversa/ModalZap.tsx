@@ -27,7 +27,8 @@ interface Props {
   aoFechar: () => void
   nome: string
   pubkey: string
-  endereco: string
+  // Sem endereco Lightning valido no perfil do amigo, o dialogo so explica o que fazer.
+  endereco?: string
   assinante: Assinante
 }
 
@@ -58,7 +59,7 @@ export function ModalZap({ aberto, aoFechar, nome, pubkey, endereco, assinante }
 
   // RN-WEB-ZAP-002: so consulta o servidor quando o dialogo abre (ou se tenta de novo).
   useEffect(() => {
-    if (!aberto) return
+    if (!aberto || !endereco) return
     let valido = true
     consultarLnurl(endereco).then((r) => {
       if (valido) setServico(r.ok ? { fase: 'pronto', parametros: r } : { fase: 'falhou' })
@@ -139,7 +140,9 @@ export function ModalZap({ aberto, aoFechar, nome, pubkey, endereco, assinante }
   }
 
   let corpo
-  if (servico.fase === 'consultando') {
+  if (!endereco) {
+    corpo = <Aviso>{t.zap.semEndereco(nome)}</Aviso>
+  } else if (servico.fase === 'consultando') {
     corpo = <p role="status">{t.zap.consultando}</p>
   } else if (servico.fase === 'falhou' || !parametros) {
     corpo = (

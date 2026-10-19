@@ -4,10 +4,10 @@ Formato definido em [../README.md](../README.md).
 
 ---
 
-### RN-WEB-ZAP-001 — Zap só para quem tem endereço Lightning
-**Regra:** o botão "Enviar zap" só aparece quando o perfil do amigo tem um endereço Lightning válido.
+### RN-WEB-ZAP-001 — O botão sempre aparece; sem endereço Lightning o diálogo explica
+**Regra:** o botão "Enviar zap" fica sempre no cabeçalho da conversa. Se o perfil do amigo não tem endereço Lightning válido, o diálogo diz isso e como pedir que ele configure, e nada é consultado nem assinado.
 **Quando:** cabeçalho da conversa.
-**Se violada:** botão que não leva a lugar nenhum.
+**Se violada:** a pessoa não vê o botão e não sabe por que não consegue pagar.
 **Onde vive:** `web/src/pages/Conversa.tsx`
 **Teste:** `web/src/pages/zap.test.tsx`
 

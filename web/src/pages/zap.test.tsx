@@ -72,10 +72,16 @@ afterEach(() => vi.unstubAllGlobals())
 
 describe('enviar zap', () => {
   // RN-WEB-ZAP-001
-  it('so oferece o zap a quem tem endereco Lightning', async () => {
+  it('sem endereco Lightning o botao existe e o dialogo explica, sem consultar ninguem', async () => {
+    const buscar = vi.fn()
+    vi.stubGlobal('fetch', buscar)
     abrir(joao)
-    await screen.findByText('Privado')
-    expect(screen.queryByRole('button', { name: 'Enviar zap' })).not.toBeInTheDocument()
+    await userEvent.click(await screen.findByRole('button', { name: 'Enviar zap' }))
+    expect(
+      await screen.findByText(/ainda não configurou um endereço Lightning/),
+    ).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Gerar fatura' })).not.toBeInTheDocument()
+    expect(buscar).not.toHaveBeenCalled()
   })
 
   // RN-WEB-ZAP-002
