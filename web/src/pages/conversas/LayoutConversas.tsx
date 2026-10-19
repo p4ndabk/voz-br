@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Logo } from '@/components/ui/Logo'
 import { Link, Outlet, useMatch } from 'react-router-dom'
+import { marcarIconeDaAba } from '@/conversas/iconeDaAba'
 import { useConversas } from '@/conversas/useConversas'
 import { t } from '@/i18n/pt-BR'
 import { ListaConversas } from './ListaConversas'
@@ -21,8 +22,10 @@ export function LayoutConversas() {
   const naoLidas = useConversas((s) => s.conversas.reduce((soma, c) => soma + (c.naoLidas ?? 0), 0))
   useEffect(() => {
     document.title = naoLidas > 0 ? `(${naoLidas}) ${t.marca}` : t.marca
+    marcarIconeDaAba(naoLidas > 0)
     return () => {
       document.title = t.marca
+      marcarIconeDaAba(false)
     }
   }, [naoLidas])
 

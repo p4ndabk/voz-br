@@ -97,3 +97,10 @@ na privacidade, não um status HTTP: a lista de conversas nunca passa pela API.
 **Se violada:** contador falso com dezenas de "não lidas" ao entrar.
 **Onde vive:** `web/src/conversas/{useConversas,armazem}.ts`
 **Teste:** `web/src/conversas/naoLidas.test.ts`
+
+### RN-WEB-CONVERSAS-012 — A aba do navegador avisa que há mensagem nova
+**Regra:** com mensagens não lidas, além do número no título (`(3) Voz`), o ícone da aba ganha uma bolinha vermelha; sem elas, volta ao ícone normal.
+**Quando:** contador de não lidas muda.
+**Se violada:** com a aba em segundo plano a pessoa não percebe a novidade.
+**Onde vive:** `web/src/conversas/iconeDaAba.ts`, `web/src/pages/conversas/LayoutConversas.tsx`
+**Teste:** `web/src/conversas/iconeDaAba.test.ts`
