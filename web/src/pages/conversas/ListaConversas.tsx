@@ -14,6 +14,7 @@ import { usePerfil } from '@/nostr/usePerfil'
 function Item({ conversa, ativa }: { conversa: Conversa; ativa: boolean }) {
   const perfil = usePerfil(conversa.pubkey)
   const { texto: nome } = nomeExibido(perfil, conversa.pubkey)
+  const naoLidas = conversa.naoLidas ?? 0
 
   return (
     <li>
@@ -36,9 +37,19 @@ function Item({ conversa, ativa }: { conversa: Conversa; ativa: boolean }) {
             )}
           </span>
           <span className="flex items-center justify-between gap-2">
-            <span className="truncate text-sm text-tinta-suave">
+            <span
+              className={`truncate text-sm ${naoLidas > 0 ? 'font-bold text-tinta' : 'text-tinta-suave'}`}
+            >
               {conversa.trecho ?? t.conversas.semMensagens}
             </span>
+            {naoLidas > 0 && (
+              <span
+                aria-label={t.conversas.naoLidas(naoLidas)}
+                className="shrink-0 rounded-full border-2 border-borda bg-vermelho px-2 text-xs font-bold text-sobre-vermelho"
+              >
+                {naoLidas}
+              </span>
+            )}
             {conversa.novaPessoa && (
               <span className="shrink-0 rounded-cordel border-2 border-borda bg-vermelho px-1.5 text-[11px] font-bold uppercase text-sobre-vermelho">
                 {t.conversas.novaPessoa}

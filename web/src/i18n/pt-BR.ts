@@ -151,6 +151,18 @@ export const t = {
     falhou: 'Nenhum relay aceitou a lista. Nada mudou. Tente de novo.',
     naoSalvo: 'Há mudanças ainda não salvas.',
   },
+  notificacoes: {
+    titulo: 'Voz',
+    corpo: (nome: string) => `Nova mensagem de ${nome}`,
+    secao: 'Avisos do navegador',
+    ajuda:
+      'Mostra um aviso quando chega mensagem com o Voz em segundo plano. O aviso não traz o texto da mensagem. Com o Voz fechado, nada chega.',
+    ligar: 'Ligar avisos',
+    desligar: 'Desligar avisos',
+    ligados: 'Avisos ligados.',
+    bloqueada: 'O navegador bloqueou os avisos. Libere nas permissões do site para ligar.',
+    indisponivel: 'Este navegador não oferece avisos.',
+  },
   conta: {
     titulo: 'Minha conta',
     chavePublica: 'Chave pública (npub)',
@@ -206,6 +218,7 @@ export const t = {
     vazio: 'Cole a chave de alguém para começar uma conversa',
     semMensagens: 'Nenhuma mensagem ainda',
     novaPessoa: 'Nova pessoa',
+    naoLidas: (n: number) => (n === 1 ? '1 mensagem não lida' : `${n} mensagens não lidas`),
     remover: 'Remover da lista',
     removerTitulo: 'Remover conversa',
     removerAviso:

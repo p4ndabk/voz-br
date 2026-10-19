@@ -82,3 +82,18 @@ na privacidade, não um status HTTP: a lista de conversas nunca passa pela API.
 **Se violada:** falar com alguém novo exige trocar de tela.
 **Onde vive:** `web/src/pages/conversas/ListaConversas.tsx`
 **Teste:** `web/src/pages/layout.test.tsx::RN-WEB-CONVERSAS-009`
+
+### RN-WEB-CONVERSAS-010 — Mensagens não lidas
+
+**Regra:** cada conversa guarda `lidaAte` e `naoLidas`. Mensagem do outro, mais nova que `lidaAte`, soma uma não lida; a lista mostra a bolinha com o número e o trecho em negrito, e o título da aba vira `(3) Voz`. Abrir a conversa com a aba visível zera; se a aba está em segundo plano, a mensagem fica não lida até a pessoa voltar. Mensagem minha nunca conta.
+**Quando:** chega mensagem; a conversa é aberta.
+**Se violada:** a pessoa não sabe onde há novidade.
+**Onde vive:** `web/src/conversas/useConversas.ts`, `web/src/pages/conversas/{ListaConversas,LayoutConversas}.tsx`, `web/src/pages/Conversa.tsx`
+**Teste:** `web/src/conversas/naoLidas.test.ts`
+
+### RN-WEB-CONVERSAS-011 — O histórico dos relays não vira "não lida"
+**Regra:** mensagens mais antigas que o primeiro acesso deste navegador (`voz:desde`), ou que o já visto na conversa, não contam como novas; conversas anteriores a este recurso valem como lidas.
+**Quando:** entrar num navegador novo ou reentrega de eventos antigos pelos relays.
+**Se violada:** contador falso com dezenas de "não lidas" ao entrar.
+**Onde vive:** `web/src/conversas/{useConversas,armazem}.ts`
+**Teste:** `web/src/conversas/naoLidas.test.ts`

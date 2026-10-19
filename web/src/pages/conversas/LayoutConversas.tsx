@@ -14,6 +14,15 @@ export function LayoutConversas() {
   const naLista = useMatch({ path: '/conversas', end: true }) !== null
   const [busca, setBusca] = useState('')
 
+  // RN-WEB-CONVERSAS-010: o titulo da aba mostra quantas mensagens ainda nao li.
+  const naoLidas = useConversas((s) => s.conversas.reduce((soma, c) => soma + (c.naoLidas ?? 0), 0))
+  useEffect(() => {
+    document.title = naoLidas > 0 ? `(${naoLidas}) ${t.marca}` : t.marca
+    return () => {
+      document.title = t.marca
+    }
+  }, [naoLidas])
+
   // RN-WEB-LAYOUT-003: a lista pertence ao layout e continua montada ao trocar de conversa.
   useEffect(() => {
     void carregar()

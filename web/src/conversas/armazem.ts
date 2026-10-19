@@ -13,6 +13,10 @@ export interface Conversa {
   // que um relay as entregue de novo (RN-WEB-APAGAR-009). `apagadoPor` diz quem pediu.
   apagadoAte?: number
   apagadoPor?: 'eu' | 'outro'
+  // Nao lidas (RN-WEB-CONVERSAS-010): `lidaAte` e o instante (segundos) da ultima mensagem vista;
+  // ausente = tudo lido (conversas anteriores a este recurso).
+  lidaAte?: number
+  naoLidas?: number
 }
 
 const PREFIXO = 'voz:conversa:'
@@ -34,4 +38,13 @@ export function salvarConversa(conversa: Conversa): Promise<void> {
 
 export function removerConversaSalva(pubkey: string): Promise<void> {
   return del(PREFIXO + pubkey)
+}
+
+// Instante em que este navegador viu o Voz pela primeira vez. Mensagens mais antigas que ele
+// chegam do historico dos relays e nao contam como novas (RN-WEB-CONVERSAS-011).
+export async function desdeNesteNavegador(agora: number): Promise<number> {
+  const guardado = await get<number>('voz:desde')
+  if (guardado !== undefined) return guardado
+  await set('voz:desde', agora)
+  return agora
 }

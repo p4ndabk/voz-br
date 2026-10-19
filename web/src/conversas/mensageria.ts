@@ -21,6 +21,7 @@ import {
 } from './armazemMensagens'
 import { obterConversa } from './armazem'
 import { aplicarPedidoRecebido, processarFila } from './apagar'
+import { notificarNovaMensagem } from './notificacoes'
 import { useMeusRelays } from './meusRelays'
 import { meusRelaysDm, relaysDeDmDe, relaysDoAmigo } from './relaysDm'
 import { useConversas } from './useConversas'
@@ -171,7 +172,7 @@ async function receberRumor(minhaPubkey: string, rumor: Rumor): Promise<void> {
   })
   if (!inserida) return
   const dica = rumor.tags.find((t) => t[0] === 'p' && t[1] === minhaPubkey)?.[2]
-  await useConversas
+  const atualizada = await useConversas
     .getState()
     .registrarRecebida(
       parceiro,
@@ -180,6 +181,8 @@ async function receberRumor(minhaPubkey: string, rumor: Rumor): Promise<void> {
       dica ? [dica] : [],
       propria,
     )
+  // RN-WEB-NOTIF-003: so avisa o que acabou de contar como nova; o historico dos relays nao.
+  if ((atualizada.naoLidas ?? 0) > (conversa?.naoLidas ?? 0)) notificarNovaMensagem(parceiro)
 }
 
 // RN-WEB-MENSAGENS-001/006: assina os embrulhos enderecados a mim, abre um de cada vez e

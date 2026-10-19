@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import {
+  desdeNesteNavegador,
   listarConversas,
   obterConversa,
   removerConversaSalva,
@@ -78,9 +79,14 @@ export const useConversas = create<EstadoConversas>((definir, obter) => {
         relaysDica,
         criadaEm: quando,
         novaPessoa: !propria,
+        lidaAte: await desdeNesteNavegador(Math.floor(Date.now() / 1000)),
       }
+      // RN-WEB-CONVERSAS-010 e 011: so conta o que e do outro e mais novo que o ja visto.
+      const vistoAte = base.lidaAte ?? base.ultimaMensagemEm ?? 0
+      const naoLida = !propria && quando > vistoAte
       const atualizada: Conversa = {
         ...base,
+        naoLidas: (base.naoLidas ?? 0) + (naoLida ? 1 : 0),
         ultimaMensagemEm: Math.max(base.ultimaMensagemEm ?? 0, quando),
         trecho: quando >= (base.ultimaMensagemEm ?? 0) ? trecho : base.trecho,
       }
@@ -90,7 +96,15 @@ export const useConversas = create<EstadoConversas>((definir, obter) => {
 
     async marcarVista(pubkey) {
       const existente = await obterConversa(pubkey)
-      if (existente?.novaPessoa) await gravar({ ...existente, novaPessoa: false })
+      if (!existente) return
+      if (existente.novaPessoa || existente.naoLidas) {
+        await gravar({
+          ...existente,
+          novaPessoa: false,
+          naoLidas: 0,
+          lidaAte: Math.max(existente.lidaAte ?? 0, existente.ultimaMensagemEm ?? 0),
+        })
+      }
     },
 
     async registrarApagamento(pubkey, limite, por) {

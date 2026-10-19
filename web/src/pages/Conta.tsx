@@ -7,6 +7,12 @@ import { Identidade } from '@/components/ui/Identidade'
 import { BotaoCopiar } from '@/components/ui/BotaoCopiar'
 import { ModalSair } from '@/components/ModalSair'
 import { Modal } from '@/components/ui/Modal'
+import {
+  desligarNotificacoes,
+  estadoNotificacoes,
+  ligarNotificacoes,
+  type EstadoNotificacoes,
+} from '@/conversas/notificacoes'
 import { t } from '@/i18n/pt-BR'
 import { npubDe } from '@/nostr/signer/chaves'
 import { useSessao } from '@/nostr/useSessao'
@@ -19,6 +25,7 @@ export function Conta() {
   const [modalChave, setModalChave] = useState(false)
   const [nsecVisivel, setNsecVisivel] = useState<string>()
   const [modalSair, setModalSair] = useState(false)
+  const [avisos, setAvisos] = useState<EstadoNotificacoes>(estadoNotificacoes)
 
   useEffect(() => {
     if (!nsecVisivel) return
@@ -52,6 +59,33 @@ export function Conta() {
         <div>
           <BotaoCopiar texto={npub} />
         </div>
+      </section>
+
+      <section className="flex flex-col gap-2" aria-labelledby="avisos-navegador">
+        <h2 id="avisos-navegador" className="font-bold">
+          {t.notificacoes.secao}
+        </h2>
+        <p className="text-sm text-tinta-suave">{t.notificacoes.ajuda}</p>
+        {avisos === 'ligada' && <p role="status">{t.notificacoes.ligados}</p>}
+        {avisos === 'bloqueada' && <Aviso tom="erro">{t.notificacoes.bloqueada}</Aviso>}
+        {avisos === 'indisponivel' && <p>{t.notificacoes.indisponivel}</p>}
+        {(avisos === 'desligada' || avisos === 'ligada') && (
+          <div>
+            <Botao
+              variante="secundario"
+              onClick={async () => {
+                if (avisos === 'ligada') {
+                  desligarNotificacoes()
+                  setAvisos(estadoNotificacoes())
+                } else {
+                  setAvisos(await ligarNotificacoes())
+                }
+              }}
+            >
+              {avisos === 'ligada' ? t.notificacoes.desligar : t.notificacoes.ligar}
+            </Botao>
+          </div>
+        )}
       </section>
 
       <div className="flex flex-wrap gap-3">

@@ -63,6 +63,18 @@ export function Conversa() {
     void carregarMensagens(pubkey)
   }, [carregar, carregarMensagens, marcarVista, pubkey])
 
+  // RN-WEB-CONVERSAS-010: mensagem que chega com a conversa aberta e a aba visivel ja nasce lida;
+  // com a aba em segundo plano, fica como nao lida ate a pessoa voltar.
+  const naoLidas = conversa?.naoLidas ?? 0
+  useEffect(() => {
+    const marcar = () => {
+      if (document.visibilityState === 'visible') void marcarVista(pubkey)
+    }
+    if (naoLidas > 0) marcar()
+    document.addEventListener('visibilitychange', marcar)
+    return () => document.removeEventListener('visibilitychange', marcar)
+  }, [naoLidas, marcarVista, pubkey])
+
   // Trocar de conversa recomeca do fim, sem herdar a posicao da anterior.
   useEffect(() => {
     pertoDoFim.current = true
