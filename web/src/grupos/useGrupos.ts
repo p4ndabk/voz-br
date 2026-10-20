@@ -52,6 +52,7 @@ export const useGrupos = create<EstadoGrupos>((definir) => ({
       const visto = {
         ...g,
         naoLidas: 0,
+        marcado: false,
         lidaAte: Math.max(g.lidaAte ?? 0, g.ultimaMensagemEm ?? 0),
       }
       await salvarGrupo(visto)

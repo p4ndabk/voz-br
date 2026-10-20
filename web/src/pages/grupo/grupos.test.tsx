@@ -155,4 +155,33 @@ describe('grupos na tela', () => {
     expect(screen.getByRole('button', { name: 'Reenviar pedido' })).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Aceitar' })).not.toBeInTheDocument()
   })
+
+  it('RN-WEB-GRUPOS-016: digitar @ mostra os membros e escolher poe "@Nome " no texto', async () => {
+    await useGrupos.getState().gravar(grupo())
+    abrir(`/conversas/grupo/${ID}`)
+    const campo = await screen.findByRole('textbox', { name: 'Escreva uma mensagem' })
+    await userEvent.type(campo, 'oi @')
+    const opcao = await screen.findByRole('option')
+    expect(opcao.textContent).toMatch(/^@npub1/)
+    await userEvent.click(opcao)
+    expect((campo as HTMLTextAreaElement).value).toMatch(/^oi @npub1.*… ?\S* $|^oi @npub1\S+ $/)
+    expect(screen.queryByRole('listbox')).not.toBeInTheDocument()
+  })
+
+  it('RN-WEB-GRUPOS-016: quem foi marcado ve a marcacao destacada na mensagem', async () => {
+    await useGrupos.getState().gravar(grupo())
+    const { salvarMensagem } = await import('@/conversas/armazemMensagens')
+    await salvarMensagem({
+      id: 'm1',
+      conversa: `grupo:${ID}`,
+      autor: outro.pubkey,
+      texto: 'oi @Eu tudo bem',
+      criadoEm: 2000,
+      estado: 'recebida',
+      mencoes: [{ pubkey: eu.pubkey, texto: '@Eu' }],
+    })
+    abrir(`/conversas/grupo/${ID}`)
+    const marca = await screen.findByText('@Eu')
+    expect(marca.tagName).toBe('STRONG')
+  })
 })

@@ -46,10 +46,10 @@ export function desligarNotificacoes(): void {
   }
 }
 
-export function notificarNovaMensagemDeGrupo(id: string, nome: string): void {
+export function notificarNovaMensagemDeGrupo(id: string, nome: string, marcado = false): void {
   if (estadoNotificacoes() !== 'ligada' || document.visibilityState !== 'hidden') return
   new Notification(t.notificacoes.titulo, {
-    body: t.notificacoes.corpoGrupo(nome),
+    body: marcado ? t.notificacoes.corpoMencao(nome) : t.notificacoes.corpoGrupo(nome),
     tag: `grupo:${id}`,
   })
 }

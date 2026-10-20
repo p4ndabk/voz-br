@@ -125,3 +125,11 @@ entra não vê o passado" vêm disso, não de uma chave compartilhada.
 **Se violada:** a pessoa aperta "aceitar", o grupo mostra "fulano entrou" para os outros, mas ela continua de fora sem saber por quê.
 **Onde vive:** `web/src/grupos/regras.ts`, `web/src/grupos/acoes.ts` (`aceitarConvite`), `web/src/pages/grupo/Grupo.tsx`
 **Teste:** `web/src/grupos/grupos.test.ts`, `web/src/grupos/fluxo.test.ts`, `web/src/pages/grupo/grupos.test.tsx`::RN-WEB-GRUPOS-015
+
+### RN-WEB-GRUPOS-016 — Marcar alguém do grupo com @
+
+**Regra:** ao digitar `@` no campo de mensagem do grupo, aparece a lista dos outros membros (filtrada pelo que se digita, sem acento nem maiúscula; setas, Enter ou Tab escolhem, Esc fecha); escolher põe `@Nome ` no texto. A mensagem leva, em tags `["mencao", pubkey, "@Nome"]`, quem foi marcado. Só vale a marcação que continua no texto e é de um membro do grupo; as malformadas são ignoradas e a mensagem vale do mesmo jeito. O nome marcado aparece em destaque para todos; para quem foi marcado, o balão tem borda vermelha, a lista do grupo mostra "@", o aviso do navegador diz "Marcaram você no grupo X" e o "@" some ao abrir o grupo.
+**Quando:** ao escrever e ao receber mensagem de grupo.
+**Se violada:** marcar alguém não avisa a pessoa, ou uma tag forjada marca um estranho.
+**Onde vive:** `web/src/grupos/mencoes.ts`, `web/src/grupos/protocolo.ts`, `web/src/pages/conversa/CampoMensagem.tsx`, `web/src/pages/conversa/ListaMensagens.tsx`
+**Teste:** `web/src/grupos/mencoes.test.ts`, `web/src/grupos/fluxo.test.ts::RN-WEB-GRUPOS-016`, `web/src/pages/grupo/grupos.test.tsx`

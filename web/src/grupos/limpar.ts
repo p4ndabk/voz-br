@@ -47,6 +47,7 @@ export async function limparGrupoLocal(grupoId: string, limite: number): Promise
       apagadoAte: Math.max(atual.apagadoAte ?? 0, limite),
       trecho: undefined,
       naoLidas: 0,
+      marcado: false,
     })
   }
   await queimar(chave, limite)

@@ -1,5 +1,6 @@
 import { del } from 'idb-keyval'
 import { gravarCofre, lerCofre, listarCofre } from '@/nostr/cofre'
+import type { Mencao } from '@/grupos/mencoes'
 import type { EventoNostr } from '@/nostr/dm'
 
 export type EstadoMensagem = 'enviando' | 'enviada' | 'falhou' | 'recebida'
@@ -17,6 +18,8 @@ export interface Mensagem {
   semRelaysDm?: boolean
   // Aviso do proprio Voz no meio da conversa (nao e balao de ninguem). `texto` guarda a pubkey de quem entrou.
   sistema?: 'entrou'
+  // Pessoas marcadas com @ (so em grupo).
+  mencoes?: Mencao[]
 }
 
 // Embrulho que EU criei. Guarda a chave efemera (para o pedido de apagar da spec 0007) e o

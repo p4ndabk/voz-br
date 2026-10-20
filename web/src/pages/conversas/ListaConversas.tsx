@@ -120,6 +120,15 @@ function ItemGrupo({ grupo, ativa }: { grupo: Grupo; ativa: boolean }) {
             >
               {grupo.trecho ?? t.grupos.pessoas(grupo.membros.length)}
             </span>
+            {grupo.marcado && (
+              <span
+                aria-label={t.grupos.marcado}
+                title={t.grupos.marcado}
+                className="shrink-0 rounded-full border-2 border-borda bg-tinta px-1.5 text-xs font-bold text-fundo"
+              >
+                @
+              </span>
+            )}
             {naoLidas > 0 && (
               <span
                 aria-label={t.conversas.naoLidas(naoLidas)}

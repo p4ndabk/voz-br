@@ -7,6 +7,7 @@ import { useMensagens } from '@/conversas/useMensagens'
 import { publicarMembros } from './enviar'
 import { limparGrupoLocal } from './limpar'
 import { obterGrupo } from './armazem'
+import { mencoesValidas, type Mencao } from './mencoes'
 import { aplicarAcao } from './regras'
 import { lerAcaoDeGrupo, type AcaoDeGrupo } from './protocolo'
 import { chaveDaConversa, type Grupo } from './tipos'
@@ -44,8 +45,14 @@ export async function receberDeGrupo(assinante: Assinante, rumor: Rumor): Promis
       : acao.tipo === 'membros' && local?.estado === 'ativo'
         ? r.grupo.membros.filter((pk) => !local.membros.includes(pk) && pk !== eu)
         : []
-  if (r.mensagem) grupo = await registrarMensagem(eu, grupo, rumor)
-  else if (r.grupo !== local) {
+  if (r.mensagem && acao.tipo === 'mensagem') {
+    grupo = await registrarMensagem(
+      eu,
+      grupo,
+      rumor,
+      mencoesValidas(rumor.content, acao.mencoes, grupo.membros),
+    )
+  } else if (r.grupo !== local) {
     if (!local) {
       // convite novo: guarda a hora de chegada como ponto de partida das nao lidas
       grupo = { ...grupo, lidaAte: await desdeNesteNavegador(agora) }
@@ -76,7 +83,12 @@ async function avisarEntrada(grupo: Grupo, pubkey: string, quando: number): Prom
   })
 }
 
-async function registrarMensagem(eu: string, grupo: Grupo, rumor: Rumor): Promise<Grupo> {
+async function registrarMensagem(
+  eu: string,
+  grupo: Grupo,
+  rumor: Rumor,
+  mencoes: Mencao[],
+): Promise<Grupo> {
   const propria = rumor.pubkey === eu
   const inserida = await useMensagens.getState().inserir({
     id: rumor.id,
@@ -85,13 +97,16 @@ async function registrarMensagem(eu: string, grupo: Grupo, rumor: Rumor): Promis
     texto: rumor.content,
     criadoEm: rumor.created_at,
     estado: propria ? 'enviada' : 'recebida',
+    ...(mencoes.length > 0 ? { mencoes } : {}),
   })
   if (!inserida) return grupo
   const vistoAte = grupo.lidaAte ?? grupo.ultimaMensagemEm ?? 0
   const naoLida = !propria && rumor.created_at > vistoAte
+  const marcadoEu = mencoes.some((m) => m.pubkey === eu)
   const atualizado: Grupo = {
     ...grupo,
     naoLidas: (grupo.naoLidas ?? 0) + (naoLida ? 1 : 0),
+    marcado: grupo.marcado || (naoLida && marcadoEu),
     ultimaMensagemEm: Math.max(grupo.ultimaMensagemEm ?? 0, rumor.created_at),
     trecho:
       rumor.created_at >= (grupo.ultimaMensagemEm ?? 0) ? trechoDe(rumor.content) : grupo.trecho,
@@ -99,7 +114,7 @@ async function registrarMensagem(eu: string, grupo: Grupo, rumor: Rumor): Promis
   await useGrupos.getState().gravar(atualizado)
   if (naoLida) {
     tocarPlin()
-    notificarNovaMensagemDeGrupo(grupo.id, grupo.nome)
+    notificarNovaMensagemDeGrupo(grupo.id, grupo.nome, marcadoEu)
   }
   return atualizado
 }

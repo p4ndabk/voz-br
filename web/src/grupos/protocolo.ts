@@ -1,4 +1,5 @@
 import { TAG_VOZ, type Rumor } from '@/nostr/dm'
+import { MAXIMO_TEXTO_MENCAO, type Mencao } from './mencoes'
 import { MAXIMO_MEMBROS, TAMANHO_MAXIMO_NOME_GRUPO, type DadosGrupo } from './tipos'
 
 // RN-WEB-GRUPOS-*: as mensagens de controle do grupo sao rumores kind 14 comuns (legiveis em outros
@@ -16,7 +17,7 @@ const HEX_64 = /^[0-9a-f]{64}$/
 const INTEIRO = /^\d{1,12}$/
 
 export type AcaoDeGrupo =
-  | { tipo: 'mensagem'; grupo: string }
+  | { tipo: 'mensagem'; grupo: string; mencoes: Mencao[] }
   | { tipo: 'convite'; dados: DadosGrupo }
   | { tipo: 'aceito'; grupo: string }
   | { tipo: 'recusado'; grupo: string }
@@ -50,6 +51,15 @@ function lerDados(rumor: Rumor, id: string): DadosGrupo | null {
   return { id, nome: nomeDoGrupo.trim(), admin, membros, pendentes, versao: Number(versao) }
 }
 
+// Marcacoes: ["mencao", pubkey, "@Nome"]. As invalidas sao ignoradas (a mensagem vale do mesmo jeito).
+function lerMencoes(rumor: Rumor): Mencao[] {
+  return rumor.tags
+    .filter((t) => t[0] === 'mencao' && idValido(t[1]) && typeof t[2] === 'string')
+    .filter((t) => t[2]!.startsWith('@') && t[2]!.length <= MAXIMO_TEXTO_MENCAO)
+    .slice(0, MAXIMO_MEMBROS)
+    .map((t) => ({ pubkey: t[1]!, texto: t[2]! }))
+}
+
 // null = nao e mensagem de grupo (ou esta malformada): segue o caminho normal ou e descartada.
 export function lerAcaoDeGrupo(rumor: Rumor): AcaoDeGrupo | null {
   const tag = rumor.tags.find((t) => t[0] === TAG_VOZ && t[1]?.startsWith('grupo'))
@@ -58,7 +68,7 @@ export function lerAcaoDeGrupo(rumor: Rumor): AcaoDeGrupo | null {
   if (!idValido(id)) return null
   switch (acao) {
     case ACAO_MENSAGEM:
-      return { tipo: 'mensagem', grupo: id }
+      return { tipo: 'mensagem', grupo: id, mencoes: lerMencoes(rumor) }
     case ACAO_ACEITO:
       return { tipo: 'aceito', grupo: id }
     case ACAO_RECUSADO:
@@ -86,9 +96,14 @@ export function lerAcaoDeGrupo(rumor: Rumor): AcaoDeGrupo | null {
 // Tags de cada acao. Os destinatarios (tags `p`) entram junto, como no NIP-17 de grupo.
 const paraTodos = (destinos: readonly string[]) => destinos.map((pk) => ['p', pk])
 
-export const tagsDeMensagem = (grupo: string, destinos: readonly string[]) => [
+export const tagsDeMensagem = (
+  grupo: string,
+  destinos: readonly string[],
+  mencoes: readonly Mencao[] = [],
+) => [
   ...paraTodos(destinos),
   [TAG_VOZ, ACAO_MENSAGEM, grupo],
+  ...mencoes.map((m) => ['mencao', m.pubkey, m.texto]),
 ]
 
 function tagsDeDados(acao: string, d: DadosGrupo, destinos: readonly string[]) {

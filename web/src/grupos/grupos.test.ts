@@ -60,6 +60,7 @@ describe('protocolo do grupo (RN-WEB-GRUPOS-001)', () => {
     expect(lerAcaoDeGrupo(rumor(tagsDeMensagem(ID, [BIA])))).toEqual({
       tipo: 'mensagem',
       grupo: ID,
+      mencoes: [],
     })
     expect(lerAcaoDeGrupo(rumor(tagsSimples(ACAO_SAIR, ID, [ADMIN])))).toEqual({
       tipo: 'sair',
@@ -164,7 +165,9 @@ describe('regras de quem recebe (RN-WEB-GRUPOS-004, 005, 007, 008)', () => {
     expect(r.ok && r.grupo.estado).toBe('convidado')
     // convidado ainda nao e membro: mensagem do grupo e recusada
     const g = r.ok ? r.grupo : undefined
-    expect(aplicarAcao(g, ADMIN, { tipo: 'mensagem', grupo: ID }, BIA, 900, 900)).toEqual({
+    expect(
+      aplicarAcao(g, ADMIN, { tipo: 'mensagem', grupo: ID, mencoes: [] }, BIA, 900, 900),
+    ).toEqual({
       ok: false,
       motivo: 'inativo',
     })
@@ -285,20 +288,33 @@ describe('regras de quem recebe (RN-WEB-GRUPOS-004, 005, 007, 008)', () => {
 
   it('RN-WEB-GRUPOS-008: mensagem so vale de membro, com o grupo ativo e conhecido', () => {
     const g = ativo({ pendentes: [] })
-    expect(aplicarAcao(g, BIA, { tipo: 'mensagem', grupo: ID }, ADMIN, 1, 1)).toMatchObject({
+    expect(
+      aplicarAcao(g, BIA, { tipo: 'mensagem', grupo: ID, mencoes: [] }, ADMIN, 1, 1),
+    ).toMatchObject({
       ok: true,
       mensagem: true,
     })
-    expect(aplicarAcao(g, DUDA, { tipo: 'mensagem', grupo: ID }, ADMIN, 1, 1)).toEqual({
-      ok: false,
-      motivo: 'nao-e-membro',
-    })
-    expect(aplicarAcao(undefined, BIA, { tipo: 'mensagem', grupo: ID }, ADMIN, 1, 1)).toEqual({
+    expect(aplicarAcao(g, DUDA, { tipo: 'mensagem', grupo: ID, mencoes: [] }, ADMIN, 1, 1)).toEqual(
+      {
+        ok: false,
+        motivo: 'nao-e-membro',
+      },
+    )
+    expect(
+      aplicarAcao(undefined, BIA, { tipo: 'mensagem', grupo: ID, mencoes: [] }, ADMIN, 1, 1),
+    ).toEqual({
       ok: false,
       motivo: 'desconhecido',
     })
     expect(
-      aplicarAcao({ ...g, estado: 'removido' }, BIA, { tipo: 'mensagem', grupo: ID }, ADMIN, 1, 1),
+      aplicarAcao(
+        { ...g, estado: 'removido' },
+        BIA,
+        { tipo: 'mensagem', grupo: ID, mencoes: [] },
+        ADMIN,
+        1,
+        1,
+      ),
     ).toEqual({ ok: false, motivo: 'inativo' })
   })
 
@@ -307,7 +323,9 @@ describe('regras de quem recebe (RN-WEB-GRUPOS-004, 005, 007, 008)', () => {
     const sem = { ...paraDados(g), versao: 4, membros: [ADMIN] }
     const r = aplicarAcao(g, ADMIN, { tipo: 'membros', dados: sem }, CAIO, 1, 1)
     const depois = r.ok ? r.grupo : g
-    expect(aplicarAcao(depois, BIA, { tipo: 'mensagem', grupo: ID }, ADMIN, 1, 1)).toMatchObject({
+    expect(
+      aplicarAcao(depois, BIA, { tipo: 'mensagem', grupo: ID, mencoes: [] }, ADMIN, 1, 1),
+    ).toMatchObject({
       ok: false,
     })
   })
@@ -391,5 +409,21 @@ describe('regras de quem recebe (RN-WEB-GRUPOS-004, 005, 007, 008)', () => {
       agoraDoAdmin,
     )
     expect(segundo.ok && segundo.grupo.membros).toEqual([ADMIN, CAIO, BIA])
+  })
+
+  it('RN-WEB-GRUPOS-016: a mensagem leva as marcacoes validas e ignora as malformadas', () => {
+    const tags = tagsDeMensagem(ID, [BIA], [{ pubkey: BIA, texto: '@Bia' }])
+    expect(lerAcaoDeGrupo(rumor(tags))).toEqual({
+      tipo: 'mensagem',
+      grupo: ID,
+      mencoes: [{ pubkey: BIA, texto: '@Bia' }],
+    })
+    const sujas = [
+      ...tagsDeMensagem(ID, [BIA]),
+      ['mencao', 'curto', '@x'],
+      ['mencao', BIA, 'sem-arroba'],
+      ['mencao', BIA, '@' + 'x'.repeat(80)],
+    ]
+    expect(lerAcaoDeGrupo(rumor(sujas))).toEqual({ tipo: 'mensagem', grupo: ID, mencoes: [] })
   })
 })

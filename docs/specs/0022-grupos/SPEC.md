@@ -28,6 +28,7 @@
 - [x] Criar grupo (nome + contatos), convites com Aceitar/Recusar, lista de conversas
 - [x] Conversa do grupo, membros, sair, passar o admin
 - [x] Limpar histórico (para mim e, pelo admin, para todos), com o fogo
+- [x] Marcar alguém com @ (`RN-WEB-GRUPOS-016`)
 - [x] Não lidas por grupo (lista, título da aba e aviso do navegador)
 - [ ] Sincronia entre aparelhos (ver `TODO.md`, PT-01)
 

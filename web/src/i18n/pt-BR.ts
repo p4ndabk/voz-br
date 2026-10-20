@@ -218,6 +218,7 @@ export const t = {
     titulo: 'Voz',
     corpo: (nome: string) => `Nova mensagem de ${nome}`,
     corpoGrupo: (grupo: string) => `Nova mensagem no grupo ${grupo}`,
+    corpoMencao: (grupo: string) => `Marcaram você no grupo ${grupo}`,
     secao: 'Avisos do navegador',
     ajuda:
       'Mostra um aviso quando chega mensagem com o Voz em segundo plano. O aviso não traz o texto da mensagem. Com o Voz fechado, nada chega.',
@@ -424,6 +425,9 @@ export const t = {
     semMensagens: 'Nenhuma mensagem ainda. Escreva a primeira.',
     voce: 'você',
     entrou: (nome: string) => `${nome} entrou no grupo`,
+    marcarAlguem: 'Marcar alguém do grupo',
+    marcou: 'Marcaram você',
+    marcado: 'Marcaram você',
     admin: 'admin',
     pendente: 'aguardando aceitar',
     // Convites

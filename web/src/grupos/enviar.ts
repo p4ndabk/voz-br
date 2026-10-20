@@ -14,6 +14,7 @@ import { meusRelaysDm, relaysDoAmigo } from '@/conversas/relaysDm'
 import { useMensagens } from '@/conversas/useMensagens'
 import { validarTexto } from '@/conversas/validarTexto'
 import { t } from '@/i18n/pt-BR'
+import { mencoesValidas, type Mencao } from './mencoes'
 import { paraDados } from './regras'
 import {
   ACAO_ACEITO,
@@ -90,6 +91,7 @@ export async function enviarMensagemDeGrupo(
   assinante: Assinante,
   grupo: Grupo,
   texto: string,
+  marcados: readonly Mencao[] = [],
 ): Promise<Mensagem> {
   if (validarTexto(texto) !== 'ok') throw new Error('mensagem invalida')
   if (grupo.estado !== 'ativo') throw new Error('grupo inativo')
@@ -98,7 +100,9 @@ export async function enviarMensagemDeGrupo(
   if (destinos.length === 0) throw new Error('grupo sem outros membros')
   const limpo = texto.trim()
   const agora = agoraEmSegundos()
-  const rumor = criarRumorLivre(eu, limpo, tagsDeMensagem(grupo.id, destinos), agora)
+  // RN-WEB-GRUPOS-016: so segue a marcacao que continua no texto e e de um membro.
+  const mencoes = mencoesValidas(limpo, marcados, grupo.membros)
+  const rumor = criarRumorLivre(eu, limpo, tagsDeMensagem(grupo.id, destinos, mencoes), agora)
   const { paraOutros, paraMim } = await embrulharParaVarios(assinante, rumor, destinos, agora)
   const conversa = chaveDaConversa(grupo.id)
   const mensagem: Mensagem = {
@@ -108,6 +112,7 @@ export async function enviarMensagemDeGrupo(
     texto: limpo,
     criadoEm: rumor.created_at,
     estado: 'enviando',
+    ...(mencoes.length > 0 ? { mencoes } : {}),
   }
   await useMensagens.getState().inserir(mensagem)
   await Promise.all(

@@ -34,6 +34,8 @@ export interface Grupo {
   trecho?: string
   lidaAte?: number
   naoLidas?: number
+  // Tem mensagem nao lida em que fui marcado (@).
+  marcado?: boolean
 }
 
 // Folga para relogios diferentes entre os aparelhos.

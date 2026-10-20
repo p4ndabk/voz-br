@@ -3,6 +3,14 @@ import { Botao } from '@/components/ui/Botao'
 import { IconeEmoji } from '@/components/ui/IconeEmoji'
 import { LIMITE_MENSAGEM, validarTexto } from '@/conversas/mensageria'
 import { t } from '@/i18n/pt-BR'
+import {
+  aplicarMencao,
+  consultaDeMencao,
+  mencoesValidas,
+  sugerir,
+  type Mencao,
+  type Sugestao,
+} from '@/grupos/mencoes'
 import { EMOJIS, inserirNoCursor } from './emojis'
 import {
   ALTURA_MINIMA,
@@ -16,11 +24,17 @@ const LINHAS_MAXIMAS = 5
 const MOSTRAR_CONTADOR_A_PARTIR_DE = LIMITE_MENSAGEM - 500
 
 interface Props {
-  aoEnviar: (texto: string) => void
+  aoEnviar: (texto: string, marcados?: Mencao[]) => void
+  // Em grupo: quem pode ser marcado com @.
+  sugestoes?: readonly Sugestao[]
 }
 
-export function CampoMensagem({ aoEnviar }: Props) {
+export function CampoMensagem({ aoEnviar, sugestoes }: Props) {
   const [texto, setTexto] = useState('')
+  const [cursor, setCursor] = useState(0)
+  const [indice, setIndice] = useState(0)
+  const [fechadaEm, setFechadaEm] = useState<number | null>(null)
+  const marcados = useRef<Mencao[]>([])
   const [emojisAbertos, setEmojisAbertos] = useState(false)
   const grade = useRef<HTMLDivElement>(null)
   const botaoEmoji = useRef<HTMLButtonElement>(null)
@@ -95,10 +109,39 @@ export function CampoMensagem({ aoEnviar }: Props) {
     }
   }, [emojisAbertos])
 
+  // RN-WEB-GRUPOS-016: "@" abre a lista de quem pode ser marcado; escolher poe "@Nome " no texto.
+  const alvo = sugestoes ? consultaDeMencao(texto, cursor) : null
+  const lista =
+    alvo && sugestoes && fechadaEm !== alvo.inicio ? sugerir(sugestoes, alvo.consulta) : []
+  const listaAberta = lista.length > 0
+
+  const escolher = (s: Sugestao) => {
+    if (!alvo) return
+    const r = aplicarMencao(texto, cursor, alvo.inicio, s.nome)
+    marcados.current = [...marcados.current, { pubkey: s.pubkey, texto: `@${s.nome}` }]
+    setTexto(r.texto)
+    setCursor(r.cursor)
+    setIndice(0)
+    requestAnimationFrame(() => {
+      area.current?.focus()
+      area.current?.setSelectionRange(r.cursor, r.cursor)
+      ajustarAltura()
+    })
+  }
+
   const enviar = () => {
     if (validacao !== 'ok') return
-    aoEnviar(texto)
+    const marcadosValidos = sugestoes
+      ? mencoesValidas(
+          texto,
+          marcados.current,
+          sugestoes.map((s) => s.pubkey),
+        )
+      : undefined
+    aoEnviar(texto, marcadosValidos)
+    marcados.current = []
     setTexto('')
+    setCursor(0)
     requestAnimationFrame(ajustarAltura)
     area.current?.focus()
   }
@@ -121,6 +164,25 @@ export function CampoMensagem({ aoEnviar }: Props) {
 
   // Enter envia, Shift+Enter quebra a linha. Durante a composicao (acentos, IME) Enter nao envia.
   const aoTeclar = (e: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (listaAberta) {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        const passo = e.key === 'ArrowDown' ? 1 : -1
+        setIndice((i) => (i + passo + lista.length) % lista.length)
+        return
+      }
+      if ((e.key === 'Enter' || e.key === 'Tab') && !e.nativeEvent.isComposing) {
+        e.preventDefault()
+        const escolhida = lista[Math.min(indice, lista.length - 1)]
+        if (escolhida) escolher(escolhida)
+        return
+      }
+      if (e.key === 'Escape') {
+        e.preventDefault()
+        setFechadaEm(alvo?.inicio ?? null)
+        return
+      }
+    }
     if (e.key === 'Enter' && !e.shiftKey && !e.nativeEvent.isComposing) {
       e.preventDefault()
       enviar()
@@ -150,6 +212,33 @@ export function CampoMensagem({ aoEnviar }: Props) {
       >
         <span className="h-1 w-12 rounded-full bg-borda opacity-50 group-hover:opacity-100 group-focus-visible:opacity-100" />
       </div>
+      {listaAberta && (
+        <ul
+          role="listbox"
+          aria-label={t.grupos.marcarAlguem}
+          className="absolute bottom-full left-0 z-10 mb-2 flex max-h-56 w-72 max-w-full flex-col overflow-y-auto rounded-cordel border-2 border-borda bg-superficie shadow-carimbo-pequeno"
+        >
+          {lista.map((s, i) => (
+            <li key={s.pubkey} role="presentation">
+              <button
+                type="button"
+                role="option"
+                aria-selected={i === indice}
+                // pointerdown para nao tirar o foco do campo antes de escolher
+                onPointerDown={(e) => {
+                  e.preventDefault()
+                  escolher(s)
+                }}
+                className={`w-full truncate px-3 py-2 text-left font-bold ${
+                  i === indice ? 'bg-fundo' : ''
+                } hover:bg-fundo`}
+              >
+                @{s.nome}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
       {emojisAbertos && (
         <div
           ref={grade}
@@ -189,8 +278,12 @@ export function CampoMensagem({ aoEnviar }: Props) {
           value={texto}
           onChange={(e) => {
             setTexto(e.target.value)
+            setCursor(e.target.selectionStart)
+            setIndice(0)
+            setFechadaEm(null)
             ajustarAltura()
           }}
+          onSelect={(e) => setCursor(e.currentTarget.selectionStart)}
           onKeyDown={aoTeclar}
           aria-label={t.mensagens.campo}
           placeholder={t.mensagens.campo}

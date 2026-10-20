@@ -470,4 +470,34 @@ describe('fluxo do grupo (RN-WEB-GRUPOS-002 a 009)', () => {
     // e a lista do admin nao mudou por causa do reenvio
     expect((await grupoDe(ana, id))?.versao).toBe(2)
   })
+
+  it('RN-WEB-GRUPOS-016: quem e marcado recebe a marcacao e fica "marcado"; so membros podem ser marcados', async () => {
+    const id = await grupoComAnaBiaCaio()
+    for (const p of [bia, caio]) {
+      await receber(p)
+      await aceitarConvite(p, id, nome(p))
+    }
+    await assentar(ana, bia, caio)
+    await como(ana)
+    await enviarMensagemDeGrupo(ana, (await obterGrupo(id))!, 'oi @Bia e @Duda', [
+      { pubkey: bia.pubkey, texto: '@Bia' },
+      { pubkey: duda.pubkey, texto: '@Duda' }, // nao e do grupo: some
+    ])
+    await assentar(ana, bia, caio)
+    const mencoesDe = async (p: Assinante) => {
+      await como(p)
+      await useMensagens.getState().carregar(chaveDaConversa(id))
+      return (useMensagens.getState().porConversa[chaveDaConversa(id)] ?? [])
+        .filter((m) => !m.sistema)
+        .flatMap((m) => m.mencoes ?? [])
+    }
+    expect(await mencoesDe(bia)).toEqual([{ pubkey: bia.pubkey, texto: '@Bia' }])
+    expect((await grupoDe(bia, id))?.marcado).toBe(true)
+    expect((await grupoDe(caio, id))?.marcado).toBeFalsy() // recebeu, mas nao foi marcado
+    expect(await mencoesDe(caio)).toEqual([{ pubkey: bia.pubkey, texto: '@Bia' }]) // todos veem quem foi marcado
+    // abrir o grupo limpa a marca
+    await como(bia)
+    await useGrupos.getState().marcarVisto(id)
+    expect((await obterGrupo(id))?.marcado).toBe(false)
+  })
 })

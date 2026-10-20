@@ -334,7 +334,12 @@ export function Grupo() {
             <div className="mx-auto max-w-3xl">
               {podeEscrever ? (
                 <CampoMensagem
-                  aoEnviar={(texto) => void enviarMensagemDeGrupo(assinante, grupo, texto)}
+                  sugestoes={grupo.membros
+                    .filter((pk) => pk !== eu)
+                    .map((pk) => ({ pubkey: pk, nome: nomeDe(pk) }))}
+                  aoEnviar={(texto, marcados) =>
+                    void enviarMensagemDeGrupo(assinante, grupo, texto, marcados)
+                  }
                 />
               ) : (
                 ativo && (

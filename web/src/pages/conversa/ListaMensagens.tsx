@@ -4,6 +4,7 @@ import { Botao } from '@/components/ui/Botao'
 import { TextoComLinks } from '@/components/ui/TextoComLinks'
 import type { Mensagem } from '@/conversas/armazemMensagens'
 import { chaveDoDia, horaDe, rotuloDoDia } from '@/conversas/dias'
+import { partirPorMencoes } from '@/grupos/mencoes'
 import { t } from '@/i18n/pt-BR'
 
 interface Props {
@@ -58,8 +59,27 @@ export function ListaMensagens({
               {!meu && nomeDe && (
                 <p className="ml-1 text-xs font-bold text-tinta-suave">{nomeDe(m.autor)}</p>
               )}
-              <Balao autor={meu ? 'meu' : 'outro'} hora={horaDe(m.criadoEm)}>
-                <TextoComLinks texto={m.texto} />
+              <Balao
+                autor={meu ? 'meu' : 'outro'}
+                hora={horaDe(m.criadoEm)}
+                destaque={!meu && m.mencoes?.some((x) => x.pubkey === minhaPubkey)}
+              >
+                {partirPorMencoes(m.texto, m.mencoes ?? []).map((parte, i) =>
+                  typeof parte === 'string' ? (
+                    <TextoComLinks key={i} texto={parte} />
+                  ) : (
+                    <strong
+                      key={i}
+                      className={`rounded-cordel px-1 ${
+                        parte.pubkey === minhaPubkey
+                          ? 'bg-vermelho text-sobre-vermelho'
+                          : 'bg-fundo text-tinta underline'
+                      }`}
+                    >
+                      {parte.texto}
+                    </strong>
+                  ),
+                )}
               </Balao>
               {meu && m.estado === 'enviando' && (
                 <p className="self-end text-xs text-tinta-suave">{t.mensagens.enviando}</p>
