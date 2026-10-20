@@ -86,6 +86,18 @@ export function Grupo() {
     for (const pk of membrosChave.split(',').filter(Boolean)) void usePerfis.getState().carregar(pk)
   }, [membrosChave])
 
+  // RN-WEB-GRUPOS-015: quem ja aceitou e ainda nao entrou reenvia o pedido ao abrir o grupo (o admin
+  // responde com a lista atual se o primeiro pedido ou a resposta se perderam).
+  const aguardandoAdmin = grupo?.estado === 'convidado' && grupo.aceitou === true
+  const meuPerfilNome = assinante
+    ? nomeExibido(perfis[assinante.pubkey], assinante.pubkey).texto
+    : ''
+  useEffect(() => {
+    if (aguardandoAdmin && assinante) void aceitarConvite(assinante, id, meuPerfilNome)
+    // so ao abrir: o nome muda quando o perfil carrega e nao deve disparar outro envio
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [aguardandoAdmin, id])
+
   // O fogo da conversa de dois, para o historico do grupo (RN-WEB-APAGAR-010 a 012).
   useEffect(
     () =>
@@ -248,10 +260,19 @@ export function Grupo() {
       {grupo.estado === 'convidado' ? (
         <div className="mx-auto flex w-full max-w-xl flex-col items-start gap-4 px-4 py-8">
           <p className="font-bold">{t.grupos.convidou(nomeDe(grupo.admin))}</p>
-          <p className="text-tinta-suave">{t.grupos.conviteAviso}</p>
+          {grupo.aceitou ? (
+            <>
+              <p role="status" className="font-bold text-vermelho">
+                {t.grupos.aguardando}
+              </p>
+              <p className="text-tinta-suave">{t.grupos.aguardandoAjuda}</p>
+            </>
+          ) : (
+            <p className="text-tinta-suave">{t.grupos.conviteAviso}</p>
+          )}
           <div className="flex flex-wrap gap-3">
             <Botao onClick={() => void aceitarConvite(assinante, grupo.id, meuNome)}>
-              {t.grupos.aceitar}
+              {grupo.aceitou ? t.grupos.reenviar : t.grupos.aceitar}
             </Botao>
             <Botao
               variante="secundario"

@@ -446,4 +446,28 @@ describe('fluxo do grupo (RN-WEB-GRUPOS-002 a 009)', () => {
     await assentar(ana, bia)
     expect((await grupoDe(bia, id))?.estado).toBe('encerrado')
   })
+
+  it('RN-WEB-GRUPOS-015: se a lista nova nao chega ao convidado, reenviar o pedido o faz entrar', async () => {
+    const id = await grupoComAnaBiaCaio()
+    await receber(bia)
+    await aceitarConvite(bia, id, nome(bia))
+    expect((await grupoDe(bia, id))?.aceitou).toBe(true)
+    await receber(ana) // o admin inclui a Bia e publica a lista...
+    expect((await grupoDe(ana, id))?.membros).toContain(bia.pubkey)
+    // ...mas a lista nao chega a Bia (relay fora, aparelho dormindo)
+    const perdidos = rede.publicados
+      .map((p) => p.evento)
+      .filter((e) => e.tags[0]?.[1] === bia.pubkey)
+    const jaBia = entregues.get(bia.pubkey) ?? new Set<string>()
+    entregues.set(bia.pubkey, jaBia)
+    for (const e of perdidos) jaBia.add(e.id)
+    await receber(bia)
+    expect((await grupoDe(bia, id))?.estado).toBe('convidado') // continua de fora
+    // ela reenvia o pedido: o admin responde com a lista atual
+    await aceitarConvite(bia, id, nome(bia))
+    await assentar(ana, bia)
+    expect((await grupoDe(bia, id))?.estado).toBe('ativo')
+    // e a lista do admin nao mudou por causa do reenvio
+    expect((await grupoDe(ana, id))?.versao).toBe(2)
+  })
 })

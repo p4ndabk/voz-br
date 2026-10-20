@@ -58,7 +58,7 @@ export async function receberDeGrupo(assinante: Assinante, rumor: Rumor): Promis
   if (r.publicarMembros) {
     // Quem acabou de sair tambem recebe a lista nova, para saber que saiu em todos os aparelhos.
     const tambem = acao.tipo === 'sair' ? [rumor.pubkey] : []
-    await publicarMembros(assinante, grupo, tambem).catch(() => {})
+    await publicarMembros(assinante, grupo, tambem, r.soPara).catch(() => {})
   }
 }
 

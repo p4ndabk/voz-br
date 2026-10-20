@@ -117,3 +117,11 @@ entra não vê o passado" vêm disso, não de uma chave compartilhada.
 **Se violada:** o grupo volta sozinho na lista, ou o admin some deixando os outros num grupo sem dono.
 **Onde vive:** `web/src/grupos/acoes.ts` (`excluirGrupo`), `web/src/pages/conversas/ListaConversas.tsx`
 **Teste:** `web/src/grupos/fluxo.test.ts::RN-WEB-GRUPOS-014`
+
+### RN-WEB-GRUPOS-015 — Aceitar um convite não pode falhar em silêncio
+
+**Regra:** depois de aceitar, a tela mostra "Você aceitou. Aguardando o admin confirmar…" com o botão **Reenviar pedido**, e o Voz reenvia o pedido ao abrir o grupo. O admin, ao receber o aceite de quem já é membro (que não recebeu a lista), reenvia a lista atual só a essa pessoa, sem mudar a versão. Processar aceites, recusas e saídas não muda a data de referência de reentregas: só as ações do próprio admin (criar, convidar, tirar, passar o cargo) mudam, então um admin que volta depois de horas aceita todos os pedidos, e não só o primeiro.
+**Quando:** ao aceitar, ao abrir o grupo ainda convidado e ao o admin receber o pedido.
+**Se violada:** a pessoa aperta "aceitar", o grupo mostra "fulano entrou" para os outros, mas ela continua de fora sem saber por quê.
+**Onde vive:** `web/src/grupos/regras.ts`, `web/src/grupos/acoes.ts` (`aceitarConvite`), `web/src/pages/grupo/Grupo.tsx`
+**Teste:** `web/src/grupos/grupos.test.ts`, `web/src/grupos/fluxo.test.ts`, `web/src/pages/grupo/grupos.test.tsx`::RN-WEB-GRUPOS-015

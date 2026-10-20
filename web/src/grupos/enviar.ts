@@ -209,8 +209,9 @@ export async function publicarMembros(
   assinante: Assinante,
   grupo: Grupo,
   tambem: readonly string[] = [],
+  soPara?: string,
 ): Promise<void> {
-  const destinos = [...grupo.membros, ...tambem]
+  const destinos = soPara ? [soPara] : [...grupo.membros, ...tambem]
   await publicarControle(
     assinante,
     t.grupos.textoMembros(grupo.nome),

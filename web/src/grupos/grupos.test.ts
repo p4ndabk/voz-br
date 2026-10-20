@@ -352,4 +352,44 @@ describe('regras de quem recebe (RN-WEB-GRUPOS-004, 005, 007, 008)', () => {
     const recente = aplicarAcao(g, BIA, { tipo: 'sair', grupo: ID }, ADMIN, 100_050, 100_100)
     expect(recente).toMatchObject({ ok: true, publicarMembros: true })
   })
+
+  it('RN-WEB-GRUPOS-015: aceite de quem ja e membro (nao recebeu a lista) reenvia a lista so a ele, sem mudar nada', () => {
+    const g = ativo({ pendentes: [] })
+    const r = aplicarAcao(g, BIA, { tipo: 'aceito', grupo: ID }, ADMIN, 1000, 1000)
+    expect(r).toMatchObject({ ok: true, publicarMembros: true, soPara: BIA })
+    expect(r.ok && r.grupo).toBe(g) // nada mudou: mesma versao, mesmos membros
+    // o admin nao "reenvia" para si, e quem nao e membro continua sem entrar
+    expect(aplicarAcao(g, ADMIN, { tipo: 'aceito', grupo: ID }, ADMIN, 1000, 1000)).toMatchObject({
+      ok: false,
+    })
+    expect(aplicarAcao(g, DUDA, { tipo: 'aceito', grupo: ID }, ADMIN, 1000, 1000)).toMatchObject({
+      ok: false,
+    })
+  })
+
+  it('RN-WEB-GRUPOS-015: o admin que volta depois de horas aceita todos os pedidos, nao so o primeiro', () => {
+    // O admin abre o Voz as 20h e recebe de uma vez os aceites feitos entre 10h e 11h.
+    const agoraDoAdmin = 72_000
+    const g = { ...ativo({ pendentes: [BIA, CAIO] }), membros: [ADMIN], alteradoEm: 36_000 }
+    const primeiro = aplicarAcao(
+      g,
+      CAIO,
+      { tipo: 'aceito', grupo: ID },
+      ADMIN,
+      39_600,
+      agoraDoAdmin,
+    )
+    expect(primeiro.ok && primeiro.grupo.membros).toEqual([ADMIN, CAIO])
+    const depois = primeiro.ok ? primeiro.grupo : g
+    // o da Bia foi feito mais cedo (10h) e chega depois: continua valendo
+    const segundo = aplicarAcao(
+      depois,
+      BIA,
+      { tipo: 'aceito', grupo: ID },
+      ADMIN,
+      36_100,
+      agoraDoAdmin,
+    )
+    expect(segundo.ok && segundo.grupo.membros).toEqual([ADMIN, CAIO, BIA])
+  })
 })

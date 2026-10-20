@@ -27,6 +27,8 @@ export interface Grupo {
   // "Excluir grupo": some da lista e do aparelho, mas o registro fica para um convite antigo reentregue pelo
   // relay nao ressuscitar o grupo.
   excluido?: boolean
+  // Eu apertei Aceitar e o admin ainda nao confirmou (a lista nova nao chegou). Permite reenviar o pedido.
+  aceitou?: boolean
   // Mesmos campos da lista de conversas, para ordenar e contar nao lidas.
   ultimaMensagemEm?: number
   trecho?: string

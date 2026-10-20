@@ -433,7 +433,11 @@ export const t = {
       'Só depois de aceitar você recebe as mensagens do grupo. Você não verá o que foi dito antes de entrar.',
     aceitar: 'Aceitar',
     recusar: 'Recusar',
-    aguardando: 'Aceitei. Aguardando o admin confirmar a minha entrada…',
+    aguardando: 'Você aceitou. Aguardando o admin confirmar a sua entrada…',
+    aguardandoAjuda:
+      'Se demorar, o admin pode estar sem o Voz aberto. Quando ele abrir, você entra sozinho. Você também pode reenviar o pedido.',
+    reenviar: 'Reenviar pedido',
+    pedidoReenviado: 'Pedido reenviado.',
     // Situacao do grupo
     saiu: 'Você saiu deste grupo. O histórico fica aqui até você limpar.',
     removido: 'Você foi removido deste grupo. O histórico fica aqui até você limpar.',

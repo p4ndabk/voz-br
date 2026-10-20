@@ -81,7 +81,9 @@ function ItemConvite({ grupo }: { grupo: Grupo }) {
         <Avatar semente={grupo.id} tamanho={48} />
         <span className="flex min-w-0 flex-1 flex-col">
           <span className="truncate font-bold">{grupo.nome}</span>
-          <span className="truncate text-sm text-tinta-suave">{t.grupos.convidou(quem)}</span>
+          <span className="truncate text-sm text-tinta-suave">
+            {grupo.aceitou ? t.grupos.aguardando : t.grupos.convidou(quem)}
+          </span>
         </span>
         <span className="shrink-0 rounded-cordel border-2 border-borda bg-vermelho px-1.5 text-[11px] font-bold uppercase text-sobre-vermelho">
           {t.grupos.convites}

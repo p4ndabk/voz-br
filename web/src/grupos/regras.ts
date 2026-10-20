@@ -19,6 +19,8 @@ export type Resultado =
       grupo: Grupo
       // O admin mudou a lista por causa de um aceite, recusa ou saida: precisa avisar todos.
       publicarMembros?: boolean
+      // A lista vai so a esta pessoa (reenvio a quem nao a recebeu), nao a todos.
+      soPara?: string
       // "Limpar para todos": apagar as mensagens ate este instante.
       limparAte?: number
       // A mensagem de grupo e valida e deve virar balao.
@@ -27,7 +29,7 @@ export type Resultado =
   | { ok: false; motivo: Rejeicao }
 
 const recusa = (motivo: Rejeicao): Resultado => ({ ok: false, motivo })
-type Extra = { publicarMembros?: boolean; limparAte?: number; mensagem?: boolean }
+type Extra = { publicarMembros?: boolean; soPara?: string; limparAte?: number; mensagem?: boolean }
 const ok = (grupo: Grupo, extra: Extra = {}): Resultado => ({ ok: true, grupo, ...extra })
 
 const paraDados = (g: Grupo): DadosGrupo => ({
@@ -40,8 +42,22 @@ const paraDados = (g: Grupo): DadosGrupo => ({
 })
 export { paraDados }
 
-function deDados(d: DadosGrupo, estado: Grupo['estado'], criadoEm: number, antigo?: Grupo): Grupo {
-  return { ...antigo, ...d, estado, criadoEm: antigo?.criadoEm ?? criadoEm, excluido: false }
+function deDados(
+  d: DadosGrupo,
+  estado: Grupo['estado'],
+  criadoEm: number,
+  antigo?: Grupo,
+  manterAceite = false,
+): Grupo {
+  return {
+    ...antigo,
+    ...d,
+    estado,
+    criadoEm: antigo?.criadoEm ?? criadoEm,
+    excluido: false,
+    // "Aceitei" so vale para o mesmo convite: um convite novo comeca sem aceite.
+    aceitou: manterAceite ? antigo?.aceitou : undefined,
+  }
 }
 
 // RN-WEB-GRUPOS-001 a 008: decide o que fazer com uma acao de grupo vinda de `autor` (a chave do selo,
@@ -78,7 +94,7 @@ export function aplicarAcao(
         return recusa('inativo')
       }
       if (d.membros.includes(eu)) return ok(deDados(d, 'ativo', agora, local))
-      if (d.pendentes.includes(eu)) return ok(deDados(d, 'convidado', agora, local))
+      if (d.pendentes.includes(eu)) return ok(deDados(d, 'convidado', agora, local, true))
       // Fora da lista: era membro e foi removido, ou o convite foi cancelado.
       return ok(deDados(d, 'removido', agora, local))
     }
@@ -106,18 +122,18 @@ export function aplicarAcao(
             ...local,
             membros: local.membros.filter((pk) => pk !== autor),
             versao: local.versao + 1,
-            alteradoEm: agora,
           },
           { publicarMembros: true },
         )
       }
+      // RN-WEB-GRUPOS-015: quem ja e membro e pede de novo (nao recebeu a lista) recebe a lista atual, sem mudar nada.
+      if (acao.tipo === 'aceito' && eMembro && autor !== local.admin) {
+        return ok(local, { publicarMembros: true, soPara: autor })
+      }
       if (!ePendente) return recusa('sem-convite')
       const pendentes = local.pendentes.filter((pk) => pk !== autor)
       if (acao.tipo === 'recusado') {
-        return ok(
-          { ...local, pendentes, versao: local.versao + 1, alteradoEm: agora },
-          { publicarMembros: true },
-        )
+        return ok({ ...local, pendentes, versao: local.versao + 1 }, { publicarMembros: true })
       }
       if (local.membros.length >= MAXIMO_MEMBROS) return recusa('cheio')
       return ok(
@@ -126,7 +142,6 @@ export function aplicarAcao(
           pendentes,
           membros: [...local.membros, autor],
           versao: local.versao + 1,
-          alteradoEm: agora,
         },
         { publicarMembros: true },
       )

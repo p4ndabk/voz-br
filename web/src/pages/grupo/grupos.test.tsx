@@ -145,4 +145,14 @@ describe('grupos na tela', () => {
     abrir(`/conversas/grupo/${ID}`)
     expect(await screen.findByText(/entrou no grupo/)).toBeInTheDocument()
   })
+
+  it('RN-WEB-GRUPOS-015: quem aceitou e ainda nao entrou ve "aguardando" e pode reenviar o pedido', async () => {
+    await useGrupos
+      .getState()
+      .gravar(grupo({ estado: 'convidado', pendentes: [eu.pubkey], aceitou: true }))
+    abrir(`/conversas/grupo/${ID}`)
+    expect(await screen.findByRole('status')).toHaveTextContent(/Aguardando o admin confirmar/)
+    expect(screen.getByRole('button', { name: 'Reenviar pedido' })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Aceitar' })).not.toBeInTheDocument()
+  })
 })

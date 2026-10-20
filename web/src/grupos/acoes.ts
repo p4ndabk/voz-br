@@ -59,6 +59,8 @@ export async function aceitarConvite(
 ): Promise<void> {
   const grupo = await obterGrupo(id)
   if (!grupo || grupo.estado !== 'convidado') return
+  // Guarda que aceitei: a tela mostra "aguardando" e deixa reenviar o pedido se a lista nova nao chegar.
+  await useGrupos.getState().gravar({ ...grupo, aceitou: true })
   await responderConvite(assinante, grupo, true, meuNome)
 }
 
